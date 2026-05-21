@@ -1,6 +1,6 @@
-import requets from '../../util/request'
+import request from '../../util/request'
 export function login(data) {
-    return requets({
+    return request({
         url: '/auth/login',
         method: 'post',
         data

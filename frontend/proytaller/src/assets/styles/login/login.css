@@ -1,0 +1,151 @@
+
+/* FONDO GENERAL */
+.bg-grey-2 {
+  background: #f3f6f4 !important;
+}
+
+/* CARD PRINCIPAL */
+.card {
+  width: 850px;
+  max-width: 92vw;
+  height: 520px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* PANEL IZQUIERDO (VERDE) */
+.left-panel {
+  width: 42%;
+  background: linear-gradient(135deg, #1f7a4f, #0f5f3c);
+  position: relative;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* CURVA ESTILO DISEÑO IMAGEN */
+.left-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -80px;
+  width: 160px;
+  height: 100%;
+  background: #1f7a4f;
+  border-radius: 100px;
+  z-index: 1;
+}
+
+/* TEXTO IZQUIERDO */
+.text-desc {
+  opacity: 0.9;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* PANEL DERECHO */
+.right-panel {
+  width: 58%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 50px 40px;
+  position: relative;
+}
+
+/* TITULO LOGIN */
+.right-panel .text-h5 {
+  color: #1f7a4f !important;
+}
+
+/* IMAGEN */
+.img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #1f7a4f;
+  margin: 0 auto 20px auto;
+}
+
+/* FORM */
+.form {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+
+
+/* ICONOS */
+.icons {
+  color: #1f7a4f;
+  font-size: 22px;
+}
+
+/* OJO PASSWORD */
+.eye {
+  color: #1f7a4f;
+}
+
+/* BOTÓN LOGIN */
+.btn-login {
+  height: 45px;
+  border-radius: 30px !important;
+  background: linear-gradient(135deg, #1f7a4f, #0f5f3c) !important;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+
+
+/* TEXTO ERROR */
+.text-negative {
+  font-weight: bold;
+  text-align: center;
+}
+
+/* EFECTO SUAVE */
+.card,
+.left-panel,
+.right-panel {
+  transition: all 0.3s ease;
+}
+.custom-input :deep(.q-field__control) {
+  background: #ffffff !important;   /* fondo blanco real */
+  border: 1px solid #e6e6e6 !important;
+  border-radius: 17px !important;
+  box-shadow: none !important;
+}
+
+/* quita TODAS las capas internas de Quasar */
+.custom-input :deep(.q-field__control::before),
+.custom-input :deep(.q-field__control::after) {
+  background: transparent !important;
+  border: none !important;
+  display: none !important;
+}
+
+/* cuando está activo (click) */
+.custom-input :deep(.q-field--focused .q-field__control) {
+  background: #ffffff !important;
+  border: 1px solid #1f7a4f !important;
+  box-shadow: none !important;
+}
+
+/* elimina overlay azul / efectos de focus */
+.custom-input :deep(.q-focus-helper),
+.custom-input :deep(.q-ripple) {
+  display: none !important;
+}
+
+/* texto limpio */
+.custom-input :deep(.q-field__native) {
+  color: #333 !important;
+}
+
