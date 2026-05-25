@@ -2,8 +2,6 @@ package com.backendSupermercado.supermercasdo.modules.usuario.entity;
 
 import java.time.LocalDateTime;
 
-import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Rol;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,32 +12,33 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "usuario_rol")
-public class UsuarioRol {
+@Table(name = "login_usuario")
+public class LoginUsuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_usuario_rol")
-    private Long idUsuarioRol;
+    @Column(name = "id_login", nullable = false)
+    private Long idLogin;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @Column(name = "fecha_login")
+    private LocalDateTime fechaLogin;
+
+    @Column(name = "ip", length = 50)
+    private String ip;
+    
+    @ManyToOne(
+        fetch = FetchType.LAZY
+    )
+    @JoinColumn(name = "id_usuario",nullable = false)
     private Usuario usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_rol", nullable = false)
-    private Rol rol;
-
-    @Column(name = "estado")
-    private Boolean estado = true;
-
-    @Column(name = "fecha_asignacion")
-    private LocalDateTime fechaAsignacion;
 }

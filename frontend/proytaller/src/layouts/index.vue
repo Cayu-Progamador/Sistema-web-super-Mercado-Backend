@@ -19,7 +19,7 @@
             :width="drawerWidth" 
             :breakpoint="500"
         >
-            <MySidebar />
+            <MySidebar :is-mini="miniState" />
         </q-drawer>
 
         <q-page-container class="full-height">
@@ -36,7 +36,7 @@ import { ref } from 'vue'
 //import MainContent from "./modules/MainContent.vue";   // Was Main
 import MyHeader from "./modules/Header.vue";    // Was Header
 import MySidebar from "./modules/Aside.vue";    // Was Aside
-
+import '../assets/styles/layout/layouts.css'
 const leftDrawerOpen = ref(false)
 const drawerWidth = ref(200)
 
@@ -47,14 +47,3 @@ function toggleLeftDrawer() {
 }
 
 </script>
-<style>
-.full-height {
-  min-height: 100vh; /* asegura que ocupe toda la altura de la ventana */
-}
-.drawer {
-    background-color: #d6d9ff;
-}
-.header {
-    background-color: #3c78ff;
-}
-</style>

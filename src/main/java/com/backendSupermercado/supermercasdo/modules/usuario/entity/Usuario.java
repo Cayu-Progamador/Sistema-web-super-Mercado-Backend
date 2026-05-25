@@ -1,5 +1,6 @@
 package com.backendSupermercado.supermercasdo.modules.usuario.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,16 @@ public class Usuario {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
-    //relacion usuario
+    @Column(name = "bloqueado", nullable = false)
+    private  Boolean bloqueado = false;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
+    private LocalDateTime fechaActualizacion;
+
+    //relacion empleado con usuario
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_empleado")
     private Empleado empleado;
@@ -54,4 +64,22 @@ public class Usuario {
         fetch = FetchType.LAZY
     )
     private List<UsuarioRol> usuarioRoles = new ArrayList<>();
+
+//relacion usuario login
+    @OneToMany(
+        mappedBy = "usuario", 
+        cascade = CascadeType.ALL, 
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<LoginUsuario> loginUsuarios = new ArrayList<>();
+
+    //relacion usuario auditoria
+    @OneToMany(
+        mappedBy = "usuario", 
+        cascade = CascadeType.ALL, 
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<AuditoriaUsuario> auditorias = new ArrayList<>();
 }

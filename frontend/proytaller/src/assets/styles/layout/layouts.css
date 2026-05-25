@@ -1,0 +1,14 @@
+:root {
+    --aside: #bce9e2;
+    --header: #006051;
+    --text_color: #006051;
+}
+.full-height {
+  min-height: 100vh; /* asegura que ocupe toda la altura de la ventana */
+}
+.drawer {
+    background-color: var(--aside);
+}
+.header {
+    background-color: var(--header);
+}

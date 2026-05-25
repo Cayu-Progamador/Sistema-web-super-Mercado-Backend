@@ -9,30 +9,41 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backendSupermercado.supermercasdo.security.auth.service.AuthService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.backendSupermercado.supermercasdo.security.auth.dto.AuthResponseDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.LoginRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.UsuarioResponseDto;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
-    //LOGIN
+
+    // LOGIN
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginRequestDto request){
+    public ResponseEntity<AuthResponseDto> login(
+            @RequestBody LoginRequestDto request,
+            HttpServletRequest httpRequest) {
+        // obtener ip
+        String ip = httpRequest.getRemoteAddr();
+
+        // login
         String token = authService.login(
-            request.getUsername(),
-            request.getPassword()
-        );
+                request.getUsername(),
+                request.getPassword(),
+                ip);
+                
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
-    //REGISTER
-    @PostMapping("/register") 
-    public ResponseEntity<UsuarioResponseDto> register(@RequestBody RegistroRequestDto request){
+    // REGISTER
+    @PostMapping("/register")
+    public ResponseEntity<UsuarioResponseDto> register(@RequestBody RegistroRequestDto request) {
         UsuarioResponseDto response = authService.registrarUsuario(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

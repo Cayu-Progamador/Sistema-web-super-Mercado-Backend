@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -40,49 +41,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         try {
 
-            // EXTRAER TOKEN
-            if (authHeader != null
-                    && authHeader.startsWith("Bearer ")) {
-
-                token = authHeader.substring(7);
-
-                username = jwtUtil.extractUsername(token);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request, response);
+                return;
             }
 
-            // VALIDAR
-            if (username != null
-                    && SecurityContextHolder
-                            .getContext()
-                            .getAuthentication() == null) {
+            token = authHeader.substring(7);
 
-                UserDetails userDetails = userDetailsService
-                        .loadUserByUsername(username);
+            // 🔥 VALIDACIÓN SEGURA
+            username = jwtUtil.extractUsername(token);
 
-                if (jwtUtil.isTokenValid(
-                        token,
-                        userDetails)) {
+            if (username != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(username);
 
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities());
+                if (jwtUtil.isTokenValid(token, userDetails)) {
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
                     authToken.setDetails(
-
                             new WebAuthenticationDetailsSource()
-                                    .buildDetails(request));
+                                    .buildDetails(request)
+                    );
 
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
 
         } catch (Exception e) {
 
-            System.out.println(
-                    "JWT ERROR: " + e.getMessage());
+            // ❌ IMPORTANTE: NO DEJAR PASAR TOKEN ROTO
+            SecurityContextHolder.clearContext();
+
+            System.out.println("JWT ERROR: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

@@ -1,0 +1,75 @@
+/*
+ =========================================================================
+  PALETA DE COLORES DE MARCA - SUPERMERCADO LA MARTITA (Basado en el Logo)
+ =========================================================================
+  Este archivo centraliza todos los estilos de tu sistema. 
+*/
+
+:root {
+  /* --- COLORES BASE DEL LOGO --- */
+  --color-logo-verde-oscuro: #006051; /* El color de la base del carrito (Dark Teal) */
+  --color-logo-naranja:      #F57C00; /* El color de la letra 'M' (Cálido y vibrante) */
+  --color-logo-verde-lima:   #8BC34A; /* El color de las hojas (Frescura y Éxito) */
+
+  /* --- BOTÓN PRIMARIO (Acciones Normales: Añadir, Crear, Buscar) --- */
+  --btn-primary-bg:          var(--color-logo-verde-oscuro);
+  --btn-primary-text:        #FFFFFF;
+  --btn-primary-hover:       #004D41;
+
+  /* --- BOTÓN SECUNDARIO / CTA (Ventas: Cobrar, Cerrar Venta) --- */
+  --btn-secondary-bg:        var(--color-logo-naranja);
+  --btn-secondary-text:      #FFFFFF;
+  --btn-secondary-hover:     #E66F00;
+
+  /* --- BOTÓN DE ÉXITO / CONFIRMACIÓN (Estados Activos, Correcto) --- */
+  --btn-success-bg:          var(--color-logo-verde-lima);
+  --btn-success-text:        #FFFFFF;
+  --btn-success-hover:       #7CB342;
+
+  /* --- BOTÓN DE CANCELAR / NEUTRO (Volver, Cancelar, Limpiar) --- */
+  --btn-neutral-bg:          #F1F5F9;
+  --btn-neutral-text:        #475569;
+  --btn-neutral-hover:       #E2E8F0;
+
+  /* --- INPUTS / FORMULARIOS --- */
+  --input-bg:                #FFFFFF;
+  --input-border:            #CBD5E1;
+  --input-border-focus:      var(--color-logo-verde-oscuro);
+}
+
+/* =========================================================================
+  CLASES CSS PARA USAR DIRECTO EN TUS BOTONES 
+  (Añade estas clases a tu <q-btn class="mi-clase">)
+  =========================================================================
+*/
+
+.btn-primario {
+  background-color: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-radius: 8px; /* Bordes un poco redondeados, más modernos */
+}
+
+.btn-primario:hover { background-color: var(--btn-primary-hover) !important; }
+
+.btn-accion {
+  background-color: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+  border-radius: 8px;
+  font-weight: bold; /* Letra más gruesa para que destaque */
+}
+.btn-accion:hover { background-color: var(--btn-secondary-hover) !important; }
+
+.btn-exito {
+  background-color: var(--btn-success-bg) !important;
+  color: var(--btn-success-text) !important;
+  border-radius: 8px;
+}
+.btn-exito:hover { background-color: var(--btn-success-hover) !important; }
+
+.btn-neutro {
+  background-color: var(--btn-neutral-bg) !important;
+  color: var(--btn-neutral-text) !important;
+  border-radius: 8px;
+  box-shadow: none !important; /* Los botones de cancelar no deben tener sombra */
+}
+.btn-neutro:hover { background-color: var(--btn-neutral-hover) !important; }

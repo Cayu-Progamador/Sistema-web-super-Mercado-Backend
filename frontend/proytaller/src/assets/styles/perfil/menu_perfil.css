@@ -1,0 +1,105 @@
+:root {
+  /* Colores base extraídos de tu marca */
+  --color-primario: #00A99D;       /* Turquesa corporativo */
+  --color-fondo-header: #bce9e2;   /* Menta claro para el encabezado */
+  --color-texto-oscuro: #2F3E4F;   /* Azul oscuro para que el texto se lea perfecto */
+  --color-peligro: #D9534F;        /* Rojo para acciones destructivas (Salir) */
+  --color-hover: #f0f7f6;          /* Menta súper translúcido para el hover */
+}
+
+/* --- Avatar --- */
+.avatar-style {
+  border: 2px solid var(--color-primario); /* Subí a 2px para que destaque el borde */
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.avatar-style:hover {
+  transform: scale(1.05);
+}
+
+/* --- Menú Dropdown --- */
+.custom-user-menu-dropdown {
+  border-radius: 12px;
+  background-color: #FFFFFF; /* El blanco da un aspecto mucho más limpio que el gris */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra más sutil y elegante */
+  padding: 0;
+  overflow: hidden; /* Asegura que el color de fondo no se salga de las esquinas redondas */
+}
+
+/* --- Info Usuario (Encabezado) --- */
+.user-info-container {
+  background-color: var(--color-fondo-header);
+  padding-bottom: 8px; /* Da un poco de respiro al diseño */
+}
+
+.user-icon {
+  color: var(--color-primario);
+}
+
+.user-name {
+  font-size: 0.95rem;
+  text-transform: uppercase; /* Para que el nombre se vea más profesional */
+  color: var(--color-texto-oscuro); /* CORRECCIÓN: Texto oscuro para contrastar con el fondo menta */
+}
+
+.user-username, .user-name {
+  user-select: none;
+}
+
+.user-username {
+  font-size: 0.8rem;
+  color : var(--color-texto-oscuro);
+  padding-left: 32px;
+  padding-top: 2px;
+  padding-bottom: 4px;
+  font-weight: 500;
+}
+
+.text-role{
+  margin-left: 4px;
+  color: #42b883;
+  text-transform: uppercase; 
+  font-weight: 600;
+}
+
+
+
+
+/* --- Opciones del Menú --- */
+.menu-item {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: var(--color-hover); /* Un efecto de paso de ratón muy suave */
+}
+
+/* Estilos neutrales para opciones normales (Perfil, Contraseña) */
+.menu-icon-perfil, 
+.menu-icon-password {
+  color: var(--color-texto-oscuro);
+}
+
+.menu-label-perfil, 
+.menu-label-password {
+  color: var(--color-texto-oscuro);
+  font-weight: 500;
+}
+
+/* Estilos específicos y restrictivos solo para "Salir" */
+.logout.menu-icon {
+  color: var(--color-peligro) !important;
+}
+
+.logout.menu-label {
+  color: var(--color-peligro) !important;
+  font-weight: 600;
+}
+
+/* --- Separadores --- */
+.q-separator {
+  margin: 0;
+  background-color: #e2e8f0; /* Un separador mucho más fino y moderno */
+}

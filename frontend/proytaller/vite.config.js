@@ -14,11 +14,7 @@ export default defineConfig({
     port: 5173, // puerto del frontend
     proxy: {
       // redirigir /auth y /api al backend Spring Boot
-      '/auth': {
-        target: 'import.meta.env.VITE_API_URL', // tu backend
-        changeOrigin: true,
-        secure: false,
-      },
+
       '/api': {
         target: 'import.meta.env.VITE_API_URL',
         changeOrigin: true,
