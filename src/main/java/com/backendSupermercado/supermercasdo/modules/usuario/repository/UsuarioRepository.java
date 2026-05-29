@@ -21,4 +21,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
       WHERE u.username = :username
       """)
    Optional<Usuario> findByUsernameWithRoles(String username);
+
+   Optional<Usuario> findByEmpleadoEmail(String email);
 }

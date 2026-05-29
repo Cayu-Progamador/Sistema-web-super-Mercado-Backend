@@ -24,7 +24,23 @@
         </q-item-section>
         <q-item-section class="sidebar-label">Usuarios</q-item-section>
       </q-item>
+      
+      <!-- perfil modulo -->
+      <q-item clickable v-ripple to="/perfil" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="person" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Perfil</q-item-section>
+      </q-item>
+<!-- Gesrion de roles -->
+      <q-item clickable v-ripple to="/roles" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="security" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Roles</q-item-section>
+      </q-item>
 
+      
     </q-list>
   </q-scroll-area>
 </template>

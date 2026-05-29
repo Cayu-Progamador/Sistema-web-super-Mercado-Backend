@@ -86,17 +86,17 @@ const router = useRouter()
 const store = useAuthStore()
 
 async function fetchUserInfo() {
+  
   try {
     const response = await getUserList()
     userInfo.value = response
   } catch (error) {
     console.error('No se puede obtener la info del usuario')
-    router.push('/login')
   }
 }
 
 onMounted(() => {
-  fetchUserInfo()
+    fetchUserInfo()
 })
 
 const logout = () => {

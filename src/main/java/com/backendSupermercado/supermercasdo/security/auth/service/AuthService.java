@@ -1,7 +1,8 @@
 package com.backendSupermercado.supermercasdo.security.auth.service;
 
-
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,8 +13,12 @@ import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictExceptio
 import com.backendSupermercado.supermercasdo.exceptions.ResourceNotFoundException;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
 import com.backendSupermercado.supermercasdo.modules.empleado.repository.EmpleadoRepository;
+import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
+import com.backendSupermercado.supermercasdo.modules.seguridad.entity.PasswordResetToken;
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Rol;
+import com.backendSupermercado.supermercasdo.modules.seguridad.repository.PasswordResetTokenRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRepository;
+import com.backendSupermercado.supermercasdo.modules.seguridad.service.EmailService;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.LoginUsuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.UsuarioRol;
@@ -23,6 +28,8 @@ import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDt
 import com.backendSupermercado.supermercasdo.security.auth.dto.UsuarioResponseDto;
 import com.backendSupermercado.supermercasdo.security.jwt.JwtUtil;
 import com.backendSupermercado.supermercasdo.shared.util.FechaUtil;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class AuthService {
@@ -40,10 +47,16 @@ public class AuthService {
         private EmpleadoRepository empleadoRepository;
 
         @Autowired
+        private PasswordResetTokenRepository passwordResetTokenRepository;
+
+        @Autowired
         private JwtUtil jwtUtil;
 
         @Autowired
         private LoginUsuarioRepository loginUsuarioRepository;
+
+        @Autowired
+        private EmailService emailService;
 
         // REGISTRAR USUARIO
         public UsuarioResponseDto registrarUsuario(RegistroRequestDto request) {
@@ -74,10 +87,10 @@ public class AuthService {
 
                 usuario.setPassword(passwordEncoder.encode(request.getPassword()));
                 usuario.setEmpleado(empleado);
-                //fecha de creacion
+                // fecha de creacion
                 usuario.setFechaCreacion(FechaUtil.ahora());
                 usuario.setActivo(true);
-                
+
                 // asignar roles
                 List<Rol> roles = asignarRolesDesdeRequest(request.getRoles());
 
@@ -85,7 +98,7 @@ public class AuthService {
                         UsuarioRol usuarioRol = new UsuarioRol();
                         usuarioRol.setUsuario(usuario);
                         usuarioRol.setRol(rol);
-                        //fecha de asignacion
+                        // fecha de asignacion
                         usuarioRol.setFechaAsignacion(FechaUtil.ahora());
                         usuario.getUsuarioRoles().add(usuarioRol);
                 }
@@ -109,12 +122,10 @@ public class AuthService {
 
                         return List.of(rolDefault);
                 }
-                //roles enviados
+                // roles enviados
                 return roleNames.stream()
-                                .map(role -> 
-                                        rolRepository.findByNombre(role)
-                                                .orElseThrow(() -> 
-                                                        new ResourceNotFoundException(
+                                .map(role -> rolRepository.findByNombre(role)
+                                                .orElseThrow(() -> new ResourceNotFoundException(
                                                                 "Rol no encontrado: " + role)))
                                 .toList();
         }
@@ -126,8 +137,8 @@ public class AuthService {
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Usuario no encontrado"));
 
-                //validar activo
-                if(!usuario.getActivo()){
+                // validar activo
+                if (!usuario.getActivo()) {
                         throw new BadCredentialsException(
                                         "Usuario no activo");
                 }
@@ -138,15 +149,101 @@ public class AuthService {
                                         "Contraseña incorrecta");
                 }
 
-                //guardar login
+                // guardar login
                 LoginUsuario loginUsuario = new LoginUsuario();
                 loginUsuario.setFechaLogin(FechaUtil.ahora());
                 loginUsuario.setIp(ip);
                 loginUsuario.setUsuario(usuario);
                 loginUsuarioRepository.save(loginUsuario);
-                
+
                 // GENERAR TOKEN
                 return jwtUtil.generateToken(usuario.getUsername());
+        }
+
+        // recuperar contrasena mediante email
+        @Transactional
+        public void forgotPassword(String email) {
+
+                if (email == null || email.isBlank()) {
+                        throw new BadCredentialsException("El email es obligatorio");
+                }
+
+                Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+                // eliminar PINs anteriores del usuario
+                passwordResetTokenRepository.deleteByUsuario(usuario);
+
+                // generar PIN
+                String pin = generarPin6Digitos();
+
+                PasswordResetToken reset = new PasswordResetToken();
+                reset.setPin(pin);
+                reset.setUsuario(usuario);
+                reset.setFechaExpiracion(LocalDateTime.now().plusMinutes(10));
+                reset.setUsed(false);
+                reset.setAttempts(0);
+                reset.setCreatedAt(LocalDateTime.now());
+
+                passwordResetTokenRepository.save(reset);
+
+                emailService.sendRecoverEmail(email, pin);
+        }
+
+        // generar PIN de 6 dígitos
+        private String generarPin6Digitos() {
+                int pin = 100000 + new Random().nextInt(900000);
+                return String.valueOf(pin);
+        }
+
+        // verificar el pin
+        @Transactional
+        public void verifyPin(String email, String pinIngresado) {
+
+                Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+                PasswordResetToken token = passwordResetTokenRepository
+                                .findTopByUsuarioOrderByCreatedAtDesc(usuario)
+                                .orElseThrow(() -> new ResourceNotFoundException("PIN no encontrado"));
+
+                // verificar expiración
+                if (token.getFechaExpiracion().isBefore(LocalDateTime.now())) {
+                        throw new BadCredentialsException("PIN expirado");
+                }
+
+                // bloquear intentos
+                if (token.getAttempts() >= 3) {
+                        throw new BadCredentialsException("PIN bloqueado");
+                }
+
+                // validar PIN
+                if (!token.getPin().equals(pinIngresado)) {
+
+                        token.setAttempts(token.getAttempts() + 1);
+                        passwordResetTokenRepository.save(token);
+
+                        throw new BadCredentialsException("PIN incorrecto");
+                }
+
+                // marcar usado
+                token.setUsed(true);
+                passwordResetTokenRepository.save(token);
+        }
+
+        // resetear contraseña
+        @Transactional
+        public void resetPassword(ResetPasswordRequestDto request) {
+
+                if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+                        throw new BadCredentialsException("La nueva contraseña no puede estar vacía");
+                }
+
+                Usuario usuario = usuarioRepository.findByEmpleadoEmail(request.getEmail())
+                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+                usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                usuarioRepository.save(usuario);
         }
 
 }

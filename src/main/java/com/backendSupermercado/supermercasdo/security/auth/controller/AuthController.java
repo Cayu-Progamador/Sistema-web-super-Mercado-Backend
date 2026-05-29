@@ -12,6 +12,8 @@ import com.backendSupermercado.supermercasdo.security.auth.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ForgotPasswordRequestDto;
+import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.AuthResponseDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.LoginRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDto;
@@ -37,7 +39,7 @@ public class AuthController {
                 request.getUsername(),
                 request.getPassword(),
                 ip);
-                
+
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
@@ -46,5 +48,37 @@ public class AuthController {
     public ResponseEntity<UsuarioResponseDto> register(@RequestBody RegistroRequestDto request) {
         UsuarioResponseDto response = authService.registrarUsuario(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // Mandar correo de recuperación
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> recuperarContrasena(
+            @RequestBody ForgotPasswordRequestDto request) {
+
+        authService.forgotPassword(request.getEmail());
+
+        return ResponseEntity.ok(
+                "Correo de recuperación enviado");
+    }
+
+    // Verificar PIN
+    @PostMapping("/verify-pin")
+    public ResponseEntity<String> verifyPin(
+            @RequestBody ResetPasswordRequestDto request) {
+
+        authService.verifyPin(request.getEmail(), request.getPin());
+
+        return ResponseEntity.ok("PIN correcto");
+    }
+
+    // Resetear contraseña
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @RequestBody ResetPasswordRequestDto request) {
+
+        authService.resetPassword(request);
+
+        return ResponseEntity.ok(
+                "Contraseña reseteada correctamente");
     }
 }

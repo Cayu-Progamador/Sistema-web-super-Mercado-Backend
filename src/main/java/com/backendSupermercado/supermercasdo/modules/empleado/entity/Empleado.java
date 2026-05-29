@@ -30,6 +30,9 @@ public class Empleado {
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
 
+    @Column(name = "email",  unique = true, length = 150)
+    private String email;
+
     //relacion con usuario
     @OneToOne(
         mappedBy = "empleado", 

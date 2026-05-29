@@ -21,21 +21,25 @@
               <div class="left-logo-wrap q-mb-lg">
                 <div class="left-logo-icon">
                   <svg width="36" height="36" viewBox="0 0 80 80" fill="none">
-                    <path d="M18 22 Q18 18 22 18 L58 18" stroke="#c8e0a0" stroke-width="5" stroke-linecap="round" fill="none"/>
-                    <path d="M22 18 L28 50 Q29 54 33 54 L58 54 Q62 54 63 50 L68 28 L24 28" stroke="#9fe1cb" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <path d="M36 44 L42 34 L48 44" stroke="#d97b1a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <path d="M33 38 L39 28 L45 38" stroke="#f5a030" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <circle cx="36" cy="60" r="5" fill="#9fe1cb"/>
-                    <circle cx="56" cy="60" r="4" fill="#5DCAA5"/>
-                    <path d="M50 18 Q50 10 54 8 Q52 14 58 12 Q56 18 50 18Z" fill="#c8e0a0"/>
-                    <path d="M56 16 Q60 8 65 8 Q62 14 66 13 Q63 19 56 16Z" fill="#eaf4d8"/>
+                    <path d="M18 22 Q18 18 22 18 L58 18" stroke="#c8e0a0" stroke-width="5" stroke-linecap="round"
+                      fill="none" />
+                    <path d="M22 18 L28 50 Q29 54 33 54 L58 54 Q62 54 63 50 L68 28 L24 28" stroke="#9fe1cb"
+                      stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    <path d="M36 44 L42 34 L48 44" stroke="#d97b1a" stroke-width="5" stroke-linecap="round"
+                      stroke-linejoin="round" fill="none" />
+                    <path d="M33 38 L39 28 L45 38" stroke="#f5a030" stroke-width="3.5" stroke-linecap="round"
+                      stroke-linejoin="round" fill="none" />
+                    <circle cx="36" cy="60" r="5" fill="#9fe1cb" />
+                    <circle cx="56" cy="60" r="4" fill="#5DCAA5" />
+                    <path d="M50 18 Q50 10 54 8 Q52 14 58 12 Q56 18 50 18Z" fill="#c8e0a0" />
+                    <path d="M56 16 Q60 8 65 8 Q62 14 66 13 Q63 19 56 16Z" fill="#eaf4d8" />
                   </svg>
                 </div>
                 <span class="left-brand">Mercat</span>
               </div>
 
-              <div class="left-title">{{ lorem.split(' ').slice(0,2).join(' ') || 'Bienvenido' }}</div>
-              <div class="left-title-main">Sistema de<br/>Gestión</div>
+              <div class="left-title">{{ lorem.split(' ').slice(0, 2).join(' ') || 'Bienvenido' }}</div>
+              <div class="left-title-main">Sistema de<br />Gestión</div>
               <div class="orange-bar"></div>
               <div class="left-desc">{{ lorem }}</div>
 
@@ -65,14 +69,8 @@
 
                 <div class="field-wrap">
                   <label class="field-label">Usuario</label>
-                  <q-input
-                    v-model="form.username"
-                    outlined
-                    dense
-                    placeholder="Ingresa tu usuario"
-                    :rules="[val => !!val || 'Ingrese su usuario']"
-                    class="custom-input"
-                  >
+                  <q-input v-model="form.username" outlined dense placeholder="Ingresa tu usuario"
+                    :rules="[val => !!val || 'Ingrese su usuario']" class="custom-input">
                     <template v-slot:prepend>
                       <q-icon name="person" class="icons" />
                     </template>
@@ -81,39 +79,27 @@
 
                 <div class="field-wrap">
                   <label class="field-label">Contraseña</label>
-                  <q-input
-                    v-model="form.password"
-                    outlined
-                    dense
-                    placeholder="Ingresa tu contraseña"
-                    :type="isPwd ? 'password' : 'text'"
-                    :rules="[val => !!val || 'Ingrese su contraseña']"
-                    class="custom-input"
-                  >
+                  <q-input v-model="form.password" outlined dense placeholder="Ingresa tu contraseña"
+                    :type="isPwd ? 'password' : 'text'" :rules="[val => !!val || 'Ingrese su contraseña']"
+                    class="custom-input">
                     <template v-slot:prepend>
                       <q-icon name="lock" class="icons" />
                     </template>
                     <template v-if="form.password" v-slot:append>
-                      <q-icon
-                        :name="isPwd ? 'visibility_off' : 'visibility'"
-                        class="cursor-pointer eye"
-                        @click="isPwd = !isPwd"
-                      />
+                      <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer eye"
+                        @click="isPwd = !isPwd" />
                     </template>
                   </q-input>
                 </div>
 
                 <div class="forgot-row">
-                  <span class="forgot-link">¿Olvidaste tu contraseña?</span>
+                  <a class="forgot-link" @click="forgotRef?.openForgotPassword()">
+                    ¿Olvidaste tu contraseña?
+                  </a>
                 </div>
 
-                <q-btn
-                  type="submit"
-                  label="Ingresar al sistema"
-                  class="btn-login full-width"
-                  unelevated
-                  :loading="isLoading"
-                >
+                <q-btn type="submit" label="Ingresar al sistema" class="btn-login full-width" unelevated
+                  :loading="isLoading">
                   <template v-slot:loading>
                     <q-spinner-ios color="white" size="1.5em" />
                   </template>
@@ -127,11 +113,11 @@
 
             </q-form>
 
-           
 
           </div>
         </div>
       </q-card>
+      <ForgotPassword ref="forgotRef" />
     </div>
   </q-dialog>
 </template>
@@ -141,14 +127,15 @@ import { ref, reactive } from "vue"
 import { useRouter } from "vue-router"
 import { login } from '../../api/login/login'
 import { useAuthStore } from "../../store/store"
+import ForgotPassword from '../../components/auth/recuperarPassword/ForgotPassword.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-
 const dialog = ref(true)
 const isLoading = ref(false)
 const errorMsg = ref("")
 const isPwd = ref(true)
+const forgotRef = ref(null)
 
 const lorem = 'Administra tu supermercado de forma simple, rápida y segura desde un solo lugar.'
 
@@ -193,7 +180,7 @@ const submitLogin = async () => {
   height: 560px;
   border-radius: 28px !important;
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(42, 92, 26, 0.18), 0 4px 16px rgba(0,0,0,0.06) !important;
+  box-shadow: 0 24px 80px rgba(42, 92, 26, 0.18), 0 4px 16px rgba(0, 0, 0, 0.06) !important;
   font-family: 'Nunito', sans-serif;
   border: none !important;
 }
@@ -223,8 +210,19 @@ const submitLogin = async () => {
 }
 
 /* Decoración círculos */
-.deco-top { position: absolute; top: 0; left: 0; z-index: 0; }
-.deco-bottom { position: absolute; bottom: 0; left: 0; z-index: 0; }
+.deco-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.deco-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+}
 
 .deco-circle {
   position: absolute;
@@ -232,9 +230,28 @@ const submitLogin = async () => {
   opacity: 0.07;
   background: #ffffff;
 }
-.deco-circle-1 { width: 260px; height: 260px; top: -80px; left: -80px; }
-.deco-circle-2 { width: 140px; height: 140px; top: 60px; right: -20px; opacity: 0.04; }
-.deco-circle-3 { width: 200px; height: 200px; bottom: -80px; left: -60px; }
+
+.deco-circle-1 {
+  width: 260px;
+  height: 260px;
+  top: -80px;
+  left: -80px;
+}
+
+.deco-circle-2 {
+  width: 140px;
+  height: 140px;
+  top: 60px;
+  right: -20px;
+  opacity: 0.04;
+}
+
+.deco-circle-3 {
+  width: 200px;
+  height: 200px;
+  bottom: -80px;
+  left: -60px;
+}
 
 /* Contenido izquierdo */
 .left-content {
@@ -257,9 +274,9 @@ const submitLogin = async () => {
 .left-logo-icon {
   width: 52px;
   height: 52px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -278,7 +295,7 @@ const submitLogin = async () => {
   font-family: 'Nunito', sans-serif;
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   margin-bottom: 6px;
@@ -304,7 +321,7 @@ const submitLogin = async () => {
 .left-desc {
   font-family: 'Nunito', sans-serif;
   font-size: 13.5px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
   line-height: 1.7;
   font-weight: 500;
 }
@@ -322,16 +339,16 @@ const submitLogin = async () => {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.8);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   letter-spacing: 0.04em;
 }
 
 .left-tag-orange {
-  background: rgba(217,123,26,0.2);
+  background: rgba(217, 123, 26, 0.2);
   color: #f5b96e;
-  border-color: rgba(217,123,26,0.3);
+  border-color: rgba(217, 123, 26, 0.3);
 }
 
 /* ════════════════════════════
@@ -353,7 +370,9 @@ const submitLogin = async () => {
 .right-panel::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 3px;
   background: linear-gradient(90deg, #4a8c25, #7aaa4e, #d97b1a);
 }
@@ -432,7 +451,10 @@ const submitLogin = async () => {
   cursor: pointer;
   transition: color 0.2s;
 }
-.forgot-link:hover { color: #b8631a; }
+
+.forgot-link:hover {
+  color: #b8631a;
+}
 
 /* ── Inputs ── */
 .custom-input :deep(.q-field__control) {
@@ -491,7 +513,10 @@ const submitLogin = async () => {
   color: #bdd49a;
   transition: color 0.2s;
 }
-.eye:hover { color: #4a8c25; }
+
+.eye:hover {
+  color: #4a8c25;
+}
 
 /* ── Botón ── */
 .btn-login {
