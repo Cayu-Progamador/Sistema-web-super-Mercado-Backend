@@ -5,19 +5,15 @@
       <q-card class="login-card" flat>
         <div class="row no-wrap full-height">
 
-          <!-- PANEL IZQUIERDO -->
           <div class="left-panel column justify-between">
 
-            <!-- Decoración top -->
             <div class="deco-top">
               <div class="deco-circle deco-circle-1"></div>
               <div class="deco-circle deco-circle-2"></div>
             </div>
 
-            <!-- Contenido central -->
             <div class="left-content column justify-center q-px-xl q-py-lg">
 
-              <!-- Logo -->
               <div class="left-logo-wrap q-mb-lg">
                 <div class="left-logo-icon">
                   <svg width="36" height="36" viewBox="0 0 80 80" fill="none">
@@ -43,27 +39,22 @@
               <div class="orange-bar"></div>
               <div class="left-desc">{{ lorem }}</div>
 
-              <!-- Tags -->
-            </div>
+              </div>
 
-            <!-- Decoración bottom -->
             <div class="deco-bottom">
               <div class="deco-circle deco-circle-3"></div>
             </div>
 
           </div>
 
-          <!-- PANEL DERECHO -->
           <div class="right-panel column flex-center">
 
-            <!-- Header -->
             <div class="text-center q-mb-xl">
               <div class="right-eyebrow">Bienvenido de vuelta</div>
               <div class="right-title">Inicio de Sesión</div>
               <div class="right-sub">Ingresa tus credenciales para continuar</div>
             </div>
 
-            <!-- FORMULARIO -->
             <q-form @submit="submitLogin" class="q-gutter-md login-form">
               <div class="form__container">
 
@@ -98,8 +89,15 @@
                   </a>
                 </div>
 
-                <q-btn type="submit" label="Ingresar al sistema" class="btn-login full-width" unelevated
-                  :loading="isLoading">
+                <q-btn 
+                  type="submit" 
+                  :label="bloqueado ? `Intente en ${segundosRestantes}s` : 'Ingresar al sistema'" 
+                  class="btn-login full-width" 
+                  unelevated
+                  :loading="isLoading"
+                  :disable="bloqueado"
+                  :color="bloqueado ? 'grey-6' : 'primary'"
+                >
                   <template v-slot:loading>
                     <q-spinner-ios color="white" size="1.5em" />
                   </template>
@@ -107,12 +105,11 @@
 
               </div>
 
-              <p v-if="errorMsg" class="text-negative text-center q-mt-sm">
+              <p v-if="errorMsg" class="text-negative text-center q-mt-sm text-weight-bold">
                 {{ errorMsg }}
               </p>
 
             </q-form>
-
 
           </div>
         </div>
@@ -123,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue"
+import { ref, reactive, onUnmounted } from "vue"
 import { useRouter } from "vue-router"
 import { login } from '../../api/login/login'
 import { useAuthStore } from "../../store/store"
@@ -137,6 +134,11 @@ const errorMsg = ref("")
 const isPwd = ref(true)
 const forgotRef = ref(null)
 
+// --- VARIABLES PARA EL BLOQUEO ---
+const bloqueado = ref(false)
+const segundosRestantes = ref(0)
+let temporizador = null
+
 const lorem = 'Administra tu supermercado de forma simple, rápida y segura desde un solo lugar.'
 
 const form = reactive({
@@ -144,415 +146,69 @@ const form = reactive({
   password: ""
 })
 
+// --- FUNCIÓN DEL TEMPORIZADOR ---
+const iniciarContador = (segundos) => {
+  bloqueado.value = true
+  segundosRestantes.value = segundos
+
+  // Limpiar cualquier temporizador previo
+  if (temporizador) clearInterval(temporizador)
+
+  temporizador = setInterval(() => {
+    segundosRestantes.value--
+    
+    if (segundosRestantes.value <= 0) {
+      clearInterval(temporizador)
+      bloqueado.value = false
+      errorMsg.value = "" // Limpiar el error para que intente de nuevo
+    }
+  }, 1000)
+}
+
+// Limpiar el intervalo si el usuario cambia de página mientras está bloqueado
+onUnmounted(() => {
+  if (temporizador) clearInterval(temporizador)
+})
+
 const submitLogin = async () => {
+  // Evitar que se envíe si está bloqueado
+  if (bloqueado.value) return 
+
   errorMsg.value = ""
   isLoading.value = true
+  
   try {
     const respuesta = await login({
       username: form.username,
       password: form.password
     })
+    
     authStore.login(respuesta.token, {
       username: respuesta.username,
       nombreCompleto: respuesta.nombreCompleto
     })
     router.push("/")
+    
   } catch (error) {
-    errorMsg.value = error.respuesta?.data?.message || "Usuario o contraseña incorrectos"
+    // 1. Extraer el mensaje correctamente (Axios lo guarda en error.response.data.message)
+    const mensajeError = error.response?.data?.message || "Usuario o contraseña incorrectos"
+    
+    errorMsg.value = mensajeError
+
+    // 2. Buscar si el mensaje contiene el tiempo de bloqueo (agregamos la 'i' para ignorar mayúsculas)
+    const match = String(mensajeError).match(/(?:en|por)\s+(\d+)\s+segundos/i)
+    
+    if (match) {
+      // Extraer el número y arrancar el contador
+      const segundos = parseInt(match[1], 10)
+      iniciarContador(segundos)
+    }
+
   } finally {
     isLoading.value = false
   }
 }
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
-
-/* ── Fondo ── */
-.login-bg {
-  background: #f0f5eb !important;
-}
-
-/* ── Card ── */
-.login-card {
-  width: 900px;
-  max-width: 94vw;
-  height: 560px;
-  border-radius: 28px !important;
-  overflow: hidden;
-  box-shadow: 0 24px 80px rgba(42, 92, 26, 0.18), 0 4px 16px rgba(0, 0, 0, 0.06) !important;
-  font-family: 'Nunito', sans-serif;
-  border: none !important;
-}
-
-/* ════════════════════════════
-   PANEL IZQUIERDO
-════════════════════════════ */
-.left-panel {
-  width: 42%;
-  background: #2a5c1a;
-  position: relative;
-  overflow: hidden;
-  padding: 0;
-}
-
-/* Curva derecha */
-.left-panel::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: -70px;
-  width: 140px;
-  height: 100%;
-  background: #2a5c1a;
-  border-radius: 50%;
-  z-index: 1;
-}
-
-/* Decoración círculos */
-.deco-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-.deco-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
-}
-
-.deco-circle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.07;
-  background: #ffffff;
-}
-
-.deco-circle-1 {
-  width: 260px;
-  height: 260px;
-  top: -80px;
-  left: -80px;
-}
-
-.deco-circle-2 {
-  width: 140px;
-  height: 140px;
-  top: 60px;
-  right: -20px;
-  opacity: 0.04;
-}
-
-.deco-circle-3 {
-  width: 200px;
-  height: 200px;
-  bottom: -80px;
-  left: -60px;
-}
-
-/* Contenido izquierdo */
-.left-content {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 48px 44px 48px 40px;
-}
-
-/* Logo en panel izquierdo */
-.left-logo-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.left-logo-icon {
-  width: 52px;
-  height: 52px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.left-brand {
-  font-family: 'Nunito', sans-serif;
-  font-size: 22px;
-  font-weight: 900;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-}
-
-/* Títulos */
-.left-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 6px;
-}
-
-.left-title-main {
-  font-family: 'Nunito', sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-.orange-bar {
-  width: 40px;
-  height: 3.5px;
-  background: #d97b1a;
-  border-radius: 2px;
-  margin: 14px 0;
-}
-
-.left-desc {
-  font-family: 'Nunito', sans-serif;
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.7;
-  font-weight: 500;
-}
-
-/* Tags */
-.left-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.left-tag {
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  letter-spacing: 0.04em;
-}
-
-.left-tag-orange {
-  background: rgba(217, 123, 26, 0.2);
-  color: #f5b96e;
-  border-color: rgba(217, 123, 26, 0.3);
-}
-
-/* ════════════════════════════
-   PANEL DERECHO
-════════════════════════════ */
-.right-panel {
-  width: 58%;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 48px 56px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Línea de acento top */
-.right-panel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #4a8c25, #7aaa4e, #d97b1a);
-}
-
-/* Eyebrow */
-.right-eyebrow {
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  color: #9dbf78;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  margin-bottom: 6px;
-}
-
-/* Título derecho */
-.right-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 26px;
-  font-weight: 900;
-  color: #2a5c1a;
-  letter-spacing: -0.3px;
-  line-height: 1.2;
-}
-
-/* Subtítulo */
-.right-sub {
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: #bdd49a;
-  margin-top: 4px;
-}
-
-/* Formulario */
-.login-form {
-  width: 100%;
-  max-width: 320px;
-}
-
-.form__container {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Field wrap con label externo */
-.field-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 6px;
-}
-
-.field-label {
-  font-family: 'Nunito', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: #87bb56;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Olvidaste contraseña */
-.forgot-row {
-  text-align: right;
-  margin-bottom: 8px;
-  margin-top: -2px;
-}
-
-.forgot-link {
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  color: #d97b1a;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.forgot-link:hover {
-  color: #b8631a;
-}
-
-/* ── Inputs ── */
-.custom-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1px solid #ddecc5 !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  font-family: 'Nunito', sans-serif !important;
-  height: 40px !important;
-}
-
-.custom-input :deep(.q-field__control::before),
-.custom-input :deep(.q-field__control::after) {
-  display: none !important;
-}
-
-.custom-input :deep(.q-field--focused .q-field__control) {
-  background: #ffffff !important;
-  border: 1.5px solid #4a8c25 !important;
-  box-shadow: 0 0 0 3px rgba(74, 140, 37, 0.1) !important;
-}
-
-.custom-input :deep(.q-focus-helper),
-.custom-input :deep(.q-ripple) {
-  display: none !important;
-}
-
-.custom-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-}
-
-.custom-input :deep(input::placeholder) {
-  color: #c8e0a0 !important;
-  font-weight: 500 !important;
-}
-
-.custom-input :deep(.q-field__label) {
-  display: none !important;
-}
-
-/* ── Íconos ── */
-.icons {
-  color: #bad68f !important;
-  font-size: 20px;
-  transition: color 0.1s;
-}
-
-.custom-input :deep(.q-field--focused) .icons {
-  color: #4a8c25 !important;
-}
-
-.eye {
-  color: #bdd49a;
-  transition: color 0.2s;
-}
-
-.eye:hover {
-  color: #4a8c25;
-}
-
-/* ── Botón ── */
-.btn-login {
-  height: 40px !important;
-  border-radius: 12px !important;
-  background: #4a8c25 !important;
-  color: #ffffff !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 15px !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.03em !important;
-  transition: all 0.2s !important;
-}
-
-.btn-login:hover {
-  background: #3d7a1e !important;
-  transform: translateY(-1px) !important;
-}
-
-.btn-login:active {
-  transform: translateY(0) !important;
-}
-
-/* ── Error ── */
-.text-negative {
-  font-family: 'Nunito', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 13px !important;
-  color: #b91c1c !important;
-}
-
-
-/* ── Transiciones ── */
-.login-card,
-.left-panel,
-.right-panel {
-  transition: all 0.3s ease;
-}
+<style scoped src="../../assets/styles/login/login.css">
 </style>

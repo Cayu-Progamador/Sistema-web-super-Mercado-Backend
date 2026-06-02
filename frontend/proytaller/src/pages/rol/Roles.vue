@@ -70,34 +70,16 @@
             Lista de Roles
           </div>
           <div class="row items-center q-gutter-sm">
-            <q-input
-              v-model="search"
-              outlined dense
-              placeholder="Buscar rol..."
-              class="search-input"
-            >
+            <q-input v-model="search" outlined dense placeholder="Buscar rol..." class="search-input">
               <template #append>
                 <q-icon name="search" class="input-icon" />
               </template>
             </q-input>
-            <q-btn
-              label="Nuevo Rol"
-              icon="add"
-              class="btn-nuevo"
-              unelevated
-              @click="mostrarModal = true"
-            />
+            <q-btn label="Nuevo Rol" icon="add" class="btn-nuevo" unelevated @click="mostrarModal = true" />
           </div>
         </div>
 
-        <q-table
-          flat
-          :rows="rolesFiltrados"
-          :columns="columns"
-          row-key="id"
-          hide-pagination
-          class="roles-table"
-        >
+        <q-table flat :rows="rolesFiltrados" :columns="columns" row-key="id" hide-pagination class="roles-table">
           <template #body-cell-id="props">
             <q-td :props="props">
               <span class="rol-num">{{ props.row.id }}</span>
@@ -140,7 +122,7 @@
             <q-td :props="props">
               <div class="row no-wrap q-gutter-xs">
                 <q-btn flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
-                <q-btn flat round dense class="act-btn act-del"  icon="delete" @click="eliminarRol(props.row)" />
+                <q-btn flat round dense class="act-btn act-del" icon="delete" @click="eliminarRol(props.row)" />
                 <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
               </div>
             </q-td>
@@ -167,12 +149,7 @@
 
         <div class="q-mb-md">
           <div class="perm-section-lbl">Seleccionar rol</div>
-          <q-select
-            v-model="rolSeleccionado"
-            :options="opcionesRoles"
-            outlined dense
-            class="perm-select-input"
-          />
+          <q-select v-model="rolSeleccionado" :options="opcionesRoles" outlined dense class="perm-select-input" />
         </div>
 
         <div class="perm-count">
@@ -180,11 +157,7 @@
         </div>
 
         <div class="perm-list">
-          <div
-            v-for="perm in permisos"
-            :key="perm.nombre"
-            class="perm-item"
-          >
+          <div v-for="perm in permisos" :key="perm.nombre" class="perm-item">
             <div class="row items-center q-gutter-sm">
               <div class="perm-check">
                 <q-icon name="check" size="11px" color="white" />
@@ -230,12 +203,16 @@
         </div>
         <div class="chart-wrap">
           <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#e4edd8" stroke-width="18"/>
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#4a8c25" stroke-width="18" stroke-dasharray="22 198" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#0f6e56" stroke-width="18" stroke-dasharray="44 176" stroke-dashoffset="-22" transform="rotate(-90 50 50)"/>
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#d97b1a" stroke-width="18" stroke-dasharray="110 110" stroke-dashoffset="-66" transform="rotate(-90 50 50)"/>
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#7aaa4e" stroke-width="18" stroke-dasharray="44 176" stroke-dashoffset="-176" transform="rotate(-90 50 50)"/>
-            <circle cx="50" cy="50" r="26" fill="white"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#e4edd8" stroke-width="18" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#4a8c25" stroke-width="18" stroke-dasharray="22 198"
+              stroke-dashoffset="0" transform="rotate(-90 50 50)" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#0f6e56" stroke-width="18" stroke-dasharray="44 176"
+              stroke-dashoffset="-22" transform="rotate(-90 50 50)" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#d97b1a" stroke-width="18" stroke-dasharray="110 110"
+              stroke-dashoffset="-66" transform="rotate(-90 50 50)" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#7aaa4e" stroke-width="18" stroke-dasharray="44 176"
+              stroke-dashoffset="-176" transform="rotate(-90 50 50)" />
+            <circle cx="50" cy="50" r="26" fill="white" />
           </svg>
           <div class="chart-legend">
             <div v-for="item in estadisticas" :key="item.nombre" class="legend-item">
@@ -256,10 +233,10 @@
           Acciones Rápidas
         </div>
         <div class="acc-list">
-          <q-btn label="Nuevo Rol"         icon="add"           class="acc-btn ab-primary" unelevated @click="mostrarModal = true" />
-          <q-btn label="Asignar Permisos"  icon="security"      class="acc-btn ab-teal"    unelevated />
-          <q-btn label="Exportar Roles"    icon="download"      class="acc-btn ab-orange"  unelevated />
-          <q-btn label="Auditoría de Roles" icon="description"  class="acc-btn ab-gray"    unelevated />
+          <q-btn label="Nuevo Rol" icon="add" class="acc-btn ab-primary" unelevated @click="mostrarModal = true" />
+          <q-btn label="Asignar Permisos" icon="security" class="acc-btn ab-teal" unelevated />
+          <q-btn label="Exportar Roles" icon="download" class="acc-btn ab-orange" unelevated />
+          <q-btn label="Auditoría de Roles" icon="description" class="acc-btn ab-gray" unelevated />
         </div>
       </q-card>
 
@@ -291,17 +268,14 @@
 
             <div class="field-group">
               <label class="field-lbl">Descripción</label>
-              <q-input v-model="nuevoRol.descripcion" outlined dense type="textarea" rows="3" placeholder="Describe las responsabilidades del rol..." class="field-input" />
+              <q-input v-model="nuevoRol.descripcion" outlined dense type="textarea" rows="3"
+                placeholder="Describe las responsabilidades del rol..." class="field-input" />
             </div>
 
             <div class="field-group">
               <label class="field-lbl">Estado</label>
-              <q-select
-                v-model="nuevoRol.estado"
-                :options="['Activo', 'Inactivo']"
-                outlined dense
-                class="field-input"
-              />
+              <q-select v-model="nuevoRol.estado" :options="['Activo', 'Inactivo']" outlined dense
+                class="field-input" />
             </div>
 
             <q-separator style="background:#e4edd8" />
@@ -342,20 +316,20 @@ const opcionesRoles = [
 ]
 
 const columns = [
-  { name: 'id',          label: '#',           field: 'id',          align: 'left', style: 'width:40px'  },
-  { name: 'nombre',      label: 'Rol',         field: 'nombre',      align: 'left', style: 'width:130px' },
-  { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left'                       },
-  { name: 'usuarios',    label: 'Usuarios',    field: 'usuarios',    align: 'center', style: 'width:80px' },
-  { name: 'estado',      label: 'Estado',      field: 'estado',      align: 'left', style: 'width:90px'  },
-  { name: 'acciones',    label: 'Acciones',    field: 'acciones',    align: 'center', style: 'width:100px'}
+  { name: 'id', label: '#', field: 'id', align: 'left', style: 'width:40px' },
+  { name: 'nombre', label: 'Rol', field: 'nombre', align: 'left', style: 'width:130px' },
+  { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left' },
+  { name: 'usuarios', label: 'Usuarios', field: 'usuarios', align: 'center', style: 'width:80px' },
+  { name: 'estado', label: 'Estado', field: 'estado', align: 'left', style: 'width:90px' },
+  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center', style: 'width:100px' }
 ]
 
 const roles = ref([
-  { id: 1, nombre: 'ADMIN',      descripcion: 'Administrador del sistema con acceso total a todas las funciones.', usuarios: 1, estado: 'Activo',   icon: 'shield',      iconClass: 'ri-teal'   },
-  { id: 2, nombre: 'SUPERVISOR', descripcion: 'Supervisor general con acceso a reportes y gestión operativa.',     usuarios: 2, estado: 'Activo',   icon: 'manage_accounts', iconClass: 'ri-green'  },
-  { id: 3, nombre: 'CAJERO',     descripcion: 'Encargado de realizar ventas y manejo de caja.',                   usuarios: 5, estado: 'Activo',   icon: 'point_of_sale',iconClass: 'ri-orange' },
-  { id: 4, nombre: 'ALMACENERO', descripcion: 'Responsable de inventario, almacén y productos.',                  usuarios: 2, estado: 'Activo',   icon: 'inventory_2',  iconClass: 'ri-blue'   },
-  { id: 5, nombre: 'INVITADO',   descripcion: 'Acceso limitado solo para consultas básicas.',                     usuarios: 0, estado: 'Inactivo', icon: 'person',       iconClass: 'ri-gray'   }
+  { id: 1, nombre: 'ADMIN', descripcion: 'Administrador del sistema con acceso total a todas las funciones.', usuarios: 1, estado: 'Activo', icon: 'shield', iconClass: 'ri-teal' },
+  { id: 2, nombre: 'SUPERVISOR', descripcion: 'Supervisor general con acceso a reportes y gestión operativa.', usuarios: 2, estado: 'Activo', icon: 'manage_accounts', iconClass: 'ri-green' },
+  { id: 3, nombre: 'CAJERO', descripcion: 'Encargado de realizar ventas y manejo de caja.', usuarios: 5, estado: 'Activo', icon: 'point_of_sale', iconClass: 'ri-orange' },
+  { id: 4, nombre: 'ALMACENERO', descripcion: 'Responsable de inventario, almacén y productos.', usuarios: 2, estado: 'Activo', icon: 'inventory_2', iconClass: 'ri-blue' },
+  { id: 5, nombre: 'INVITADO', descripcion: 'Acceso limitado solo para consultas básicas.', usuarios: 0, estado: 'Inactivo', icon: 'person', iconClass: 'ri-gray' }
 ])
 
 const rolesFiltrados = computed(() =>
@@ -366,14 +340,14 @@ const rolesFiltrados = computed(() =>
 )
 
 const permisos = ref([
-  { nombre: 'Ver Dashboard',       modulo: 'Dashboard', tagClass: 'pt-dashboard' },
-  { nombre: 'Gestionar Usuarios',  modulo: 'Usuarios',  tagClass: 'pt-usuarios'  },
-  { nombre: 'Gestionar Roles',     modulo: 'Roles',     tagClass: 'pt-roles'     },
-  { nombre: 'Gestionar Permisos',  modulo: 'Permisos',  tagClass: 'pt-permisos'  },
+  { nombre: 'Ver Dashboard', modulo: 'Dashboard', tagClass: 'pt-dashboard' },
+  { nombre: 'Gestionar Usuarios', modulo: 'Usuarios', tagClass: 'pt-usuarios' },
+  { nombre: 'Gestionar Roles', modulo: 'Roles', tagClass: 'pt-roles' },
+  { nombre: 'Gestionar Permisos', modulo: 'Permisos', tagClass: 'pt-permisos' },
   { nombre: 'Gestionar Productos', modulo: 'Productos', tagClass: 'pt-productos' },
-  { nombre: 'Gestionar Ventas',    modulo: 'Ventas',    tagClass: 'pt-ventas'    },
-  { nombre: 'Gestionar Compras',   modulo: 'Compras',   tagClass: 'pt-compras'   },
-  { nombre: 'Ver Reportes',        modulo: 'Reportes',  tagClass: 'pt-reportes'  }
+  { nombre: 'Gestionar Ventas', modulo: 'Ventas', tagClass: 'pt-ventas' },
+  { nombre: 'Gestionar Compras', modulo: 'Compras', tagClass: 'pt-compras' },
+  { nombre: 'Ver Reportes', modulo: 'Reportes', tagClass: 'pt-reportes' }
 ])
 
 const infoItems = [
@@ -384,11 +358,11 @@ const infoItems = [
 ]
 
 const estadisticas = [
-  { nombre: 'ADMIN',      color: '#4a8c25', val: '1 (20%)' },
+  { nombre: 'ADMIN', color: '#4a8c25', val: '1 (20%)' },
   { nombre: 'SUPERVISOR', color: '#0f6e56', val: '2 (20%)' },
-  { nombre: 'CAJERO',     color: '#d97b1a', val: '5 (50%)' },
+  { nombre: 'CAJERO', color: '#d97b1a', val: '5 (50%)' },
   { nombre: 'ALMACENERO', color: '#7aaa4e', val: '2 (20%)' },
-  { nombre: 'INVITADO',   color: '#c8e0a0', val: '0 (0%)'  }
+  { nombre: 'INVITADO', color: '#c8e0a0', val: '0 (0%)' }
 ]
 
 const guardarRol = async () => {
@@ -434,368 +408,4 @@ const verTodosPermisos = () => {
 }
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
-
-.roles-page {
-  background: #f7f9f4 !important;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* ── Cards superiores ── */
-.top-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-.top-card {
-  background: #ffffff !important;
-  border: 1px solid #e4edd8 !important;
-  border-radius: 14px !important;
-  box-shadow: none !important;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.top-card:hover {
-  box-shadow: 0 4px 20px rgba(74,140,37,0.1) !important;
-  transform: translateY(-2px);
-}
-.tc-icon {
-  width: 50px; height: 50px;
-  border-radius: 13px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.tc-i1 { background: #eaf4d8; }
-.tc-i2 { background: #e1f5ee; }
-.tc-i3 { background: #fef3e2; }
-.tc-i4 { background: #ede9fe; }
-.tc-title { font-size: 11px; font-weight: 700; color: #7aaa4e; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; font-family: 'Nunito', sans-serif; }
-.tc-num   { font-size: 26px; font-weight: 900; color: #2a5c1a; line-height: 1.1; font-family: 'Nunito', sans-serif; }
-.tc-lbl   { font-size: 11px; font-weight: 500; color: #9dbf78; font-family: 'Nunito', sans-serif; }
-
-/* ── Main grid ── */
-.main-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
-  gap: 16px;
-}
-
-/* ── Bottom grid ── */
-.bottom-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-/* ── Cards ── */
-.perfil-card {
-  background: #ffffff !important;
-  border: 1px solid #e4edd8 !important;
-  border-radius: 16px !important;
-  padding: 20px !important;
-}
-
-.card-title-row {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 800; color: #2a5c1a;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  font-family: 'Nunito', sans-serif;
-}
-.card-title-icon { color: #7aaa4e !important; font-size: 18px !important; }
-
-/* ── List header ── */
-.list-header {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  flex-wrap: wrap; gap: 10px;
-}
-
-.search-input { width: 190px; }
-.search-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1.5px solid #ddecc5 !important;
-  border-radius: 9px !important;
-  box-shadow: none !important;
-}
-.search-input :deep(.q-field__control::before),
-.search-input :deep(.q-field__control::after) { display: none !important; }
-.search-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13px !important;
-}
-.search-input :deep(input::placeholder) { color: #c8e0a0 !important; }
-.input-icon { color: #bdd49a !important; }
-
-.btn-nuevo {
-  background: #4a8c25 !important;
-  color: #fff !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13px !important; font-weight: 700 !important;
-  border-radius: 9px !important;
-  box-shadow: 0 3px 10px rgba(74,140,37,0.25) !important;
-}
-.btn-nuevo:hover { background: #3d7a1e !important; }
-
-/* ── Tabla ── */
-.roles-table :deep(thead tr) { background: #f7f9f4 !important; }
-.roles-table :deep(thead th) {
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 11px !important; font-weight: 800 !important;
-  text-transform: uppercase !important; letter-spacing: 0.08em !important;
-  color: #7aaa4e !important;
-  border-bottom: 2px solid #e4edd8 !important;
-}
-.roles-table :deep(tbody td) {
-  border-bottom: 1px solid #f0f5ea !important;
-  font-family: 'Nunito', sans-serif !important;
-}
-.roles-table :deep(tbody tr:hover td) { background: #fbfdf8 !important; }
-
-.rol-num  { color: #bdd49a; font-weight: 700; font-family: 'Nunito', sans-serif; }
-.rol-name { font-weight: 800; color: #2a5c1a; font-size: 13px; font-family: 'Nunito', sans-serif; }
-.rol-desc { color: #7aaa4e; font-size: 12px; line-height: 1.4; font-family: 'Nunito', sans-serif; }
-.rol-users{ font-weight: 700; color: #2a5c1a; font-family: 'Nunito', sans-serif; }
-
-.rol-icon {
-  width: 30px; height: 30px; border-radius: 8px;
-  display: inline-flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.ri-teal   { background: #e1f5ee; color: #0f6e56 !important; }
-.ri-green  { background: #eaf4d8; color: #4a8c25 !important; }
-.ri-orange { background: #fef3e2; color: #d97b1a !important; }
-.ri-blue   { background: #e6f1fb; color: #185fa5 !important; }
-.ri-gray   { background: #f1efe8; color: #5f5e5a !important; }
-
-.estado-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11.5px; font-weight: 700;
-  font-family: 'Nunito', sans-serif;
-}
-.badge-activo  { background: #e1f5ee; color: #0f6e56; border: 1px solid #9fe1cb; }
-.badge-inactivo{ background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
-.dot-activo  { background: #0f6e56; }
-.dot-inactivo{ background: #dc2626; }
-
-.act-btn {
-  width: 30px !important; height: 30px !important;
-  border-radius: 8px !important;
-  transition: all 0.15s !important;
-}
-.act-edit { color: #4a8c25 !important; background: #eaf4d8 !important; }
-.act-edit:hover { background: #c8e0a0 !important; }
-.act-del  { color: #b91c1c !important; background: #fef2f2 !important; }
-.act-del:hover  { background: #fca5a5 !important; }
-.act-view { color: #7aaa4e !important; background: #f7f9f4 !important; }
-.act-view:hover { background: #e4edd8 !important; }
-
-/* ── Paginación ── */
-.pagination-row {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid #f0f5ea;
-}
-.pag-info { font-size: 12px; font-weight: 600; color: #9dbf78; font-family: 'Nunito', sans-serif; }
-.pag-btn {
-  width: 28px !important; height: 28px !important;
-  border-radius: 7px !important;
-  border: 1px solid #ddecc5 !important;
-  color: #7aaa4e !important;
-  font-size: 13px !important; font-weight: 700 !important;
-  font-family: 'Nunito', sans-serif !important;
-}
-.pag-btn:hover { background: #f0f7e8 !important; }
-.pag-active {
-  background: #4a8c25 !important;
-  color: #fff !important;
-  border-color: #4a8c25 !important;
-}
-
-/* ── Permisos panel ── */
-.perm-section-lbl {
-  font-size: 11px; font-weight: 700; color: #7aaa4e;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  margin-bottom: 7px; font-family: 'Nunito', sans-serif;
-}
-.perm-select-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1.5px solid #ddecc5 !important;
-  border-radius: 9px !important;
-  box-shadow: none !important;
-}
-.perm-select-input :deep(.q-field__control::before),
-.perm-select-input :deep(.q-field__control::after) { display: none !important; }
-.perm-select-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13px !important; font-weight: 600 !important;
-}
-.perm-count {
-  font-size: 13px; font-weight: 600; color: #5a8040;
-  margin-bottom: 10px; font-family: 'Nunito', sans-serif;
-}
-.perm-list {
-  display: flex; flex-direction: column; gap: 4px;
-  max-height: 260px; overflow-y: auto;
-}
-.perm-item {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  padding: 7px 0; border-bottom: 1px solid #f0f5ea;
-}
-.perm-item:last-child { border-bottom: none; }
-.perm-check {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #4a8c25;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.perm-name { font-size: 12.5px; font-weight: 600; color: #2a5c1a; font-family: 'Nunito', sans-serif; }
-.perm-tag  { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
-.pt-dashboard { background: #eaf4d8; color: #3b6d11; }
-.pt-usuarios  { background: #e1f5ee; color: #0f6e56; }
-.pt-roles     { background: #ede9fe; color: #6d28d9; }
-.pt-permisos  { background: #fef3e2; color: #a05c10; }
-.pt-productos { background: #e6f1fb; color: #185fa5; }
-.pt-ventas    { background: #fef2f2; color: #991b1b; }
-.pt-compras   { background: #fef3e2; color: #a05c10; }
-.pt-reportes  { background: #f0f7e8; color: #3b6d11; }
-
-.ver-todos {
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid #e4edd8;
-  font-size: 12.5px; font-weight: 700; color: #4a8c25;
-  cursor: pointer; font-family: 'Nunito', sans-serif;
-  transition: color 0.2s;
-}
-.ver-todos:hover { color: #3d7a1e; }
-
-/* ── Info módulo ── */
-.info-desc {
-  font-size: 13px; color: #7aaa4e; line-height: 1.7;
-  margin-bottom: 12px; font-weight: 500;
-  font-family: 'Nunito', sans-serif;
-}
-.info-item {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 7px; font-size: 12.5px; font-weight: 600;
-  color: #5a8040; font-family: 'Nunito', sans-serif;
-}
-
-/* ── Estadísticas ── */
-.chart-wrap { display: flex; align-items: center; gap: 16px; }
-.chart-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.legend-item {
-  display: flex; align-items: center;
-  justify-content: space-between; font-size: 12px;
-}
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.legend-name { font-weight: 700; color: #2a5c1a; font-family: 'Nunito', sans-serif; }
-.legend-val  { font-weight: 600; color: #9dbf78; font-size: 11.5px; font-family: 'Nunito', sans-serif; }
-
-/* ── Acciones rápidas ── */
-.acc-list { display: flex; flex-direction: column; gap: 8px; }
-.acc-btn {
-  width: 100% !important;
-  justify-content: flex-start !important;
-  border-radius: 10px !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13px !important; font-weight: 700 !important;
-  padding: 10px 14px !important;
-}
-.ab-primary { background: #4a8c25 !important; color: #fff !important; }
-.ab-primary:hover { background: #3d7a1e !important; }
-.ab-teal  { background: #e1f5ee !important; color: #0f6e56 !important; border: 1px solid #9fe1cb !important; }
-.ab-teal:hover  { background: #c8f0e0 !important; }
-.ab-orange{ background: #fef3e2 !important; color: #a05c10 !important; border: 1px solid #f5c97a !important; }
-.ab-orange:hover{ background: #fde6b8 !important; }
-.ab-gray  { background: #f7f9f4 !important; color: #5a8040 !important; border: 1px solid #ddecc5 !important; }
-.ab-gray:hover  { background: #eaf4d8 !important; }
-
-/* ── Modal ── */
-.modal-card {
-  min-width: 420px; max-width: 480px;
-  border-radius: 20px !important;
-  overflow: hidden;
-  background: #ffffff !important;
-  border: 1px solid #ddecc5 !important;
-  box-shadow: 0 12px 48px rgba(74,140,37,0.12) !important;
-  font-family: 'Nunito', sans-serif;
-}
-.accent-bar {
-  height: 3px;
-  background: linear-gradient(90deg, #4a8c25, #7aaa4e, #d97b1a, #0f9e82);
-}
-.modal-header {
-  display: flex; align-items: flex-start;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem 1rem;
-  background: #f7f9f4 !important;
-}
-.modal-eyebrow {
-  font-size: 10px; font-weight: 700; color: #7aaa4e;
-  text-transform: uppercase; letter-spacing: 0.14em;
-  font-family: 'Nunito', sans-serif;
-}
-.modal-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 18px; font-weight: 900; color: #2a5c1a;
-}
-.close-btn {
-  color: #9dbf78 !important;
-  background: #f0f7e8 !important;
-  border-radius: 8px !important;
-}
-.close-btn:hover { background: #ddecc5 !important; color: #4a8c25 !important; }
-
-.field-group { display: flex; flex-direction: column; gap: 5px; }
-.field-lbl {
-  font-size: 11px; font-weight: 700; color: #7aaa4e;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  font-family: 'Nunito', sans-serif;
-}
-.field-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1.5px solid #ddecc5 !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-}
-.field-input :deep(.q-field__control::before),
-.field-input :deep(.q-field__control::after) { display: none !important; }
-.field-input :deep(.q-field--focused .q-field__control) {
-  border-color: #4a8c25 !important;
-  box-shadow: 0 0 0 3px rgba(74,140,37,0.1) !important;
-}
-.field-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 14px !important; font-weight: 600 !important;
-}
-.field-input :deep(.q-field__label) { display: none !important; }
-.field-input :deep(.q-focus-helper)  { display: none !important; }
-
-.btn-cancel {
-  color: #7aaa4e !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-weight: 700 !important; border-radius: 10px !important;
-}
-.btn-cancel:hover { background: #f0f7e8 !important; }
-
-.btn-save {
-  background: #4a8c25 !important; color: #fff !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 14px !important; font-weight: 800 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 14px rgba(74,140,37,0.28) !important;
-}
-.btn-save:hover {
-  background: #3d7a1e !important;
-  transform: translateY(-1px) !important;
-}
-</style>
+<style scoped src="../../assets/styles/roles/rol.css"></style>

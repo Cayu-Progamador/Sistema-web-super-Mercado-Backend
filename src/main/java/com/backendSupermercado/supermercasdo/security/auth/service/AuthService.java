@@ -1,6 +1,7 @@
 package com.backendSupermercado.supermercasdo.security.auth.service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Random;
 
@@ -10,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
-import com.backendSupermercado.supermercasdo.exceptions.ResourceNotFoundException;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
 import com.backendSupermercado.supermercasdo.modules.empleado.repository.EmpleadoRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
@@ -20,9 +20,11 @@ import com.backendSupermercado.supermercasdo.modules.seguridad.repository.Passwo
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.service.EmailService;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.LoginUsuario;
+import com.backendSupermercado.supermercasdo.modules.usuario.entity.SeguridadUsuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.UsuarioRol;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.LoginUsuarioRepository;
+import com.backendSupermercado.supermercasdo.modules.usuario.repository.SeguridadUsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
 import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.UsuarioResponseDto;
@@ -58,6 +60,9 @@ public class AuthService {
         @Autowired
         private EmailService emailService;
 
+        @Autowired
+        private SeguridadUsuarioRepository seguridadUsuarioRepository;
+
         // REGISTRAR USUARIO
         public UsuarioResponseDto registrarUsuario(RegistroRequestDto request) {
 
@@ -77,7 +82,7 @@ public class AuthService {
 
                 // BUSCAR EMPLEADO
                 Empleado empleado = empleadoRepository.findById(empleadoId)
-                                .orElseThrow(() -> new ResourceNotFoundException(
+                                .orElseThrow(() -> new ResourceConflictException(
                                                 "Empleado no encontrado"));
 
                 // CREAR USUARIO
@@ -104,6 +109,14 @@ public class AuthService {
                 }
 
                 Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+                // Crear configuración de seguridad
+                SeguridadUsuario seguridad = new SeguridadUsuario();
+                seguridad.setUsuario(usuarioGuardado);
+                seguridad.setIntentoFallidos(0);
+                seguridad.setBloquedaHasta(null);
+                seguridadUsuarioRepository.save(seguridad);
+
                 return new UsuarioResponseDto(
                                 usuarioGuardado.getIdUsuario(),
                                 usuarioGuardado.getUsername(),
@@ -117,7 +130,7 @@ public class AuthService {
                 if (roleNames == null || roleNames.isEmpty()) {
 
                         Rol rolDefault = rolRepository.findByNombre("ROLE_USER")
-                                        .orElseThrow(() -> new ResourceNotFoundException(
+                                        .orElseThrow(() -> new ResourceConflictException(
                                                         "Rol ROLE_USER no encontrado"));
 
                         return List.of(rolDefault);
@@ -125,41 +138,82 @@ public class AuthService {
                 // roles enviados
                 return roleNames.stream()
                                 .map(role -> rolRepository.findByNombre(role)
-                                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                .orElseThrow(() -> new ResourceConflictException(
                                                                 "Rol no encontrado: " + role)))
                                 .toList();
         }
 
-        // LOGIN
+        // LOGIN USUARIO
+        // LOGIN USUARIO
         public String login(String username, String password, String ip) {
 
+                // 1. Buscar Usuario y Seguridad
                 Usuario usuario = usuarioRepository.findByUsername(username)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Usuario no encontrado"));
+                                .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
-                // validar activo
+                SeguridadUsuario seguridad = seguridadUsuarioRepository.findByUsuario(usuario)
+                                .orElseThrow(() -> new ResourceConflictException(
+                                                "Configuración de seguridad no encontrada"));
+
+                // Capturar el tiempo exacto de la petición una sola vez
+                LocalDateTime ahora = LocalDateTime.now();
+
+                // 2. Si expiró el bloqueo, limpiar el estado
+                if (seguridad.getBloquedaHasta() != null && !ahora.isBefore(seguridad.getBloquedaHasta())) {
+                        seguridad.setBloquedaHasta(null);
+                        seguridad.setIntentoFallidos(0);
+                        seguridadUsuarioRepository.save(seguridad);
+                }
+
+                // 3. Validar si actualmente está bloqueado
+                if (seguridad.getBloquedaHasta() != null) {
+                        long segundos = ChronoUnit.SECONDS.between(ahora, seguridad.getBloquedaHasta());
+                        throw new BadCredentialsException(
+                                        "Usuario bloqueado. Intente nuevamente en " + segundos + " segundos");
+                }
+
+                // 4. Validar si el usuario está activo
                 if (!usuario.getActivo()) {
-                        throw new BadCredentialsException(
-                                        "Usuario no activo");
+                        throw new BadCredentialsException("Usuario no activo");
                 }
 
-                // VALIDAR PASSWORD
+                // 5. VALIDAR PASSWORD
                 if (!passwordEncoder.matches(password, usuario.getPassword())) {
-                        throw new BadCredentialsException(
-                                        "Contraseña incorrecta");
+
+                        int intentos = seguridad.getIntentoFallidos() + 1;
+                        seguridad.setIntentoFallidos(intentos);
+
+                        // Si llega a 3 intentos, bloquear por 30 segundos
+                        if (intentos >= 3) {
+                                seguridad.setBloquedaHasta(ahora.plusSeconds(30));
+                                seguridadUsuarioRepository.save(seguridad);
+
+                                throw new BadCredentialsException(
+                                                "Usuario bloqueado por 30 segundos debido a demasiados intentos fallidos.");
+                        }
+
+                        // Si no llega a 3, solo guardar el intento fallido
+                        seguridadUsuarioRepository.save(seguridad);
+                        throw new BadCredentialsException("Contraseña incorrecta.");
                 }
 
-                // guardar login
+                // 6. LOGIN CORRECTO: Limpiar historial de fallos
+                seguridad.setIntentoFallidos(0);
+                seguridad.setBloquedaHasta(null);
+                seguridadUsuarioRepository.save(seguridad);
+
+                // Guardar historial de login
                 LoginUsuario loginUsuario = new LoginUsuario();
                 loginUsuario.setFechaLogin(FechaUtil.ahora());
                 loginUsuario.setIp(ip);
                 loginUsuario.setUsuario(usuario);
                 loginUsuarioRepository.save(loginUsuario);
 
-                // GENERAR TOKEN
+                // GENERAR Y RETORNAR TOKEN
                 return jwtUtil.generateToken(usuario.getUsername());
         }
 
+        
         // recuperar contrasena mediante email
         @Transactional
         public void forgotPassword(String email) {
@@ -169,7 +223,7 @@ public class AuthService {
                 }
 
                 Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                                .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 // eliminar PINs anteriores del usuario
                 passwordResetTokenRepository.deleteByUsuario(usuario);
@@ -201,11 +255,11 @@ public class AuthService {
         public void verifyPin(String email, String pinIngresado) {
 
                 Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                                .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 PasswordResetToken token = passwordResetTokenRepository
                                 .findTopByUsuarioOrderByCreatedAtDesc(usuario)
-                                .orElseThrow(() -> new ResourceNotFoundException("PIN no encontrado"));
+                                .orElseThrow(() -> new ResourceConflictException("PIN no encontrado"));
 
                 // verificar expiración
                 if (token.getFechaExpiracion().isBefore(LocalDateTime.now())) {
@@ -240,7 +294,7 @@ public class AuthService {
                 }
 
                 Usuario usuario = usuarioRepository.findByEmpleadoEmail(request.getEmail())
-                                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                                .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 usuarioRepository.save(usuario);

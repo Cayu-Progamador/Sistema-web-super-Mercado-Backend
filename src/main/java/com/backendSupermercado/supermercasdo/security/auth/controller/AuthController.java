@@ -1,7 +1,6 @@
 package com.backendSupermercado.supermercasdo.security.auth.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,8 +15,7 @@ import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ForgotPasswor
 import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.AuthResponseDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.LoginRequestDto;
-import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDto;
-import com.backendSupermercado.supermercasdo.security.auth.dto.UsuarioResponseDto;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,13 +41,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponseDto(token));
     }
 
-    // REGISTER
-    @PostMapping("/register")
-    public ResponseEntity<UsuarioResponseDto> register(@RequestBody RegistroRequestDto request) {
-        UsuarioResponseDto response = authService.registrarUsuario(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
+    
     // Mandar correo de recuperación
     @PostMapping("/forgot-password")
     public ResponseEntity<String> recuperarContrasena(
@@ -80,5 +72,16 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 "Contraseña reseteada correctamente");
+    }
+
+    //reembiar nuevo codigo para el usuario
+    @PostMapping("/resend-code")
+    public ResponseEntity<String> reembirarCodigo(
+            @RequestBody ResetPasswordRequestDto request) {
+
+        authService.forgotPassword(request.getEmail());
+
+        return ResponseEntity.ok(
+                "Código reenviado correctamente");
     }
 }

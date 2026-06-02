@@ -1,10 +1,8 @@
-import { date } from 'quasar'
-import requets from '../../util/request'
+import request from '../../util/request'
 
-//ver los datos del usuario nombre completo usuername que se conecto al sistema
-
+//ver perfil del usuario logueado
 export function getUserList() {
-    return requets({
+    return request({
         url: '/api/usuarios/perfil',
         method: 'get'
     })
@@ -12,9 +10,31 @@ export function getUserList() {
 
 //registrar un nuevo usuario
 export function registrarUsuario(data) {
-    return requets({
-        url: '/api/auth/register',
+    return request({
+        url: '/api/usuarios/register',
         method: 'post',
         data
+    })
+}
+
+// cambiar contrasena del usuario logueado
+export function cambiarContrasena(data) { 
+    return request({
+        url: '/api/usuarios/cambiar-contrasena',
+        method: 'post',
+        data
+    })
+}
+
+
+// listar usuarios paginados
+export function listarUsuarios(page = 0, size = 10) {
+    return request({
+        url: '/api/usuarios/listar',
+        method: 'get',
+        params: {
+            page,
+            size
+        }
     })
 }

@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+/* ── Card principal ── */
+.usuario-card {
+  min-width: 420px;
+  max-width: 480px;
+  border-radius: 20px !important;
+  overflow: hidden;
+  background: #ffffff !important;
+  border: 1px solid #ddecc5 !important;
+  box-shadow: 0 12px 48px rgba(74, 140, 37, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Barra de acento ── */
+.accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #4a8c25, #7aaa4e, #d97b1a, #0f9e82);
+}
+
+/* ── Header ── */
+.card-header-section {
+  padding: 1.25rem 1.5rem 1rem;
+  background: #f7f9f4 !important;
+}
+
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7aaa4e;
+  font-family: 'Nunito', sans-serif;
+}
+
+.card-title {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #2a5c1a !important;
+  line-height: 1.25 !important;
+}
+
+.close-btn {
+  color: #9dbf78 !important;
+  background: #f0f7e8 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #ddecc5 !important;
+  color: #4a8c25 !important;
+}
+
+/* ── Separador ── */
+.custom-separator {
+  background: #e4edd8 !important;
+}
+
+/* ── Cuerpo ── */
+.card-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: #ffffff !important;
+}
+
+/* ── Labels de campo ── */
+.field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5a8040;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* ── Ícono dentro del input ── */
+.input-icon {
+  color: #9dbf78 !important;
+  font-size: 18px;
+}
+
+/* ── Overrides Quasar inputs ── */
+.custom-input :deep(.q-field__control) {
+  background: #fbfdf8 !important;
+  border-radius: 10px !important;
+  color: #2a5c1a !important;
+}
+
+.custom-input :deep(.q-field__native),
+.custom-input :deep(.q-field__input) {
+  color: #2a5c1a !important;
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.custom-input :deep(.q-field__native::placeholder),
+.custom-input :deep(input::placeholder) {
+  color: #bdd49a !important;
+}
+
+.custom-input :deep(.q-field__control:before) {
+  border-color: #ddecc5 !important;
+  border-width: 1.5px !important;
+  border-radius: 10px !important;
+}
+
+.custom-input :deep(.q-field__control:hover:before) {
+  border-color: #7aaa4e !important;
+}
+
+.custom-input :deep(.q-field--focused .q-field__control:before) {
+  border-color: #4a8c25 !important;
+  border-width: 2px !important;
+}
+
+.custom-input :deep(.q-field--focused .q-field__control) {
+  box-shadow: 0 0 0 3px rgba(122, 170, 78, 0.15) !important;
+}
+
+.custom-input :deep(.q-field__label) {
+  display: none;
+}
+
+/* ── Chips de roles ── */
+.role-chip {
+  font-size: 12px !important;
+  font-family: 'Nunito', sans-serif !important;
+  border-radius: 6px !important;
+  background: #eaf4d8 !important;
+  color: #3b6d11 !important;
+}
+
+/* ── Dropdown del select ── */
+.custom-input :deep(.q-menu) {
+  background: #ffffff !important;
+  border: 1px solid #ddecc5 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(74, 140, 37, 0.12) !important;
+}
+
+.custom-input :deep(.q-item) {
+  color: #2a5c1a !important;
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+}
+
+.custom-input :deep(.q-item:hover) {
+  background: #f0f7e8 !important;
+  color: #2a5c1a !important;
+}
+
+.custom-input :deep(.q-item__label) {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+/* ── Botones ── */
+.footer-actions {
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-cancel {
+  color: #7aaa4e !important;
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  padding: 0.5rem 1.1rem !important;
+  transition: all 0.2s !important;
+}
+
+.btn-cancel:hover {
+  background: #f0f7e8 !important;
+  color: #4a8c25 !important;
+}
+
+.btn-save {
+  background: #4a8c25 !important;
+  color: #ffffff !important;
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  padding: 0.5rem 1.5rem !important;
+  box-shadow: 0 4px 16px rgba(74, 140, 37, 0.3) !important;
+  transition: all 0.2s !important;
+}
+
+.btn-save:hover {
+  background: #3d7a1e !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 24px rgba(74, 140, 37, 0.4) !important;
+}
+
+.btn-save:active {
+  transform: translateY(0) !important;
+}

@@ -18,6 +18,13 @@
       
     </div>
 
+      <!-- Cambia el componente CambiarFotoPerfil -->
+      <CambiarFotoPerfil
+        v-model="mostrarFoto"
+        nombre-usuario="Admin Sistema"
+        @foto-actualizada="onFotoActualizada"
+      />
+
     <!-- TABS -->
     <div class="perfil-tabs q-mb-md">
       <div
@@ -30,12 +37,12 @@
         {{ tab.label }}
       </div>
     </div>
+
     <!-- contenido segun tab activa-->
     <CambiarPassword     v-if="tabActiva === 'password'" />
 
-
     <!-- CONTENIDO -->
-    <div class="perfil-grid">
+    <div class="perfil-grid" v-if="tabActiva === 'info'">
 
       <!-- COLUMNA IZQUIERDA -->
       <div class="col-left">
@@ -49,7 +56,7 @@
 
           <!-- Avatar + nombre -->
           <div class="row items-center no-wrap q-gutter-md q-mb-lg">
-            <div class="avatar-lg-wrap">
+            <div class="avatar-lg-wrap"  @click="mostrarFoto =  true" style="cursor: pointer">
               <div class="avatar-lg">AS</div>
               <div class="avatar-lg-edit">
                 <q-icon name="photo_camera" size="12px" color="white" />
@@ -198,59 +205,7 @@
           </div>
         </q-card>
 
-        <!-- ACTIVIDAD RECIENTE -->
-        <q-card class="perfil-card" flat>
-          <div class="card-title-row">
-            <q-icon name="history" class="card-title-icon" />
-            Actividad Reciente
-          </div>
-
-          <q-table
-            flat
-            :rows="actividad"
-            :columns="columnsActividad"
-            row-key="id"
-            hide-pagination
-            class="actividad-table"
-          >
-            <template #body-cell-actividad="props">
-              <q-td :props="props">
-                <span :class="['act-badge', getBadgeClass(props.row.actividad)]">
-                  {{ props.row.actividad }}
-                </span>
-              </q-td>
-            </template>
-
-            <template #body-cell-descripcion="props">
-              <q-td :props="props">
-                <span class="act-desc">{{ props.row.descripcion }}</span>
-              </q-td>
-            </template>
-
-            <template #body-cell-fecha="props">
-              <q-td :props="props">
-                <span class="act-meta">{{ props.row.fecha }}</span>
-              </q-td>
-            </template>
-
-            <template #body-cell-ip="props">
-              <q-td :props="props">
-                <span class="act-meta">{{ props.row.ip }}</span>
-              </q-td>
-            </template>
-
-            <template #body-cell-dispositivo="props">
-              <q-td :props="props">
-                <span class="act-meta">{{ props.row.dispositivo }}</span>
-              </q-td>
-            </template>
-          </q-table>
-
-          <div class="ver-mas" @click="verMasActividad">
-            <q-icon name="expand_more" size="16px" />
-            Ver más actividad
-          </div>
-        </q-card>
+       
 
       </div>
 
@@ -353,19 +308,25 @@
 </template>
 
 <script setup>
+import CambiarPassword  from '../../components/auth/nuevoPassword/ChangePassword.vue'
+import CambiarFotoPerfil from '../../components/perfil/CambiarFotoPerfil.vue'
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import CambiarPassword  from '../../components/auth/nuevoPassword/ChangePassword.vue'
+
 const $q = useQuasar()
 const guardando = ref(false)
 const tabActiva = ref('info')
+const mostrarFoto = ref(false)
 
 const tabs = [
   { key: 'info',       label: 'Información Personal' },
   { key: 'password',   label: 'Cambiar Contraseña' },
-  { key: 'prefs',      label: 'Preferencias' },
-  { key: 'actividad',  label: 'Actividad Reciente' }
 ]
+
+//metodo para actualizar foto perfil
+const onFotoActualizada = (urlFoto) => {
+  console.log(urlFoto)
+}
 
 const perfil = ref({
   nombres:       'Admin',
@@ -396,13 +357,7 @@ const actividad = ref([
   { id: 5, actividad: 'Cierre de Sesión',    descripcion: 'Sesión cerrada',                   fecha: '20/05/2024 09:10 AM', ip: '192.168.1.105', dispositivo: 'Firefox - Windows' }
 ])
 
-const getBadgeClass = (tipo) => {
-  if (tipo === 'Inicio de Sesión')  return 'ab-green'
-  if (tipo === 'Actualización')     return 'ab-teal'
-  if (tipo === 'Cambio Contraseña') return 'ab-orange'
-  if (tipo === 'Cierre de Sesión')  return 'ab-red'
-  return 'ab-green'
-}
+
 
 const guardarCambios = async () => {
   guardando.value = true
@@ -411,316 +366,11 @@ const guardarCambios = async () => {
   $q.notify({ type: 'positive', message: 'Perfil actualizado correctamente' })
 }
 
-const verMasActividad = () => {
-  $q.notify({ type: 'info', message: 'Cargando más actividad...' })
-}
+
+
+
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+<style scoped src="../../assets/styles/perfil/perfil.css">
 
-/* ── Página ── */
-.perfil-page {
-  background: #f7f9f4 !important;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* ── Header ── */
-.perfil-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.avatar-wrap { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
-.avatar-circle {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: #eaf4d8;
-  border: 2.5px solid #c8e0a0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: 900; color: #2a5c1a;
-  font-family: 'Nunito', sans-serif;
-}
-.avatar-edit {
-  position: absolute; bottom: 0; right: 0;
-  width: 18px; height: 18px;
-  background: #4a8c25; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid #fff;
-}
-
-.ph-title {
-  font-family: 'Nunito', sans-serif;
-  font-size: 20px; font-weight: 900; color: #2a5c1a;
-}
-.ph-sub {
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px; font-weight: 500; color: #9dbf78; margin-top: 2px;
-}
-
-.breadcrumb {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 12px; font-weight: 600; color: #bdd49a;
-  font-family: 'Nunito', sans-serif;
-}
-.bc-active { color: #4a8c25 !important; }
-
-/* ── Tabs ── */
-.perfil-tabs {
-  display: flex;
-  border-bottom: 2px solid #e4edd8;
-}
-.perfil-tab {
-  padding: 10px 20px;
-  font-size: 13px; font-weight: 700;
-  color: #9dbf78;
-  cursor: pointer;
-  border-bottom: 2.5px solid transparent;
-  margin-bottom: -2px;
-  transition: all 0.2s;
-  font-family: 'Nunito', sans-serif;
-}
-.perfil-tab.active { color: #2a5c1a; border-bottom-color: #4a8c25; }
-.perfil-tab:hover:not(.active) { color: #5a8040; }
-
-/* ── Grid principal ── */
-.perfil-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 16px;
-  align-items: start;
-}
-
-/* ── Cards ── */
-.perfil-card {
-  background: #ffffff !important;
-  border: 1px solid #e4edd8 !important;
-  border-radius: 16px !important;
-  padding: 20px !important;
-}
-
-.card-title-row {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 800;
-  color: #2a5c1a;
-  text-transform: uppercase; letter-spacing: 0.1em;
-  margin-bottom: 16px;
-  font-family: 'Nunito', sans-serif;
-}
-.card-title-icon { color: #7aaa4e !important; font-size: 18px !important; }
-
-/* ── Avatar grande ── */
-.avatar-lg-wrap { position: relative; flex-shrink: 0; }
-.avatar-lg {
-  width: 88px; height: 88px;
-  border-radius: 50%;
-  background: #eaf4d8;
-  border: 3px solid #c8e0a0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 30px; font-weight: 900; color: #2a5c1a;
-  font-family: 'Nunito', sans-serif;
-}
-.avatar-lg-edit {
-  position: absolute; bottom: 2px; right: 2px;
-  width: 26px; height: 26px;
-  background: #4a8c25; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid #fff; cursor: pointer;
-}
-
-.profile-name {
-  font-family: 'Nunito', sans-serif;
-  font-size: 18px; font-weight: 900; color: #2a5c1a;
-}
-.profile-role {
-  font-family: 'Nunito', sans-serif;
-  font-size: 12.5px; font-weight: 500; color: #9dbf78; margin-top: 3px;
-}
-.profile-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  margin-top: 7px;
-  background: #eaf4d8; color: #3b6d11;
-  border: 1px solid #c8e0a0;
-  font-size: 11px; font-weight: 800;
-  padding: 3px 10px; border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* ── Fields ── */
-.fields-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.field-full { grid-column: 1 / -1; }
-.field-group { display: flex; flex-direction: column; gap: 5px; }
-.field-lbl {
-  font-size: 11px; font-weight: 700; color: #7aaa4e;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* Quasar input overrides */
-.field-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1.5px solid #ddecc5 !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-}
-.field-input :deep(.q-field__control::before),
-.field-input :deep(.q-field__control::after) { display: none !important; }
-.field-input :deep(.q-field--focused .q-field__control) {
-  border-color: #4a8c25 !important;
-  box-shadow: 0 0 0 3px rgba(74,140,37,0.1) !important;
-}
-.field-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-}
-.field-input :deep(.q-field__label) { display: none !important; }
-.field-input :deep(.q-focus-helper) { display: none !important; }
-.input-icon { color: #bdd49a !important; font-size: 18px !important; }
-
-/* ── Botón guardar ── */
-.btn-save {
-  background: #4a8c25 !important;
-  color: #ffffff !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 800 !important;
-  border-radius: 10px !important;
-  padding: 8px 22px !important;
-  box-shadow: 0 4px 14px rgba(74,140,37,0.28) !important;
-  transition: all 0.2s !important;
-}
-.btn-save:hover {
-  background: #3d7a1e !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 20px rgba(74,140,37,0.38) !important;
-}
-
-/* ── Tabla actividad ── */
-.actividad-table :deep(thead tr) { background: #f7f9f4 !important; }
-.actividad-table :deep(thead th) {
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
-  color: #7aaa4e !important;
-  border-bottom: 2px solid #e4edd8 !important;
-}
-.actividad-table :deep(tbody td) {
-  border-bottom: 1px solid #f0f5ea !important;
-  font-family: 'Nunito', sans-serif !important;
-}
-.actividad-table :deep(tbody tr:hover td) { background: #fbfdf8 !important; }
-
-.act-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11.5px; font-weight: 700;
-  font-family: 'Nunito', sans-serif;
-  white-space: nowrap;
-}
-.ab-green  { background: #eaf4d8; color: #3b6d11; border: 1px solid #c8e0a0; }
-.ab-teal   { background: #e1f5ee; color: #0f6e56; border: 1px solid #9fe1cb; }
-.ab-orange { background: #fef3e2; color: #a05c10; border: 1px solid #f5c97a; }
-.ab-red    { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
-
-.act-desc  { font-size: 13px; font-weight: 600; color: #5a8040; }
-.act-meta  { font-size: 12.5px; font-weight: 500; color: #9dbf78; }
-
-.ver-mas {
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 14px;
-  font-size: 13px; font-weight: 700; color: #4a8c25;
-  cursor: pointer;
-  border-top: 1px solid #e4edd8;
-  font-family: 'Nunito', sans-serif;
-  transition: color 0.2s;
-}
-.ver-mas:hover { color: #3d7a1e; }
-
-/* ── Resumen de cuenta ── */
-.resumen-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f5ea;
-}
-.resumen-left { display: flex; align-items: center; gap: 10px; }
-.resumen-icon {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.ri-green  { background: #eaf4d8; }
-.ri-teal   { background: #e1f5ee; }
-.ri-orange { background: #fef3e2; }
-.ri-blue   { background: #e6f1fb; }
-
-.resumen-label {
-  font-size: 12.5px; font-weight: 600; color: #5a8040;
-  font-family: 'Nunito', sans-serif;
-}
-.resumen-val {
-  font-size: 13px; font-weight: 800; color: #2a5c1a;
-  font-family: 'Nunito', sans-serif;
-}
-
-.badge-admin {
-  background: #eaf4d8; color: #3b6d11;
-  border: 1px solid #c8e0a0;
-  font-size: 11px; font-weight: 800;
-  padding: 3px 10px; border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
-}
-.badge-activo {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: #e1f5ee; color: #0f6e56;
-  border: 1px solid #9fe1cb;
-  font-size: 11px; font-weight: 800;
-  padding: 3px 10px; border-radius: 20px;
-  font-family: 'Nunito', sans-serif;
-}
-.dot-activo {
-  width: 6px; height: 6px;
-  border-radius: 50%; background: #0f6e56;
-}
-
-/* ── Estadísticas ── */
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.stat-card {
-  background: #fbfdf8;
-  border: 1px solid #e4edd8;
-  border-radius: 12px;
-  padding: 12px;
-}
-.stat-icon {
-  width: 28px; height: 28px;
-  border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 8px;
-}
-.stat-num {
-  font-size: 22px; font-weight: 900; color: #2a5c1a;
-  line-height: 1;
-  font-family: 'Nunito', sans-serif;
-}
-.stat-lbl {
-  font-size: 11px; font-weight: 600; color: #9dbf78;
-  margin-top: 3px;
-  font-family: 'Nunito', sans-serif;
-}
 </style>

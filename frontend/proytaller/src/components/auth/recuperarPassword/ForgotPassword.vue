@@ -94,6 +94,8 @@
                 type="text" maxlength="1" @input="otpNext($event, i)" @keydown.backspace="otpPrev($event, i)" />
             </div>
             <p class="otp-hint">El código expira en <strong>{{ timerTexto }}</strong></p>
+            <p class="resend-txt">¿No recibiste el código? <span @click="reenviarCodigo">Reenviar código</span></p>
+
           </div>
           <button class="btn-primary" :disabled="cargando" @click="verificarCodigo">
             <q-spinner-dots v-if="cargando" color="white" size="1em" />
@@ -232,6 +234,8 @@
 </template>
 
 <script setup>
+import { forgotPassword, resendCode, resetPassword, veriFyPin } from '../../../api/login/login'
+//import '../../../assets/styles/forgotPassword/forgotPassword.css'
 import { ref, reactive, computed, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 
@@ -248,6 +252,7 @@ let timerInterval = null
 
 const form = reactive({
   correo: '',
+  codigo: '',
   nuevaPassword: '',
   confirmarPassword: ''
 })
@@ -258,6 +263,7 @@ const otp = ref(['', '', '', '', '', ''])
 const openForgotPassword = () => {
   paso.value = 1
   form.correo = ''
+  form.codigo = ''
   form.nuevaPassword = ''
   form.confirmarPassword = ''
   otp.value = ['', '', '', '', '', '']
@@ -328,38 +334,61 @@ const fortalezaColor = computed(() => {
   return '#4a8c25'
 })
 
-/* ── Acciones — conecta tu API aquí ── */
+/* ── Acciones enviar al correo codigo */
 const enviarCodigo = async () => {
   if (!form.correo) {
-    $q.notify({ type: 'warning', message: 'Ingresa tu correo electrónico' })
+    $q.notify({
+      type: 'warning',
+      message: 'Ingresa tu correo electrónico'
+    })
     return
   }
   cargando.value = true
   try {
-    // await solicitarCodigoRecuperacion({ correo: form.correo })
-    await new Promise(r => setTimeout(r, 1000)) // simulación
+    await forgotPassword({
+      email: form.correo
+    })
+
     iniciarTimer()
     paso.value = 2
-    $q.notify({ type: 'positive', message: `Código enviado a ${form.correo}` })
-  } catch {
-    $q.notify({ type: 'negative', message: 'No se pudo enviar el código. Verifica el correo.' })
+
+    $q.notify({
+      type: 'positive',
+      message: `Código enviado a ${form.correo}`
+    })
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'No se pudo enviar el código. Verifica el correo.'
+    })
+    console.log(error)
+
   } finally {
     cargando.value = false
   }
-}
 
+}
+//metodo para reenviar el codigo de recuperacion al correo 
 const reenviarCodigo = async () => {
   cargando.value = true
   try {
-    // await solicitarCodigoRecuperacion({ correo: form.correo })
-    await new Promise(r => setTimeout(r, 800))
+    await resendCode({
+      email: form.correo
+    })
     iniciarTimer()
     $q.notify({ type: 'positive', message: 'Código reenviado exitosamente' })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: 'No se pudo reenviar el código' })
+    console.log(error)
+
   } finally {
     cargando.value = false
   }
 }
 
+
+//metodod para verificar el codigo de recuperacion enviado en el correo del usuario
 const verificarCodigo = async () => {
   const codigo = otp.value.join('')
   if (codigo.length < 6) {
@@ -369,9 +398,16 @@ const verificarCodigo = async () => {
   cargando.value = true
   try {
     // await verificarCodigoRecuperacion({ correo: form.correo, codigo })
-    await new Promise(r => setTimeout(r, 1000))
+    await veriFyPin({
+      email: form.correo,
+      pin: codigo
+    })
+
+    form.codigo = codigo
+
     clearInterval(timerInterval)
     paso.value = 3
+
     $q.notify({ type: 'positive', message: 'Código verificado correctamente' })
   } catch {
     $q.notify({ type: 'negative', message: 'Código incorrecto o expirado' })
@@ -380,6 +416,7 @@ const verificarCodigo = async () => {
   }
 }
 
+//metodo para actualizar la contraseña
 const actualizarPassword = async () => {
   if (form.nuevaPassword !== form.confirmarPassword) {
     $q.notify({ type: 'negative', message: 'Las contraseñas no coinciden' })
@@ -392,462 +429,23 @@ const actualizarPassword = async () => {
   cargando.value = true
   try {
     // await cambiarPassword({ correo: form.correo, nuevaPassword: form.nuevaPassword })
-    await new Promise(r => setTimeout(r, 1000))
+    await resetPassword({
+      email: form.correo,
+      pin: form.codigo,
+      newPassword: form.nuevaPassword
+
+    })
+
     paso.value = 4
+    
     $q.notify({ type: 'positive', message: '¡Contraseña actualizada exitosamente!' })
   } catch {
     $q.notify({ type: 'negative', message: 'Error al actualizar la contraseña' })
+  
   } finally {
     cargando.value = false
   }
 }
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
-
-.recover-wrap {
-  width: 100%;
-  max-width: 460px;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* ── Card ── */
-.step-card {
-  background: #ffffff;
-  border: 1.5px solid #e4edd8;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 8px 40px rgba(74, 140, 37, 0.12);
-}
-
-/* ── Header ── */
-.card-header {
-  background: #f7f9f4;
-  border-bottom: 1px solid #e4edd8;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.h-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 11px;
-  background: #eaf4d8;
-  border: 1.5px solid #c8e0a0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.h-eyebrow {
-  font-size: 9px;
-  font-weight: 700;
-  color: #9dbf78;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  margin-bottom: 2px;
-  font-family: 'Nunito', sans-serif;
-}
-
-.h-title {
-  font-size: 15px;
-  font-weight: 900;
-  color: #2a5c1a;
-  font-family: 'Nunito', sans-serif;
-}
-
-.close-btn {
-  margin-left: auto;
-  color: #9dbf78 !important;
-  background: #f0f7e8 !important;
-  border-radius: 8px !important;
-}
-
-.close-btn:hover {
-  background: #ddecc5 !important;
-  color: #4a8c25 !important;
-}
-
-/* ── Body ── */
-.card-body {
-  padding: 18px 20px 22px;
-}
-
-/* ── Steps ── */
-.steps-indicator {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.sdot {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 900;
-  flex-shrink: 0;
-  font-family: 'Nunito', sans-serif;
-}
-
-.dot-active {
-  background: #4a8c25;
-  color: #fff;
-}
-
-.dot-pending {
-  background: #e4edd8;
-  color: #9dbf78;
-}
-
-.dot-done {
-  background: #4a8c25;
-  color: #fff;
-}
-
-.slbl {
-  font-size: 10px;
-  font-weight: 700;
-  color: #9dbf78;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-  font-family: 'Nunito', sans-serif;
-}
-
-.slbl-active {
-  color: #2a5c1a;
-}
-
-.slbl-done {
-  color: #7aaa4e;
-}
-
-.slbl-sm {
-  font-size: 9px;
-}
-
-.sline {
-  flex: 1;
-  height: 1.5px;
-  background: #e4edd8;
-  margin: 0 5px;
-}
-
-.sline-done {
-  background: #c8e0a0;
-}
-
-/* ── Info box ── */
-.info-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  background: #f0f7e8;
-  border: 1px solid #c8e0a0;
-  border-radius: 9px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-}
-
-.info-box p {
-  font-size: 12px;
-  font-weight: 600;
-  color: #5a8040;
-  line-height: 1.5;
-  font-family: 'Nunito', sans-serif;
-}
-
-.info-box p strong {
-  color: #2a5c1a;
-  font-weight: 800;
-}
-
-/* ── Fields ── */
-.field-group {
-  margin-bottom: 4px;
-}
-
-.field-lbl {
-  display: block;
-  font-size: 10px;
-  font-weight: 800;
-  color: #7aaa4e;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 5px;
-  font-family: 'Nunito', sans-serif;
-}
-
-.inp-hint {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: #b1e760;
-  margin-bottom: 14px;
-  font-family: 'Nunito', sans-serif;
-}
-
-/* Quasar input overrides */
-.field-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border: 1.5px solid #ddecc5 !important;
-  border-radius: 9px !important;
-  box-shadow: none !important;
-}
-
-.field-input :deep(.q-field__control::before),
-.field-input :deep(.q-field__control::after) {
-  display: none !important;
-}
-
-.field-input :deep(.q-field--focused .q-field__control) {
-  border-color: #4a8c25 !important;
-  box-shadow: 0 0 0 3px rgba(74, 140, 37, 0.1) !important;
-}
-
-.field-input :deep(.q-field__native) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-}
-
-.field-input :deep(input::placeholder) {
-  color: #95ce39 !important;
-  font-weight: 700 !important;
-}
-
-.field-input :deep(.q-field__label) {
-  display: none !important;
-}
-
-.field-input :deep(.q-focus-helper) {
-  display: none !important;
-}
-
-.input-icon {
-  color: #bde483 !important;
-  font-size: 18px !important;
-}
-
-.eye-icon {
-  color: #9dbf78 !important;
-  font-size: 18px !important;
-  cursor: pointer;
-}
-
-.eye-icon:hover {
-  color: #4a8c25 !important;
-}
-
-/* ── OTP ── */
-.otp-row {
-  display: flex;
-  gap: 7px;
-  margin-bottom: 5px;
-}
-
-.otp-inp {
-  width: 42px;
-  height: 48px;
-  border: 1.5px solid #ddecc5;
-  border-radius: 9px;
-  background: #fbfdf8;
-  text-align: center;
-  font-family: 'Nunito', sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  color: #2a5c1a;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.otp-inp:focus {
-  border-color: #4a8c25;
-  box-shadow: 0 0 0 3px rgba(74, 140, 37, 0.12);
-}
-
-.otp-first {
-  border-color: #4a8c25;
-  box-shadow: 0 0 0 3px rgba(74, 140, 37, 0.12);
-}
-
-.otp-hint {
-  font-size: 11px;
-  font-weight: 600;
-  color: #9dbf78;
-  margin-bottom: 6px;
-  font-family: 'Nunito', sans-serif;
-}
-
-.otp-hint strong {
-  color: #2a5c1a;
-}
-
-.resend-txt {
-  font-size: 12px;
-  font-weight: 600;
-  color: #9dbf78;
-  margin-bottom: 14px;
-  font-family: 'Nunito', sans-serif;
-}
-
-.resend-txt span {
-  color: #d97b1a;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.resend-txt span:hover {
-  text-decoration: underline;
-}
-
-/* ── Fortaleza ── */
-.str-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 4px 0;
-}
-
-.str-min {
-  font-size: 10.7px;
-  font-weight: 600;
-  color: #bbe977;
-  font-family: 'Nunito', sans-serif;
-}
-
-.str-val {
-  font-size: 10.5px;
-  font-weight: 800;
-  font-family: 'Nunito', sans-serif;
-}
-
-.str-bars {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 14px;
-}
-
-.sbar {
-  flex: 1;
-  height: 3px;
-  border-radius: 3px;
-  background: #e4edd8;
-  transition: background 0.3s;
-}
-
-.sbar-on {
-  background: #4a8c25;
-}
-
-/* ── Botones ── */
-.btn-primary {
-  width: 100%;
-  padding: 12px 16px;
-  background: #4a8c25;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  transition: background 0.2s, transform 0.15s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #3d7a1e;
-  transform: translateY(-1px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.btn-center {
-  max-width: 260px;
-  margin: 0 auto;
-}
-
-.btn-outline {
-  width: 100%;
-  padding: 11px 16px;
-  background: #fff;
-  color: #4a4a4a;
-  border: 1.5px solid #d0d0d0;
-  border-radius: 8px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.btn-outline:hover {
-  background: #f7f7f7;
-  border-color: #bbb;
-}
-
-/* ── Éxito ── */
-.success-body {
-  text-align: center;
-  padding: 10px 0 6px;
-}
-
-.success-circle {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  background: #eaf4d8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 14px;
-}
-
-.success-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: #2a5c1a;
-  margin-bottom: 6px;
-  font-family: 'Nunito', sans-serif;
-}
-
-.success-sub {
-  font-size: 12.8px;
-  font-weight: 600;
-  color: #89c24d;
-  line-height: 1.6;
-  margin-bottom: 18px;
-  font-family: 'Nunito', sans-serif;
-}
-</style>
+<style scoped src="../../../assets/styles/forgotPassword/forgotPassword.css"></style>

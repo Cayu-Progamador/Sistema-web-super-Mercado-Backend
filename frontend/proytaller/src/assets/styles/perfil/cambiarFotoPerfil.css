@@ -1,0 +1,320 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Card ── */
+.foto-card {
+    width: 100% !important;
+    max-width: 540px !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    border: 1px solid #e4edd8 !important;
+    box-shadow: 0 16px 60px rgba(74, 140, 37, 0.15) !important;
+    font-family: 'Nunito', sans-serif;
+}
+
+/* ── Header ── */
+.foto-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid #e4edd8;
+}
+
+.foto-title {
+    font-size: 17px;
+    font-weight: 900;
+    color: #2a5c1a;
+    font-family: 'Nunito', sans-serif;
+}
+
+.close-btn {
+    color: #9dbf78 !important;
+    background: #f0f7e8 !important;
+    border-radius: 8px !important;
+}
+
+.close-btn:hover {
+    background: #ddecc5 !important;
+    color: #4a8c25 !important;
+}
+
+/* ── Body ── */
+.foto-body {
+    padding: 22px 22px 8px !important;
+}
+
+/* ── Avatar ── */
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.avatar-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin-bottom: 10px;
+}
+
+.avatar-circle {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: #eaf4d8;
+    border: 3px solid #c8e0a0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 900;
+    color: #2a5c1a;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+}
+
+.avatar-cam-btn {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #4a8c25;
+    border: 2.5px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.avatar-cam-btn:hover {
+    background: #3d7a1e;
+}
+
+.formats-txt {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9dbf78;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+}
+
+/* ── Requisitos ── */
+.req-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-bottom: 14px;
+}
+
+.req-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #f7f9f4;
+    border: 1px solid #e4edd8;
+    border-radius: 8px;
+    padding: 7px 10px;
+}
+
+.req-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #eaf4d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.req-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5a8040;
+    font-family: 'Nunito', sans-serif;
+    line-height: 1.3;
+}
+
+/* ── Error ── */
+.error-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-bottom: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #b91c1c;
+    font-family: 'Nunito', sans-serif;
+}
+
+/* ── Drop zone ── */
+.drop-zone {
+    border: 2px dashed #c8e0a0;
+    border-radius: 12px;
+    background: #f7fdf2;
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 14px;
+}
+
+.drop-zone:hover {
+    border-color: #7aaa4e;
+    background: #f0f7e8;
+}
+
+.drop-zone.drag-over {
+    border-color: #4a8c25;
+    background: #eaf4d8;
+}
+
+.drop-icon {
+    color: #7aaa4e !important;
+    margin-bottom: 8px;
+}
+
+.drop-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #2a5c1a;
+    margin-bottom: 4px;
+    font-family: 'Nunito', sans-serif;
+}
+
+.drop-or {
+    font-size: 12px;
+    font-weight: 600;
+    color: #bdd49a;
+    margin-bottom: 10px;
+    font-family: 'Nunito', sans-serif;
+}
+
+.btn-select {
+    background: #4a8c25;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-select:hover {
+    background: #3d7a1e;
+}
+
+/* ── Progress ── */
+.progress-wrap {
+    margin-bottom: 6px;
+}
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.progress-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2a5c1a;
+    font-family: 'Nunito', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.progress-pct {
+    font-size: 12px;
+    font-weight: 800;
+    color: #4a8c25;
+    font-family: 'Nunito', sans-serif;
+}
+
+.progress-bg {
+    width: 100%;
+    height: 6px;
+    background: #e4edd8;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #4a8c25;
+    border-radius: 4px;
+    transition: width 0.15s;
+}
+
+/* ── Footer ── */
+.foto-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid #e4edd8;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 11px;
+    background: #fff;
+    color: #5a5a5a;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 9px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f7f7f7;
+    border-color: #bbb;
+}
+
+.btn-save {
+    flex: 2;
+    padding: 11px;
+    background: #4a8c25;
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    box-shadow: 0 4px 14px rgba(74, 140, 37, 0.28);
+    transition: background 0.2s, transform 0.15s;
+}
+
+.btn-save:hover:not(.btn-disabled) {
+    background: #3d7a1e;
+    transform: translateY(-1px);
+}
+
+.btn-disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}

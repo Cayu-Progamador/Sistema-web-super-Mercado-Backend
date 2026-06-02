@@ -17,9 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.*;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -82,4 +80,13 @@ public class Usuario {
         fetch = FetchType.LAZY
     )
     private List<AuditoriaUsuario> auditorias = new ArrayList<>();
+
+    // Relación usuario - seguridad
+    @OneToOne(
+        mappedBy = "usuario",
+        cascade = CascadeType.ALL,
+        fetch = FetchType.LAZY,
+        orphanRemoval = true
+    )
+    private SeguridadUsuario seguridadUsuario;
 }

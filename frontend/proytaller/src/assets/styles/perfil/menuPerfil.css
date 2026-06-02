@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+/* ── Dropdown container ── */
+.custom-user-menu-dropdown {
+  border-radius: 14px !important;
+  border: 1px solid #e4edd8 !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 32px rgba(74, 140, 37, 0.12) !important;
+  overflow: hidden !important;
+  font-family: 'Nunito', sans-serif !important;
+}
+
+/* ── Sección info usuario ── */
+.info-section {
+  background: #f7f9f4 !important;
+}
+
+/* ── Ícono de usuario ── */
+.user-icon {
+  color: #4a8c25 !important;
+}
+
+/* ── Nombre del usuario ── */
+.user-name {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #2a5c1a !important;
+}
+
+/* ── Labels secundarios ── */
+.user-username {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #9dbf78 !important;
+  margin-top: 2px !important;
+}
+
+/* ── Valor del rol / username ── */
+.text-role {
+  font-family: 'Nunito', sans-serif !important;
+  font-weight: 700 !important;
+  color: #4a8c25 !important;
+  background: #eaf4d8 !important;
+  border-radius: 5px !important;
+  padding: 1px 6px !important;
+  font-size: 11.5px !important;
+  margin-left: 3px !important;
+}
+
+/* ── Separadores ── */
+.menu-separator {
+  background: #e4edd8 !important;
+}
+
+/* ── Item: Perfil ── */
+.menu-item-perfil {
+  border-radius: 8px !important;
+  margin: 3px 6px !important;
+  transition: background 0.15s !important;
+}
+.menu-item-perfil:hover {
+  background: #f0f7e8 !important;
+}
+
+.menu-icon-perfil {
+  color: #0f6e56 !important;
+}
+
+.menu-label-perfil {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #2a5c1a !important;
+}
+
+/* ── Item: Cambiar Contraseña ── */
+.menu-item-password {
+  border-radius: 8px !important;
+  margin: 3px 6px !important;
+  transition: background 0.15s !important;
+}
+.menu-item-password:hover {
+  background: #f0f7e8 !important;
+}
+
+.menu-icon-password {
+  color: #d97b1a !important;
+}
+
+.menu-label-password {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #2a5c1a !important;
+}
+
+/* ── Item: Salir ── */
+.menu-item-logout {
+  border-radius: 8px !important;
+  margin: 3px 6px !important;
+  transition: background 0.15s !important;
+}
+.menu-item-logout:hover {
+  background: #fff4f4 !important;
+}
+
+.menu-icon-logout {
+  color: #b91c1c !important;
+}
+
+.menu-label-logout {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #b91c1c !important;
+}
