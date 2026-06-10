@@ -3,7 +3,7 @@
     <CardsUsuario />
 
     <q-card flat bordered class="table-card">
-      
+
       <div class="row items-center justify-between q-pa-md q-col-gutter-md table-header">
         <div>
           <div class="text-h6 text-weight-bold table-title">Lista de Usuarios</div>
@@ -21,17 +21,10 @@
         </div>
       </div>
 
-      <q-table 
-        flat 
-        :rows="usuarios" 
-        :columns="columns" 
-        row-key="idUsuario" 
-        :loading="loading"
-        v-model:pagination="pagination" 
-        @request="onRequest" 
-        class="custom-table"
-      >
-        
+      <q-table flat :rows="usuarios" :columns="columns" row-key="idUsuario" :loading="loading"
+        v-model:pagination="pagination" @request="onRequest" rows-per-page-label="Usuarios por página"
+        :pagination-label="getPaginationLabel" :rows-per-page-options="[10, 20, 30, 40, 50]" class="custom-table">
+
         <template v-slot:body-cell-nombreCompleto="props">
           <q-td :props="props">
             <div class="row items-center no-wrap q-gutter-sm">
@@ -39,7 +32,7 @@
                 {{ props.row.nombreCompleto ? props.row.nombreCompleto.charAt(0).toUpperCase() : 'U' }}
               </q-avatar>
               <span class="text-weight-medium user-name">
-                {{ props.row.nombreCompleto }} 
+                {{ props.row.nombreCompleto }}
               </span>
             </div>
           </q-td>
@@ -47,12 +40,8 @@
 
         <template v-slot:body-cell-rol="props">
           <q-td :props="props">
-            <q-chip
-              dense
-              :color="getRolColor(props.row.rol)"
-              text-color="white"
-              style="font-size: 13px; padding: 6px 14px !important; border-radius: 20px; font-weight: 500;"
-            >
+            <q-chip dense :color="getRolColor(props.row.rol)" text-color="white"
+              style="font-size: 13px; padding: 6px 14px !important; border-radius: 20px; font-weight: 500;">
               {{ formatRol(props.row.rol) }}
             </q-chip>
           </q-td>
@@ -78,41 +67,74 @@
             <div class="row no-wrap q-gutter-xs">
               <q-btn flat round dense class="action-btn action-view" icon="visibility" />
               <q-btn flat round dense class="action-btn action-edit" icon="edit" />
-              <q-btn flat round dense class="action-btn action-delete" icon="delete" />
+              <!-- DESACTIVAR (solo si está activo) -->
+              <q-btn v-if="props.row.activo" flat round dense class="action-btn action-delete" icon="block" color="red"
+                @click="desactivarUsuarios(props.row.idUsuario, props.row.username, props.row.rol)" />
+              <!-- ACTIVAR (solo si está inactivo) -->
+              <q-btn v-else flat round dense class="action-btn" icon="check" color="green"
+                @click="activarUsuarios(props.row.idUsuario, props.row.username, props.row.rol)" />
+
             </div>
           </q-td>
         </template>
-
+        
       </q-table>
     </q-card>
-
+    
     <q-dialog v-model="mostrarModal" persistent>
       <UsuarioForm @cerrar="mostrarModal = false" />
     </q-dialog>
+      <!-- Agrega al final antes de cerrar q-page -->
+    <DesactivarUsuarioDialog
+      v-model="mostrarDesactivar"
+      :id="usuarioSeleccionado.id"
+      :nombre="usuarioSeleccionado.nombre"
+      :rol="usuarioSeleccionado.rol"
+      @confirmar="onConfirmarDesactivar"
+    />
+    <!-- dialogo de activar usuario -->
+    <ActivarUsuarioDialog
+      v-model="mostrarActivar"
+      :id="usuarioSeleccionado.id"
+      :nombre="usuarioSeleccionado.nombre"
+      :rol="usuarioSeleccionado.rol"
+      @confirmar="onConfirmarActivar"
+    />
   </q-page>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import CardsUsuario from '../../components/usuarios/CardsUsuario.vue'
 import UsuarioForm from '../../components/usuarios/UsuarioForm.vue'
-import { ref, onMounted } from 'vue'
-import { listarUsuarios } from '../../api/usuario/usuario' 
+import DesactivarUsuarioDialog from '../../components/usuarios/DesactivarUsuarioDialog.vue'
+import ActivarUsuarioDialog from '../../components/usuarios/ActivarUsuarioDialog.vue'
+import { listarUsuarios, desactivarUsuario, activarUsuario } from '../../api/usuario/usuario'
 
 const mostrarModal = ref(false)
+const mostrarDesactivar = ref(false)
+const mostrarActivar = ref(false)
+const usuarioSeleccionado = ref({id:null, nombre:'',rol:''})
 const search = ref('')
 const loading = ref(false)
 const usuarios = ref([])
+const $q = useQuasar()
 
 const columns = [
-  { name: 'idUsuario',      label: 'ID',            field: 'idUsuario',      align: 'left' },
-  { name: 'nombreCompleto', label: 'Usuario',       field: 'nombreCompleto', align: 'left' },
-  { name: 'username',       label: 'Username',      field: 'username',       align: 'left' },
-  { name: 'correo',         label: 'Correo',        field: 'correo',         align: 'left' },
-  { name: 'rol',            label: 'Rol',           field: 'rol',            align: 'left' },
-  { name: 'activo',         label: 'Estado',        field: 'activo',         align: 'left' },
-  { name: 'ultimoAcceso',   label: 'Último Acceso', field: 'ultimoAcceso',   align: 'left' },
-  { name: 'acciones',       label: 'Acciones',      field: 'acciones',       align: 'center' }
+  { name: 'idUsuario', label: 'ID', field: 'idUsuario', align: 'left' },
+  { name: 'nombreCompleto', label: 'Usuario', field: 'nombreCompleto', align: 'left' },
+  { name: 'username', label: 'Username', field: 'username', align: 'left' },
+  { name: 'correo', label: 'Correo', field: 'correo', align: 'left' },
+  { name: 'rol', label: 'Rol', field: 'rol', align: 'left' },
+  { name: 'activo', label: 'Estado', field: 'activo', align: 'left' },
+  { name: 'ultimoAcceso', label: 'Último Acceso', field: 'ultimoAcceso', align: 'left' },
+  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' }
 ]
+
+const getPaginationLabel = (firstRowIndex, endRowIndex, totalRowsNumber) => {
+  return `${firstRowIndex}-${endRowIndex} de ${totalRowsNumber}`
+}
 
 const pagination = ref({
   sortBy: 'idUsuario',
@@ -151,18 +173,67 @@ const formatFecha = (fecha) => {
   })
 }
 
-const cargarUsuarios = async (page, size) => {
-  loading.value = true
+const cargarUsuarios = async (page = 1, size = 5) => {
+
+  if (!page || isNaN(page)) page = 1
+  if (!size || isNaN(size)) size = 5
+
+  const respuesta = await listarUsuarios(page - 1, size)
+
+  usuarios.value = respuesta.content
+
+  pagination.value.page = page
+  pagination.value.rowsPerPage = size
+  pagination.value.rowsNumber = respuesta.totalElements
+}
+
+//actualizado con el dialogo
+const activarUsuarios = (id, nombre, rol = '') => {
+  usuarioSeleccionado.value = {
+    id,
+    nombre,
+    rol
+  }
+  mostrarActivar.value = true
+}
+
+//  ACTIVAR USUARIO la confirmacion
+const onConfirmarActivar = async (id) => {
   try {
-    const respuesta = await listarUsuarios(page - 1, size)
-    usuarios.value = respuesta.content
-    pagination.value.page = page
-    pagination.value.rowsPerPage = size
-    pagination.value.rowsNumber = respuesta.totalElements
+    await activarUsuario(id)
+
+    $q.notify({
+      type: 'positive',
+      message: 'Usuario activado correctamente'
+    })
+
+    await cargarUsuarios()
+
   } catch (error) {
-    console.error('Error al cargar la lista de usuarios:', error)
-  } finally {
-    loading.value = false
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Error al activar usuario'
+    })
+  }
+}
+
+//  DESACTIVAR USUARIO
+const desactivarUsuarios = (id, nombre, rol = '') => {
+  usuarioSeleccionado.value = { id, nombre, rol }
+  mostrarDesactivar.value = true
+}
+
+// agrega este método
+const onConfirmarDesactivar = async (id) => {
+  try {
+    await desactivarUsuario(id)
+    $q.notify({ type: 'positive', message: 'Usuario desactivado correctamente' })
+    await cargarUsuarios()
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Error al desactivar usuario'
+    })
   }
 }
 

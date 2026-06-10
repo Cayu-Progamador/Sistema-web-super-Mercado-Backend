@@ -1,9 +1,9 @@
 import request from '../../util/request'
 
 //listar roles para usuario
-export function getListRoles() {
+export function getEmpleadoLista() {
     return request({
-        url: '/api/roles/select-rol',
+        url: '/api/empleados/select',
         method: 'get'
     })
 }

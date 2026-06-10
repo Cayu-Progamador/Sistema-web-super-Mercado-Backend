@@ -151,6 +151,13 @@ public class AuthService {
                 Usuario usuario = usuarioRepository.findByUsername(username)
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
+                
+                                //validar si es asta activo
+                if(!Boolean.TRUE.equals(usuario.getActivo())) {
+                        throw new BadCredentialsException("Su cuenta se encuentra inactiva.");
+
+                }
+//busar seguridad del usuario
                 SeguridadUsuario seguridad = seguridadUsuarioRepository.findByUsuario(usuario)
                                 .orElseThrow(() -> new ResourceConflictException(
                                                 "Configuración de seguridad no encontrada"));

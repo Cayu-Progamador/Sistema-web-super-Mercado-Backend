@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioUpdateDto;
 
 public interface UsuarioService{
     //ver perfil del usuario logueado
@@ -17,5 +18,16 @@ public interface UsuarioService{
     //listar usuarios
     Page<UsuarioListadoResponseDto> listarUsuarios(Pageable pageable);
 
+    //desactivar el usuario borrado logico
+    public void desactivarUsuario(Long id);
+
+    //activar el usuario borrado logico
+    public void activarUsuario(Long id);
+
+    //editar un usuario
+    public void actualizarUsuario(
+            Long id,
+            UsuarioUpdateDto dto,
+            Long idUsuarioLogueado);
     
 }

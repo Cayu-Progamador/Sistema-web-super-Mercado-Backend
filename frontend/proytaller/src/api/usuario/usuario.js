@@ -38,3 +38,22 @@ export function listarUsuarios(page = 0, size = 10) {
         }
     })
 }
+
+//  ACTIVAR USUARIO
+
+export function activarUsuario(id) {
+    return request({
+        url: `/api/usuarios/${id}/activar`,
+        method: 'patch'
+    })
+}
+
+
+//  DESACTIVAR USUARIO
+
+export function desactivarUsuario(id) {
+    return request({
+        url: `/api/usuarios/${id}/desactivar`,
+        method: 'patch'
+    })
+}

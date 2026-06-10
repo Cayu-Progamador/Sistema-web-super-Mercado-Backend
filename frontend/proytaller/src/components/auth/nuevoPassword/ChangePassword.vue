@@ -29,7 +29,7 @@
                 <template #prepend>
                   <q-icon name="lock_outline" class="input-icon" />
                 </template>
-                <template #append>
+                <template v-if="form.actual" #append>
                   <q-icon :name="mostrar.actual ? 'visibility_off' : 'visibility'" class="eye-icon"
                     @click="mostrar.actual = !mostrar.actual" />
                 </template>
@@ -45,7 +45,7 @@
                 <template #prepend>
                   <q-icon name="lock_outline" class="input-icon" />
                 </template>
-                <template #append>
+                <template v-if="form.nueva" #append>
                   <q-icon :name="mostrar.nueva ? 'visibility_off' : 'visibility'" class="eye-icon"
                     @click="mostrar.nueva = !mostrar.nueva" />
                 </template>
@@ -72,7 +72,7 @@
                 <template #prepend>
                   <q-icon name="lock_outline" class="input-icon" />
                 </template>
-                <template #append>
+                <template v-if="form.confirmar" #append>
                   <q-icon :name="mostrar.confirmar ? 'visibility_off' : 'visibility'" class="eye-icon"
                     @click="mostrar.confirmar = !mostrar.confirmar" />
                 </template>

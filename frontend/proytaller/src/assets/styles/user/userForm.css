@@ -1,219 +1,347 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
-
-/* ── Card principal ── */
+/* ═══════════════════════════════════════════
+   CARD PRINCIPAL
+═══════════════════════════════════════════ */
 .usuario-card {
-  min-width: 420px;
-  max-width: 480px;
-  border-radius: 20px !important;
-  overflow: hidden;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 40px rgba(27,94,32,0.12), 0 2px 10px rgba(0,0,0,0.07) !important;
   background: #ffffff !important;
-  border: 1px solid #ddecc5 !important;
-  box-shadow: 0 12px 48px rgba(74, 140, 37, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-  font-family: 'Nunito', sans-serif;
+  max-width: 900px;
+  width: 100%;
+  overflow-y: auto;
 }
 
-/* ── Barra de acento ── */
+/* ═══════════════════════════════════════════
+   BARRA VERDE SUPERIOR
+═══════════════════════════════════════════ */
 .accent-bar {
-  height: 3px;
-  background: linear-gradient(90deg, #4a8c25, #7aaa4e, #d97b1a, #0f9e82);
+  height: 5px;
+  background: linear-gradient(90deg, #1B5E20 0%, #4CAF50 100%);
 }
 
-/* ── Header ── */
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
 .card-header-section {
-  padding: 1.25rem 1.5rem 1rem;
-  background: #f7f9f4 !important;
+  padding: 20px 28px 16px !important;
 }
-
 .header-content {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
 }
-
-.header-left {
+.header-icon-wrap {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  border-radius: 14px;
+  background: #E8F5E9;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  justify-content: center;
 }
-
 .eyebrow {
-  font-size: 10px;
+  display: block;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: #7aaa4e;
-  font-family: 'Nunito', sans-serif;
+  color: #2E7D32;
+  margin-bottom: 1px;
 }
-
 .card-title {
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 18px !important;
-  font-weight: 800 !important;
-  color: #2a5c1a !important;
-  line-height: 1.25 !important;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.25;
+  margin: 2px 0;
 }
-
 .close-btn {
-  color: #9dbf78 !important;
-  background: #f0f7e8 !important;
-  border-radius: 8px !important;
-  transition: all 0.2s;
+  color: #9e9e9e !important;
 }
-
 .close-btn:hover {
-  background: #ddecc5 !important;
-  color: #4a8c25 !important;
+  background: #E8F5E9 !important;
+  color: #2E7D32 !important;
 }
-
-/* ── Separador ── */
 .custom-separator {
-  background: #e4edd8 !important;
+  background: #eeeeee !important;
 }
 
-/* ── Cuerpo ── */
+/* ═══════════════════════════════════════════
+   BODY
+═══════════════════════════════════════════ */
 .card-body {
-  padding: 1.25rem 1.5rem 1.5rem;
-  background: #ffffff !important;
+  padding: 20px 28px 28px !important;
 }
 
-/* ── Labels de campo ── */
-.field-wrapper {
+/* ═══════════════════════════════════════════
+   SECCIÓN LABELS  (DATOS DE LA CUENTA, etc.)
+═══════════════════════════════════════════ */
+.section-label {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.field-label {
+  align-items: center;
   font-size: 11px;
   font-weight: 700;
-  color: #5a8040;
+  letter-spacing: 1.1px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-family: 'Nunito', sans-serif;
+  color: #2E7D32;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E8F5E9;
+}
+.section-icon {
+  color: #2E7D32 !important;
+}
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #212121;
+  margin-bottom: 6px;
+}
+.required-star { color: #e53935; }
+
+/* ═══════════════════════════════════════════
+   INPUTS PREMIUM VERDE
+═══════════════════════════════════════════ */
+
+.custom-input {
+  width: 100%;
 }
 
-/* ── Ícono dentro del input ── */
-.input-icon {
-  color: #9dbf78 !important;
-  font-size: 18px;
-}
-
-/* ── Overrides Quasar inputs ── */
 .custom-input :deep(.q-field__control) {
-  background: #fbfdf8 !important;
-  border-radius: 10px !important;
-  color: #2a5c1a !important;
+  background: #fcfffc !important;
+  border-radius: 12px !important;
+  min-height: 42px !important;
 }
 
-.custom-input :deep(.q-field__native),
-.custom-input :deep(.q-field__input) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
+.custom-input :deep(.q-field__control::before) {
+  border: 1.5px solid #dcedc8 !important;
+  border-radius: 12px !important;
+  transition: all .25s ease;
+}
+
+.custom-input :deep(.q-field__control::after) {
+  display: none !important;
+}
+
+/* Hover */
+.custom-input :deep(.q-field__control:hover::before) {
+  border-color: #81c784 !important;
+}
+
+/* Focus */
+.custom-input :deep(.q-field--focused .q-field__control::before) {
+  border: 2px solid #66bb6a !important;
+  box-shadow: 0 0 0 4px rgba(102,187,106,.12) !important;
+}
+
+/* Con datos */
+.custom-input :deep(.q-field--dirty .q-field__control::before) {
+  border-color: #81c784 !important;
+}
+
+/* Texto */
+.custom-input :deep(.q-field__native) {
   font-size: 14px !important;
-  font-weight: 500 !important;
+  color: #2e7d32 !important;
+  font-weight: 500;
 }
 
-.custom-input :deep(.q-field__native::placeholder),
-.custom-input :deep(input::placeholder) {
-  color: #bdd49a !important;
-}
-
-.custom-input :deep(.q-field__control:before) {
-  border-color: #ddecc5 !important;
-  border-width: 1.5px !important;
-  border-radius: 10px !important;
-}
-
-.custom-input :deep(.q-field__control:hover:before) {
-  border-color: #7aaa4e !important;
-}
-
-.custom-input :deep(.q-field--focused .q-field__control:before) {
-  border-color: #4a8c25 !important;
-  border-width: 2px !important;
-}
-
-.custom-input :deep(.q-field--focused .q-field__control) {
-  box-shadow: 0 0 0 3px rgba(122, 170, 78, 0.15) !important;
-}
-
-.custom-input :deep(.q-field__label) {
-  display: none;
-}
-
-/* ── Chips de roles ── */
-.role-chip {
-  font-size: 12px !important;
-  font-family: 'Nunito', sans-serif !important;
-  border-radius: 6px !important;
-  background: #eaf4d8 !important;
-  color: #3b6d11 !important;
-}
-
-/* ── Dropdown del select ── */
-.custom-input :deep(.q-menu) {
-  background: #ffffff !important;
-  border: 1px solid #ddecc5 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 8px 32px rgba(74, 140, 37, 0.12) !important;
-}
-
-.custom-input :deep(.q-item) {
-  color: #2a5c1a !important;
-  font-family: 'Nunito', sans-serif !important;
+/* Placeholder */
+.custom-input :deep(input::placeholder),
+.custom-input :deep(textarea::placeholder) {
+  color: #aed581 !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
-  border-radius: 6px !important;
 }
 
-.custom-input :deep(.q-item:hover) {
-  background: #f0f7e8 !important;
-  color: #2a5c1a !important;
+/* Iconos */
+.custom-input :deep(.q-field__prepend .q-icon),
+.custom-input :deep(.q-field__append .q-icon) {
+  color: #9ccc65 !important;
+  font-size: 20px !important;
 }
 
-.custom-input :deep(.q-item__label) {
-  font-family: 'Nunito', sans-serif !important;
+.custom-input :deep(.q-field--focused .q-icon) {
+  color: #43a047 !important;
 }
 
-/* ── Botones ── */
-.footer-actions {
-  gap: 10px;
+/* Label */
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #33691e;
+  margin-bottom: 8px;
+}
+
+/* ═══════════════════════════════════════════
+   MENSAJE USUARIO DISPONIBLE
+═══════════════════════════════════════════ */
+.disponible-msg {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4CAF50;
+  display: flex;
   align-items: center;
+  gap: 4px;
+}
+.icon-check {
+  color: #4CAF50 !important;
 }
 
-.btn-cancel {
-  color: #7aaa4e !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  padding: 0.5rem 1.1rem !important;
-  transition: all 0.2s !important;
+/* ═══════════════════════════════════════════
+   BARRA FORTALEZA CONTRASEÑA
+═══════════════════════════════════════════ */
+.strength-bar :deep(.q-linear-progress__track) {
+  background: #E8F5E9 !important;
+  opacity: 1 !important;
+}
+.req-chip {
+  border-radius: 20px !important;
+  font-size: 11.5px !important;
 }
 
-.btn-cancel:hover {
-  background: #f0f7e8 !important;
-  color: #4a8c25 !important;
+.password-help {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #aed581;
+  line-height: 1.5;
 }
 
-.btn-save {
-  background: #4a8c25 !important;
+/* ═══════════════════════════════════════════
+   CONFIG CARD (toggle activo)
+═══════════════════════════════════════════ */
+.config-card {
+  background: #F1F8F1 !important;
+  border: 1.5px solid #C8E6C9 !important;
+  border-radius: 12px !important;
+}
+
+/* ═══════════════════════════════════════════
+   INFO BOX AZUL
+═══════════════════════════════════════════ */
+.info-box {
+  background: #E3F2FD;
+  border: 1px solid #BBDEFB;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: #1565C0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.info-icon { color: #1976D2 !important; }
+
+/* ═══════════════════════════════════════════
+   BOTÓN LUPA BUSCAR EMPLEADO
+═══════════════════════════════════════════ */
+.btn-search {
+  background: #2E7D32 !important;
   color: #ffffff !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
+  border-radius: 8px !important;
+  min-width: 42px !important;
+  height: 40px !important;
+  box-shadow: 0 2px 8px rgba(46,125,50,0.3) !important;
+}
+.btn-search:hover {
+  background: #1B5E20 !important;
+}
+
+/* ═══════════════════════════════════════════
+   TARJETA EMPLEADO SELECCIONADO
+═══════════════════════════════════════════ */
+.empleado-card {
+  background: #ffffff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.empleado-avatar {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 50%;
+  background: #E8F5E9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empleado-id {
+  color: #2E7D32;
+  font-weight: 700;
+}
+.btn-remove-empleado {
+  color: #bdbdbd !important;
+  align-self: flex-start;
+}
+.btn-remove-empleado:hover {
+  color: #e53935 !important;
+  background: #ffeaea !important;
+}
+
+/* ═══════════════════════════════════════════
+   LISTA DE ROLES
+═══════════════════════════════════════════ */
+.roles-list {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+.rol-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 10px 14px;
+  transition: background 0.15s ease;
+}
+.rol-item:last-child { border-bottom: none; }
+.rol-item:hover { background: #F1F8F1; }
+.rol-item-selected {
+  background: #E8F5E9 !important;
+  border-left: 3px solid #2E7D32;
+}
+.rol-item-selected .rol-nombre {
+  color: #1B5E20 !important;
+}
+
+/* ═══════════════════════════════════════════
+   BOTONES FOOTER
+═══════════════════════════════════════════ */
+.btn-cancel {
+  color: #616161 !important;
+  border: 1.5px solid #e0e0e0 !important;
   border-radius: 10px !important;
-  padding: 0.5rem 1.5rem !important;
-  box-shadow: 0 4px 16px rgba(74, 140, 37, 0.3) !important;
-  transition: all 0.2s !important;
+  padding: 8px 24px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  transition: background 0.2s, border-color 0.2s;
 }
-
+.btn-cancel:hover {
+  background: #f5f5f5 !important;
+  border-color: #bdbdbd !important;
+}
+.btn-save {
+  background: #2E7D32 !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 8px 32px !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  letter-spacing: 0.4px;
+  box-shadow: 0 4px 18px rgba(46,125,50,0.38) !important;
+  transition: background 0.2s, box-shadow 0.2s;
+}
 .btn-save:hover {
-  background: #3d7a1e !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 24px rgba(74, 140, 37, 0.4) !important;
+  background: #1B5E20 !important;
+  box-shadow: 0 6px 22px rgba(27,94,32,0.44) !important;
 }
 
-.btn-save:active {
-  transform: translateY(0) !important;
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .card-header-section,
+  .card-body {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
 }
