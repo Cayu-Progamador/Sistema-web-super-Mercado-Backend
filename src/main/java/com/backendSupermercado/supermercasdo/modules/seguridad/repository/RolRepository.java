@@ -27,4 +27,6 @@ public interface RolRepository extends JpaRepository<Rol, Long> {
 
 	List<Rol> findByNombreIn(List<String> nombres);
 
+	boolean existsByNombre(String nombre);
+
 }

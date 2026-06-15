@@ -22,6 +22,8 @@ import com.backendSupermercado.supermercasdo.modules.empleado.repository.Emplead
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Rol;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioUpdateDto;
@@ -30,6 +32,7 @@ import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.UsuarioRol;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.AuditoriaUsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
+import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRolRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.service.UsuarioService;
 import com.backendSupermercado.supermercasdo.shared.util.FechaUtil;
 
@@ -56,6 +59,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UsuarioRolRepository usuarioRolRepository;
 
     // listar los usuarios logueados en el sistema para el perfil
     @Override
@@ -341,5 +347,31 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .build();
 
         aud.save(auditoria);
+    }
+
+    //obtener estadisticas del usuario
+    public DashboardUsuarioDto obtenerEstadisticasUsuario(){
+        return new DashboardUsuarioDto(
+                usuarioRepository.count(),
+                usuarioRepository.countByActivoTrue(),
+                usuarioRepository.countByActivoFalse(),
+                usuarioRolRepository.contarAdministradores()
+        );
+    }
+
+    //buscar usuario por nombre
+    public List<UsuarioListadoResponseDto> buscarPorUsername(String username){
+        return usuarioRepository.buscarPorUsername(username)
+                .stream()
+                .map(usuarioMapper::listadoDtoBuscar)
+                .toList();
+    }
+
+
+    //detalle de usuario
+    public UsuarioDetalleDto obtenerDetalleUsuario(Long id){
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
+        return usuarioMapper.toDetalleDto(usuario);
     }
 }

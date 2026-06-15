@@ -26,6 +26,6 @@ public class UsuarioListadoResponseDto {
 
     private LocalDateTime ultimoAcceso;
 
-   
+    private Long empleadoId;
 
 }

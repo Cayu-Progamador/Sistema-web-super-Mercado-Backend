@@ -10,7 +10,7 @@
             </div>
             <div class="q-ml-md">
               <div class="card-label">Total Usuarios</div>
-              <div class="card-number">24</div>
+              <div class="card-number">{{ dashboard.totalUsuarios }}</div>
               <div class="card-caption">Usuarios registrados</div>
             </div>
           </q-card-section>
@@ -26,7 +26,7 @@
             </div>
             <div class="q-ml-md">
               <div class="card-label">Activos</div>
-              <div class="card-number">21</div>
+              <div class="card-number">{{ dashboard.usuariosActivos }}</div>
               <div class="card-caption">Usuarios activos</div>
             </div>
           </q-card-section>
@@ -42,7 +42,7 @@
             </div>
             <div class="q-ml-md">
               <div class="card-label">Inactivos</div>
-              <div class="card-number">3</div>
+              <div class="card-number">{{ dashboard.usuariosInactivos }}</div>
               <div class="card-caption">Usuarios inactivos</div>
             </div>
           </q-card-section>
@@ -58,7 +58,7 @@
             </div>
             <div class="q-ml-md">
               <div class="card-label">Administradores</div>
-              <div class="card-number">5</div>
+              <div class="card-number">{{ dashboard.administradores }}</div>
               <div class="card-caption">Con rol ADMIN</div>
             </div>
           </q-card-section>
@@ -67,7 +67,34 @@
 
     </div>
 </template>
+<script setup>
+import { onMounted, ref } from 'vue'
+import { getDashboardUsuarios } from '../../api/usuario/usuario'
 
+const dashboard = ref({
+  totalUsuarios: 0,
+  usuariosActivos: 0,
+  usuariosInactivos: 0,
+  administradores: 0
+})
+
+const cargarDashboard = async () => {
+  try {
+    const  data  = await getDashboardUsuarios()
+    dashboard.value = data
+
+  } catch (error) {
+    console.error('Error al cargar el dashboard de usuarios:', error)
+  }
+}
+
+
+onMounted(() => {
+  cargarDashboard()
+})
+
+
+</script>
 <style scoped src="../../assets/styles/user/cardUser.css">
 
 </style>

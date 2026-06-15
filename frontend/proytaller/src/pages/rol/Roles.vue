@@ -1,17 +1,16 @@
 <template>
   <q-page class="roles-page q-pa-md">
-
+    <div class="text-h6 q-mb-sm">Gestión de Rol</div>
     <!-- CARDS SUPERIORES -->
     <div class="top-cards q-mb-md">
-
       <q-card class="top-card" flat>
         <q-card-section class="row items-center no-wrap q-pa-md">
           <div class="tc-icon tc-i1">
-            <q-icon name="shield" size="24px" style="color:#4a8c25" />
+            <q-icon name="shield" size="24px" />
           </div>
           <div class="q-ml-md">
             <div class="tc-title">Total Roles</div>
-            <div class="tc-num">5</div>
+            <div class="tc-num">{{ roles.length }}</div>
             <div class="tc-lbl">Roles registrados</div>
           </div>
         </q-card-section>
@@ -20,11 +19,11 @@
       <q-card class="top-card" flat>
         <q-card-section class="row items-center no-wrap q-pa-md">
           <div class="tc-icon tc-i2">
-            <q-icon name="verified_user" size="24px" style="color:#0f6e56" />
+            <q-icon name="verified_user" size="24px" />
           </div>
           <div class="q-ml-md">
             <div class="tc-title">Roles Activos</div>
-            <div class="tc-num">4</div>
+            <div class="tc-num">{{ rolesActivos }}</div>
             <div class="tc-lbl">Roles habilitados</div>
           </div>
         </q-card-section>
@@ -33,11 +32,11 @@
       <q-card class="top-card" flat>
         <q-card-section class="row items-center no-wrap q-pa-md">
           <div class="tc-icon tc-i3">
-            <q-icon name="gpp_bad" size="24px" style="color:#d97b1a" />
+            <q-icon name="gpp_bad" size="24px" />
           </div>
           <div class="q-ml-md">
             <div class="tc-title">Roles Inactivos</div>
-            <div class="tc-num">1</div>
+            <div class="tc-num">{{ rolesInactivos }}</div>
             <div class="tc-lbl">Roles deshabilitados</div>
           </div>
         </q-card-section>
@@ -46,345 +45,198 @@
       <q-card class="top-card" flat>
         <q-card-section class="row items-center no-wrap q-pa-md">
           <div class="tc-icon tc-i4">
-            <q-icon name="lock" size="24px" style="color:#6d28d9" />
+            <q-icon name="lock" size="24px" />
           </div>
           <div class="q-ml-md">
-            <div class="tc-title">Permisos Asignados</div>
-            <div class="tc-num">28</div>
+            <div class="tc-title">Permisos</div>
+            <div class="tc-num">{{ totalPermisos }}</div>
             <div class="tc-lbl">Total de permisos</div>
           </div>
         </q-card-section>
       </q-card>
-
     </div>
 
-    <!-- MAIN GRID -->
-    <div class="main-grid q-mb-md">
-
-      <!-- LISTA DE ROLES -->
-      <q-card class="perfil-card" flat>
-
-        <div class="list-header">
-          <div class="card-title-row">
-            <q-icon name="list" class="card-title-icon" />
-            Lista de Roles
-          </div>
-          <div class="row items-center q-gutter-sm">
-            <q-input v-model="search" outlined dense placeholder="Buscar rol..." class="search-input">
-              <template #append>
-                <q-icon name="search" class="input-icon" />
-              </template>
-            </q-input>
-            <q-btn label="Nuevo Rol" icon="add" class="btn-nuevo" unelevated @click="mostrarModal = true" />
-          </div>
+    <!-- TABLA DE ROLES -->
+    <q-card class="table-card" flat bordered>
+      <div class="table-header">
+        <div>
+          <div class="text-h6 text-weight-bold table-title">Lista de Roles</div>
+          <div class="text-caption table-subtitle">Administra los roles del sistema</div>
         </div>
+        <div class="row items-center q-gutter-sm">
+          <q-input v-model="search" outlined dense debounce="300" placeholder="Buscar rol..." class="search-input">
+            <template #append>
+              <q-icon name="search" class="search-icon" />
+            </template>
+          </q-input>
+          <q-btn label="Nuevo Rol" icon="add" class="btn-nuevo" unelevated @click="abrirDialog" />
+        </div>
+      </div>
 
-        <q-table flat :rows="rolesFiltrados" :columns="columns" row-key="id" hide-pagination class="roles-table">
-          <template #body-cell-id="props">
-            <q-td :props="props">
-              <span class="rol-num">{{ props.row.id }}</span>
-            </q-td>
-          </template>
+      <q-table flat :rows="rolesFiltrados" :columns="columns" row-key="id" hide-pagination class="roles-table">
+        <template #body-cell-id="props">
+          <q-td :props="props">
+            <span class="rol-num">{{ props.row.id }}</span>
+          </q-td>
+        </template>
 
-          <template #body-cell-nombre="props">
-            <q-td :props="props">
-              <div class="row items-center no-wrap q-gutter-xs">
-                <div :class="['rol-icon', props.row.iconClass]">
-                  <q-icon :name="props.row.icon" size="16px" />
-                </div>
-                <span class="rol-name">{{ props.row.nombre }}</span>
+        <template #body-cell-nombre="props">
+          <q-td :props="props">
+            <div class="row items-center no-wrap q-gutter-xs">
+              <div :class="['rol-icon', getRolIconClass(props.row.nombre)]">
+                <q-icon :name="getRolIcon(props.row.nombre)" size="16px" />
               </div>
-            </q-td>
-          </template>
-
-          <template #body-cell-descripcion="props">
-            <q-td :props="props">
-              <span class="rol-desc">{{ props.row.descripcion }}</span>
-            </q-td>
-          </template>
-
-          <template #body-cell-usuarios="props">
-            <q-td :props="props" class="text-center">
-              <span class="rol-users">{{ props.row.usuarios }}</span>
-            </q-td>
-          </template>
-
-          <template #body-cell-estado="props">
-            <q-td :props="props">
-              <span :class="['estado-badge', props.row.estado === 'Activo' ? 'badge-activo' : 'badge-inactivo']">
-                <span :class="['badge-dot', props.row.estado === 'Activo' ? 'dot-activo' : 'dot-inactivo']"></span>
-                {{ props.row.estado }}
-              </span>
-            </q-td>
-          </template>
-
-          <template #body-cell-acciones="props">
-            <q-td :props="props">
-              <div class="row no-wrap q-gutter-xs">
-                <q-btn flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
-                <q-btn flat round dense class="act-btn act-del" icon="delete" @click="eliminarRol(props.row)" />
-                <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
-              </div>
-            </q-td>
-          </template>
-        </q-table>
-
-        <div class="pagination-row">
-          <span class="pag-info">Mostrando 1 a {{ roles.length }} de {{ roles.length }} roles</span>
-          <div class="row q-gutter-xs">
-            <q-btn flat dense class="pag-btn" icon="chevron_left" />
-            <q-btn flat dense class="pag-btn pag-active">1</q-btn>
-            <q-btn flat dense class="pag-btn" icon="chevron_right" />
-          </div>
-        </div>
-
-      </q-card>
-
-      <!-- PERMISOS DEL ROL -->
-      <q-card class="perfil-card" flat>
-        <div class="card-title-row q-mb-md">
-          <q-icon name="lock" class="card-title-icon" />
-          Permisos del Rol
-        </div>
-
-        <div class="q-mb-md">
-          <div class="perm-section-lbl">Seleccionar rol</div>
-          <q-select v-model="rolSeleccionado" :options="opcionesRoles" outlined dense class="perm-select-input" />
-        </div>
-
-        <div class="perm-count">
-          Permisos asignados (<strong>{{ permisos.length }}</strong>)
-        </div>
-
-        <div class="perm-list">
-          <div v-for="perm in permisos" :key="perm.nombre" class="perm-item">
-            <div class="row items-center q-gutter-sm">
-              <div class="perm-check">
-                <q-icon name="check" size="11px" color="white" />
-              </div>
-              <span class="perm-name">{{ perm.nombre }}</span>
+              <span class="rol-name">{{ props.row.nombre }}</span>
             </div>
-            <span :class="['perm-tag', perm.tagClass]">{{ perm.modulo }}</span>
-          </div>
-        </div>
+          </q-td>
+        </template>
 
-        <div class="ver-todos" @click="verTodosPermisos">
-          <q-icon name="arrow_forward" size="14px" />
-          Ver todos los permisos ({{ permisos.length }})
-        </div>
-      </q-card>
+        <template #body-cell-descripcion="props">
+          <q-td :props="props">
+            <span class="rol-desc">{{ props.row.descripcion }}</span>
+          </q-td>
+        </template>
 
-    </div>
+        <template #body-cell-usuarios="props">
+          <q-td :props="props" class="text-center">
+            <q-chip dense :color="props.row.usuarios > 0 ? 'green-7' : 'grey-6'" text-color="white" size="sm">
+              {{ props.row.usuarios }}
+            </q-chip>
+          </q-td>
+        </template>
 
-    <!-- BOTTOM GRID -->
-    <div class="bottom-grid">
+        <template #body-cell-estado="props">
+          <q-td :props="props">
+            <span :class="['estado-badge', props.row.activo ? 'badge-activo' : 'badge-inactivo']">
+              <span :class="['badge-dot', props.row.activo ? 'dot-activo' : 'dot-inactivo']"></span>
+              {{ props.row.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </q-td>
+        </template>
 
-      <!-- INFO MÓDULO -->
-      <q-card class="perfil-card" flat>
-        <div class="card-title-row q-mb-sm">
-          <q-icon name="info_outline" class="card-title-icon" />
-          Información del Módulo
-        </div>
-        <p class="info-desc">
-          Los roles permiten agrupar permisos y asignarlos a los usuarios del sistema.
-          Cada rol puede tener uno o más permisos según las necesidades del negocio.
-        </p>
-        <div v-for="item in infoItems" :key="item" class="info-item">
-          <q-icon name="check_circle_outline" size="16px" style="color:#4a8c25;flex-shrink:0" />
-          <span>{{ item }}</span>
-        </div>
-      </q-card>
-
-      <!-- ESTADÍSTICAS -->
-      <q-card class="perfil-card" flat>
-        <div class="card-title-row q-mb-md">
-          <q-icon name="pie_chart" class="card-title-icon" />
-          Estadísticas
-        </div>
-        <div class="chart-wrap">
-          <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#e4edd8" stroke-width="18" />
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#4a8c25" stroke-width="18" stroke-dasharray="22 198"
-              stroke-dashoffset="0" transform="rotate(-90 50 50)" />
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#0f6e56" stroke-width="18" stroke-dasharray="44 176"
-              stroke-dashoffset="-22" transform="rotate(-90 50 50)" />
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#d97b1a" stroke-width="18" stroke-dasharray="110 110"
-              stroke-dashoffset="-66" transform="rotate(-90 50 50)" />
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#7aaa4e" stroke-width="18" stroke-dasharray="44 176"
-              stroke-dashoffset="-176" transform="rotate(-90 50 50)" />
-            <circle cx="50" cy="50" r="26" fill="white" />
-          </svg>
-          <div class="chart-legend">
-            <div v-for="item in estadisticas" :key="item.nombre" class="legend-item">
-              <div class="row items-center q-gutter-xs">
-                <span class="legend-dot" :style="{ background: item.color }"></span>
-                <span class="legend-name">{{ item.nombre }}</span>
-              </div>
-              <span class="legend-val">{{ item.val }}</span>
+        <template #body-cell-acciones="props">
+          <q-td :props="props">
+            <div class="row no-wrap q-gutter-xs">
+              <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
+              <q-btn flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
+              <q-btn flat round dense class="act-btn act-del" icon="delete" @click="eliminarRol(props.row)" />
             </div>
-          </div>
-        </div>
-      </q-card>
-
-      <!-- ACCIONES RÁPIDAS -->
-      <q-card class="perfil-card" flat>
-        <div class="card-title-row q-mb-md">
-          <q-icon name="flash_on" class="card-title-icon" />
-          Acciones Rápidas
-        </div>
-        <div class="acc-list">
-          <q-btn label="Nuevo Rol" icon="add" class="acc-btn ab-primary" unelevated @click="mostrarModal = true" />
-          <q-btn label="Asignar Permisos" icon="security" class="acc-btn ab-teal" unelevated />
-          <q-btn label="Exportar Roles" icon="download" class="acc-btn ab-orange" unelevated />
-          <q-btn label="Auditoría de Roles" icon="description" class="acc-btn ab-gray" unelevated />
-        </div>
-      </q-card>
-
-    </div>
-
-    <!-- MODAL NUEVO ROL -->
-    <q-dialog v-model="mostrarModal" persistent>
-      <q-card class="modal-card">
-        <div class="accent-bar" />
-        <q-card-section class="modal-header">
-          <div>
-            <div class="modal-eyebrow">Gestión de Roles</div>
-            <div class="modal-title">Nuevo Rol</div>
-          </div>
-          <q-btn flat round dense icon="close" v-close-popup class="close-btn" />
-        </q-card-section>
-
-        <q-separator style="background:#e4edd8" />
-
-        <q-card-section class="q-pt-md">
-          <q-form @submit.prevent="guardarRol" class="q-gutter-md">
-
-            <div class="field-group">
-              <label class="field-lbl">Nombre del Rol</label>
-              <q-input v-model="nuevoRol.nombre" outlined dense placeholder="ej. SUPERVISOR" class="field-input">
-                <template #prepend><q-icon name="shield" class="input-icon" /></template>
-              </q-input>
-            </div>
-
-            <div class="field-group">
-              <label class="field-lbl">Descripción</label>
-              <q-input v-model="nuevoRol.descripcion" outlined dense type="textarea" rows="3"
-                placeholder="Describe las responsabilidades del rol..." class="field-input" />
-            </div>
-
-            <div class="field-group">
-              <label class="field-lbl">Estado</label>
-              <q-select v-model="nuevoRol.estado" :options="['Activo', 'Inactivo']" outlined dense
-                class="field-input" />
-            </div>
-
-            <q-separator style="background:#e4edd8" />
-
-            <div class="row justify-end q-gutter-sm">
-              <q-btn label="Cancelar" flat class="btn-cancel" v-close-popup />
-              <q-btn label="Guardar Rol" type="submit" icon="save" class="btn-save" unelevated :loading="guardando">
-                <template #loading><q-spinner-dots color="white" size="1em" /></template>
-              </q-btn>
-            </div>
-
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
+          </q-td>
+        </template>
+      </q-table>
+    </q-card>
+    
+    <EditarRol
+     v-model="mostrarModal"
+     @guardar="onGuardarNuevo"
+    />
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted  } from 'vue'
 import { useQuasar } from 'quasar'
+import { listarRoles} from '../../api/rol/rol'
+import EditarRol from '../../components/rol/EditarRol.vue' 
 
 const $q = useQuasar()
 const mostrarModal = ref(false)
+const mostrarVer = ref(false)
+const mostrarEditar = ref(false)
 const guardando = ref(false)
 const search = ref('')
-const rolSeleccionado = ref('ADMIN - Administrador del sistema')
+const rolSeleccionado = ref({})
+const roles = ref([])
 
-const nuevoRol = ref({ nombre: '', descripcion: '', estado: 'Activo' })
-
-const opcionesRoles = [
-  'ADMIN - Administrador del sistema',
-  'SUPERVISOR',
-  'CAJERO',
-  'ALMACENERO',
-  'INVITADO'
-]
 
 const columns = [
-  { name: 'id', label: '#', field: 'id', align: 'left', style: 'width:40px' },
-  { name: 'nombre', label: 'Rol', field: 'nombre', align: 'left', style: 'width:130px' },
+  { name: 'id', label: '#', field: 'id', align: 'left' },
+  { name: 'nombre', label: 'Rol', field: 'nombre', align: 'left', style: 'width:150px' },
   { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left' },
-  { name: 'usuarios', label: 'Usuarios', field: 'usuarios', align: 'center', style: 'width:80px' },
-  { name: 'estado', label: 'Estado', field: 'estado', align: 'left', style: 'width:90px' },
-  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center', style: 'width:100px' }
+  { name: 'usuarios', label: 'Usuarios', field: 'usuarios', align: 'center', style: 'width:100px' },
+  { name: 'estado', label: 'Estado', field: 'activo', align: 'left', style: 'width:100px' },
+  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center', style: 'width:120px' }
 ]
 
-const roles = ref([
-  { id: 1, nombre: 'ADMIN', descripcion: 'Administrador del sistema con acceso total a todas las funciones.', usuarios: 1, estado: 'Activo', icon: 'shield', iconClass: 'ri-teal' },
-  { id: 2, nombre: 'SUPERVISOR', descripcion: 'Supervisor general con acceso a reportes y gestión operativa.', usuarios: 2, estado: 'Activo', icon: 'manage_accounts', iconClass: 'ri-green' },
-  { id: 3, nombre: 'CAJERO', descripcion: 'Encargado de realizar ventas y manejo de caja.', usuarios: 5, estado: 'Activo', icon: 'point_of_sale', iconClass: 'ri-orange' },
-  { id: 4, nombre: 'ALMACENERO', descripcion: 'Responsable de inventario, almacén y productos.', usuarios: 2, estado: 'Activo', icon: 'inventory_2', iconClass: 'ri-blue' },
-  { id: 5, nombre: 'INVITADO', descripcion: 'Acceso limitado solo para consultas básicas.', usuarios: 0, estado: 'Inactivo', icon: 'person', iconClass: 'ri-gray' }
-])
+const abrirDialog = () => {
+  mostrarModal.value = true
+}
+
+//cargar los dato de roles
+const cargarRoles = async () => {
+  try {
+    const respuesta = await listarRoles()
+    roles.value = respuesta.map(r => ({
+      id: r.idRol,
+      nombre: (r.nombre || '__').replace('ROLE_',''),
+      descripcion: (r.descripcion || "__"),
+      usuarios: r.cantidadUsuarios,
+      activo: r.estado
+    }))
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar roles'
+    })
+  }
+}
+
+
+
+const rolesActivos = computed(() => roles.value.filter(r => r.activo).length)
+const rolesInactivos = computed(() => roles.value.filter(r => !r.activo).length)
+const totalPermisos = computed(() => 28) // Ajustar según tu backend
 
 const rolesFiltrados = computed(() =>
   roles.value.filter(r =>
-    r.nombre.toLowerCase().includes(search.value.toLowerCase()) ||
-    r.descripcion.toLowerCase().includes(search.value.toLowerCase())
+    (r.nombre || '').toLowerCase().includes(search.value.toLowerCase()) ||
+    (r.descripcion || '').toLowerCase().includes(search.value.toLowerCase())
   )
 )
 
-const permisos = ref([
-  { nombre: 'Ver Dashboard', modulo: 'Dashboard', tagClass: 'pt-dashboard' },
-  { nombre: 'Gestionar Usuarios', modulo: 'Usuarios', tagClass: 'pt-usuarios' },
-  { nombre: 'Gestionar Roles', modulo: 'Roles', tagClass: 'pt-roles' },
-  { nombre: 'Gestionar Permisos', modulo: 'Permisos', tagClass: 'pt-permisos' },
-  { nombre: 'Gestionar Productos', modulo: 'Productos', tagClass: 'pt-productos' },
-  { nombre: 'Gestionar Ventas', modulo: 'Ventas', tagClass: 'pt-ventas' },
-  { nombre: 'Gestionar Compras', modulo: 'Compras', tagClass: 'pt-compras' },
-  { nombre: 'Ver Reportes', modulo: 'Reportes', tagClass: 'pt-reportes' }
-])
+//icons
+const iconosEstaticos = ['shield', 'manage_accounts', 'point_of_sale', 'inventory_2', 'person', 'work', 'star'];
+const coloresEstaticos = ['ri-green', 'ri-teal', 'ri-orange', 'ri-blue', 'ri-gray'];
 
-const infoItems = [
-  'Crea roles según la estructura de tu empresa',
-  'Asigna permisos específicos a cada rol',
-  'Controla el acceso de los usuarios a las funciones',
-  'Mantén la seguridad y organización del sistema'
-]
+const obtenerIndice = (nombre, maximo) => {
+  const rolLimpio = (nombre || '').toUpperCase().replace('ROLE_', '');
+  let suma = 0;
+  for (let i = 0; i < rolLimpio.length; i++) {
+    suma += rolLimpio.charCodeAt(i);
+  }
+  return suma % maximo;
+}
+//icons
+const getRolIcon = (nombre) => {
+  const indice = obtenerIndice(nombre, iconosEstaticos.length);
+  return iconosEstaticos[indice];
+}
 
-const estadisticas = [
-  { nombre: 'ADMIN', color: '#4a8c25', val: '1 (20%)' },
-  { nombre: 'SUPERVISOR', color: '#0f6e56', val: '2 (20%)' },
-  { nombre: 'CAJERO', color: '#d97b1a', val: '5 (50%)' },
-  { nombre: 'ALMACENERO', color: '#7aaa4e', val: '2 (20%)' },
-  { nombre: 'INVITADO', color: '#c8e0a0', val: '0 (0%)' }
-]
+//colores
+const getRolIconClass = (nombre) => {
+  const indice = obtenerIndice(nombre, coloresEstaticos.length);
+  return coloresEstaticos[indice];
+}
 
-const guardarRol = async () => {
-  guardando.value = true
-  await new Promise(r => setTimeout(r, 1000))
-  roles.value.push({
-    id: roles.value.length + 1,
-    nombre: nuevoRol.value.nombre.toUpperCase(),
-    descripcion: nuevoRol.value.descripcion,
-    usuarios: 0,
-    estado: nuevoRol.value.estado,
-    icon: 'shield',
-    iconClass: 'ri-green'
-  })
-  guardando.value = false
-  mostrarModal.value = false
-  nuevoRol.value = { nombre: '', descripcion: '', estado: 'Activo' }
-  $q.notify({ type: 'positive', message: 'Rol creado exitosamente' })
+
+
+const verRol = (rol) => {
+  rolSeleccionado.value = { ...rol }
+  mostrarVer.value = true
 }
 
 const editarRol = (rol) => {
-  $q.notify({ type: 'info', message: `Editando rol: ${rol.nombre}` })
+  rolSeleccionado.value = { ...rol }
+  mostrarEditar.value = true
+}
+
+const onGuardarEditar = (data) => {
+  const index = roles.value.findIndex(r => r.id === data.id)
+  if (index >= 0) {
+    roles.value[index] = { ...roles.value[index], ...data }
+    $q.notify({ type: 'positive', message: 'Rol actualizado correctamente' })
+  }
 }
 
 const eliminarRol = (rol) => {
@@ -398,14 +250,349 @@ const eliminarRol = (rol) => {
     $q.notify({ type: 'negative', message: `Rol ${rol.nombre} eliminado` })
   })
 }
+onMounted(() => {
+  cargarRoles()
+})
 
-const verRol = (rol) => {
-  $q.notify({ type: 'info', message: `Viendo rol: ${rol.nombre}` })
-}
-
-const verTodosPermisos = () => {
-  $q.notify({ type: 'info', message: 'Cargando todos los permisos...' })
-}
 </script>
 
-<style scoped src="../../assets/styles/roles/rol.css"></style>
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+.roles-page {
+  background: #f5f7f0;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Cards superiores */
+.top-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.top-card {
+  background: #ffffff;
+  border: 1px solid #e4edd8;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(42,92,26,0.06);
+  transition: all 0.2s;
+}
+.top-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(42,92,26,0.12);
+}
+
+.tc-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tc-i1 { background: #eaf4d8; color: #4a8c25; }
+.tc-i2 { background: #e0f2ec; color: #0f6e56; }
+.tc-i3 { background: #fef3e2; color: #d97b1a; }
+.tc-i4 { background: #f3e8ff; color: #6d28d9; }
+
+.tc-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9dbf78;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Nunito', sans-serif;
+}
+.tc-num {
+  font-size: 24px;
+  font-weight: 900;
+  color: #2a5c1a;
+  font-family: 'Nunito', sans-serif;
+  margin: 2px 0;
+}
+.tc-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7aaa4e;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Tabla */
+.table-card {
+  background: #ffffff;
+  border: 1px solid #e4edd8;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(42,92,26,0.08);
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #f0f7e8;
+  border-bottom: 1px solid #c8e0a0;
+}
+.table-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #2a5c1a;
+  font-family: 'Nunito', sans-serif;
+}
+.table-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7aaa4e;
+  font-family: 'Nunito', sans-serif;
+}
+
+.search-input :deep(.q-field__control) {
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #c8e0a0;
+}
+.search-input :deep(.q-field__control:focus-within) {
+  border-color: #82bd43;
+  box-shadow: 0 0 0 3px rgba(130,189,67,0.15);
+}
+.search-icon {
+  color: #9dbf78;
+}
+
+.btn-nuevo {
+  background: #82bd43;
+  color: #ffffff;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 9px;
+  box-shadow: 0 4px 14px rgba(74,140,37,0.3);
+}
+.btn-nuevo:hover {
+  background: #4a8c25;
+}
+
+/* Tabla */
+.roles-table :deep(th) {
+  font-size: 10px;
+  font-weight: 800;
+  color: #5a8040;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: #f7f9f4;
+  padding: 12px 16px;
+  font-family: 'Nunito', sans-serif;
+}
+.roles-table :deep(td) {
+  padding: 12px 16px;
+  font-family: 'Nunito', sans-serif;
+}
+.roles-table :deep(tr:hover) {
+  background: #f0f7e8;
+}
+
+.rol-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2a5c1a;
+  font-family: 'Nunito', sans-serif;
+}
+
+.rol-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ri-green { background: #eaf4d8; color: #4a8c25; }
+.ri-teal { background: #e0f2ec; color: #0f6e56; }
+.ri-orange { background: #fef3e2; color: #d97b1a; }
+.ri-blue { background: #e3f2fd; color: #1976d2; }
+.ri-gray { background: #f0f0f0; color: #757575; }
+
+.rol-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #2a5c1a;
+  font-family: 'Nunito', sans-serif;
+}
+.rol-desc {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a8040;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* Estado badges */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+}
+.badge-activo {
+  background: #eaf4d8;
+  color: #4a8c25;
+  border: 1px solid #c8e0a0;
+}
+.badge-inactivo {
+  background: #fef3e2;
+  color: #a05c10;
+  border: 1px solid #f5c97a;
+}
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.dot-activo { background: #4a8c25; }
+.dot-inactivo { background: #d97b1a; }
+
+/* Botones de acción */
+.act-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.act-view {
+  color: #7aaa4e;
+  background: #f0f7e8;
+}
+.act-view:hover { background: #ddecc5; color: #4a8c25; }
+.act-edit {
+  color: #d97b1a;
+  background: #fef3e2;
+}
+.act-edit:hover { background: #f5dbb8; color: #a05c10; }
+.act-del {
+  color: #c62828;
+  background: #ffebee;
+}
+.act-del:hover { background: #ffcdd2; color: #b71c1c; }
+
+/* Modal */
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e4edd8;
+  box-shadow: 0 20px 60px rgba(42,92,26,0.15);
+  font-family: 'Nunito', sans-serif;
+}
+.accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #82bd43, #4a8c25, #64992b);
+}
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #f0f7e8;
+  border-bottom: 1px solid #c8e0a0;
+  padding: 16px 20px 14px;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #eaf4d8;
+  border: 1.5px solid #82bd43;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7aaa4e;
+  font-family: 'Nunito', sans-serif;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #2a5c1a;
+  font-family: 'Nunito', sans-serif;
+}
+.close-btn {
+  color: #7aaa4e !important;
+  background: #f0f7e8 !important;
+  border-radius: 8px !important;
+}
+.close-btn:hover { background: #ddecc5 !important; color: #4a8c25 !important; }
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  color: #5a8040;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'Nunito', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.label-icon {
+  color: #82bd43;
+}
+.field-input :deep(.q-field__control) {
+  border-radius: 10px;
+  background: #f7f9f4;
+  border: 1px solid #e4edd8;
+}
+.field-input :deep(.q-field__control:focus-within) {
+  border-color: #82bd43;
+  box-shadow: 0 0 0 3px rgba(130,189,67,0.15);
+}
+
+.btn-cancel {
+  background: #fff;
+  color: #5a5a5a;
+  border: 1.5px solid #d0d0d0;
+  border-radius: 9px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+.btn-cancel:hover { background: #f7f7f7; border-color: #bbb; }
+.btn-save {
+  background: #82bd43;
+  color: #fff;
+  border-radius: 9px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 4px 14px rgba(74,140,37,0.3);
+}
+.btn-save:hover { background: #4a8c25; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .top-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .top-cards { grid-template-columns: 1fr; }
+  .table-header { flex-direction: column; gap: 12px; }
+}
+</style>

@@ -57,3 +57,39 @@ export function desactivarUsuario(id) {
         method: 'patch'
     })
 }
+
+//datos dashboard de usuarios 
+export function getDashboardUsuarios() {
+    return request({
+        url: '/api/usuarios/estadisticas',
+        method: 'get'
+    })  
+}
+
+//actualizar usuario
+export function actualizarUsuario(id, data) {
+    return request({
+        url: `/api/usuarios/actualizar/${id}`,
+        method: 'put',
+        data
+    })
+}
+
+//buscar usuario por nombre
+export function buscarUsuario(username) {
+    return request({
+        url: '/api/usuarios/buscar',
+        method: 'get',
+        params: {
+            username
+        }
+    })
+}
+
+//detalle de usuario
+export function obtenerDetalleUsuario(id) {
+  return request({
+    url: `/api/usuarios/detalle/${id}`,
+    method: 'get'
+  })
+}

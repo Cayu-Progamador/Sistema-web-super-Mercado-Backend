@@ -177,7 +177,7 @@
 .roles-table :deep(thead th) {
   font-family: 'Nunito', sans-serif !important;
   font-size: 11px !important;
-  font-weight: 800 !important;
+  font-weight: 100% !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
   color: #7aaa4e !important;
