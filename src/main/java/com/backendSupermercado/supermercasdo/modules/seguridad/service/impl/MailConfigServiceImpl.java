@@ -2,36 +2,46 @@ package com.backendSupermercado.supermercasdo.modules.seguridad.service.impl;
 
 import java.util.Properties;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.stereotype.Service;
 
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
+import com.backendSupermercado.supermercasdo.modules.empleado.entity.Contacto;
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.ConfiguracionCorreo;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.ConfiguracionCorreoRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.service.MailConfigService;
 
-@Configuration
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class MailConfigServiceImpl implements MailConfigService {
 
-    @Autowired
-    private ConfiguracionCorreoRepository configuracionCorreoRepository;
+    private final ConfiguracionCorreoRepository configuracionCorreoRepository;
 
     @Override
-    @Bean
     public JavaMailSender javaMailSender() {
         // Obtener la configuracion de correo
         ConfiguracionCorreo config = configuracionCorreoRepository.findByActivoTrue()
                 .orElseThrow(() -> new ResourceConflictException("No existe configuracion SMTP"));
-        // Configurar y retornar el JavaMailSender
+        
+                // Obtener el correo de la persona
+        String correo = config.getEmpleado()
+            .getPersona()
+            .getContactos()
+            .stream()
+            .findFirst()
+            .map(Contacto::getCorreo)
+            .orElseThrow(() -> new ResourceConflictException("El empleado no tiene correo registrado"));  
+        
+            // Configurar y retornar el JavaMailSender
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
-        mailSender.setHost(config.getSmtp());
-        mailSender.setPort(config.getPuerto());
-        mailSender.setUsername(config.getCorreo());
-        mailSender.setPassword(config.getPassword());
+        mailSender.setHost(config.getSmtpConfig().getSmtp());
+        mailSender.setPort(config.getSmtpConfig().getPuerto());
+        mailSender.setUsername(correo);
+        mailSender.setPassword(config.getPasswordEmail());
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");

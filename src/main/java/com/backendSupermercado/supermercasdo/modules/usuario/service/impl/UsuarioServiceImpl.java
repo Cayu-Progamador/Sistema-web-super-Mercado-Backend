@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,31 +36,20 @@ import com.backendSupermercado.supermercasdo.modules.usuario.service.UsuarioServ
 import com.backendSupermercado.supermercasdo.shared.util.FechaUtil;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
 
     // ver perfil del usuario logueado
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private AuditoriaUsuarioRepository aud;
-    @Autowired
-
-    private UsuarioMapper usuarioMapper;
-
-    @Autowired
-    private EmpleadoRepository empleadoRepository;
-
-    @Autowired
-    private RolRepository rolRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private UsuarioRolRepository usuarioRolRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final AuditoriaUsuarioRepository aud;
+    private final UsuarioMapper usuarioMapper;
+    private final EmpleadoRepository empleadoRepository;
+    private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UsuarioRolRepository usuarioRolRepository;
 
     // listar los usuarios logueados en el sistema para el perfil
     @Override
@@ -367,6 +355,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .toList();
     }
 
+    @Override
+    public Page<UsuarioListadoResponseDto> buscarPorUsernamePaginado(String username, Pageable pageable) {
+        return usuarioRepository.buscarPorUsernamePaginado(username, pageable)
+                .map(usuarioMapper::toListadoResponse);
+    }
 
     //detalle de usuario
     public UsuarioDetalleDto obtenerDetalleUsuario(Long id){

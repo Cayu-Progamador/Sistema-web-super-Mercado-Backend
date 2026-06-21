@@ -86,6 +86,15 @@ export function buscarUsuario(username) {
     })
 }
 
+//buscar usuario por nombre paginado
+export function buscarUsuarioPaginado(username, page = 0, size = 10) {
+    return request({
+        url: '/api/usuarios/buscar-paginado',
+        method: 'get',
+        params: { username, page, size }
+    })
+}
+
 //detalle de usuario
 export function obtenerDetalleUsuario(id) {
   return request({

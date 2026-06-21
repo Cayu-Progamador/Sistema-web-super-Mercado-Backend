@@ -26,6 +26,6 @@ public class GlobalExceptionHandler {
         Map<String, String> response = new HashMap<>();
         // Vue seguirá leyendo esto sin problemas:
         response.put("message", ex.getMessage()); 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }

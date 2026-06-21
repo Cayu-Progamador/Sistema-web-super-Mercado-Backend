@@ -1,4 +1,4 @@
-<<template>
+<template>
   <q-page class="q-pa-md page-bg">
     <CardsUsuario :key="dashboardKey" />
 
@@ -10,7 +10,6 @@
         </div>
 
         <div class="row items-center q-gutter-sm">
-
           <q-input outlined dense debounce="300" v-model="search" placeholder="Buscar usuario..." class="search-input">
             <template v-slot:append>
               <q-icon name="search" class="search-icon" />
@@ -22,8 +21,7 @@
       </div>
 
       <q-table flat :rows="usuarios" :columns="columns" row-key="idUsuario" :loading="loading"
-        v-model:pagination="pagination" @request="onRequest" rows-per-page-label="Usuarios por página"
-        :pagination-label="getPaginationLabel" :rows-per-page-options="[10, 20, 30, 40, 50]" class="custom-table">
+        v-model:pagination="pagination" hide-pagination class="custom-table">
 
         <template v-slot:body-cell-numero="props">
           <q-td :props="props">
@@ -79,11 +77,39 @@
               <q-btn flat round dense class="action-btn action-edit" icon="edit" @click="editarUsuario(props.row)" />
 
               <q-btn v-if="props.row.activo" flat round dense class="action-btn action-delete" icon="block" color="red"
-                @click="desactivarUsuarios(props.row.idUsuario, props.row.username, props.row.rol)" />
+                @click="confirmarAccion('desactivar', props.row.idUsuario, props.row.username, props.row.rol)" />
               <q-btn v-else flat round dense class="action-btn" icon="check" color="green"
-                @click="activarUsuarios(props.row.idUsuario, props.row.username, props.row.rol)" />
+                @click="confirmarAccion('activar', props.row.idUsuario, props.row.username, props.row.rol)" />
             </div>
           </q-td>
+        </template>
+
+        <template #bottom>
+          <div class="q-table__bottom row items-center q-pa-md">
+            <div class="q-table__control">
+              <span class="q-table__bottom-item">Rows per page:</span>
+              <q-select
+                v-model="pagination.rowsPerPage"
+                :options="[5, 10, 15, 25, 30, 50]"
+                dense
+                borderless
+                emit-value
+                map-options
+                class="q-table__select inline-block"
+                style="min-width: 70px"
+                @update:model-value="val => onRowsPerPageChange(val)"
+              />
+            </div>
+            <span class="q-table__bottom-item q-ml-auto">
+              {{ pagination.rowsNumber === 0 ? '0' : (pagination.page - 1) * pagination.rowsPerPage + 1 }}-{{ Math.min(pagination.page * pagination.rowsPerPage, pagination.rowsNumber) }} of {{ pagination.rowsNumber }}
+            </span>
+            <div class="q-table__control q-ml-sm">
+              <q-btn dense flat round icon="first_page" :disable="pagination.page <= 1" @click="goToPage(1)" />
+              <q-btn dense flat round icon="chevron_left" :disable="pagination.page <= 1" @click="goToPage(pagination.page - 1)" />
+              <q-btn dense flat round icon="chevron_right" :disable="pagination.page >= Math.ceil(pagination.rowsNumber / pagination.rowsPerPage)" @click="goToPage(pagination.page + 1)" />
+              <q-btn dense flat round icon="last_page" :disable="pagination.page >= Math.ceil(pagination.rowsNumber / pagination.rowsPerPage)" @click="goToPage(Math.ceil(pagination.rowsNumber / pagination.rowsPerPage))" />
+            </div>
+          </div>
         </template>
 
       </q-table>
@@ -93,11 +119,9 @@
       <UsuarioForm @cerrar="mostrarModal = false" />
     </q-dialog>
 
-    <DesactivarUsuarioDialog v-model="mostrarDesactivar" :id="usuarioSeleccionado.id"
-      :nombre="usuarioSeleccionado.nombre" :rol="usuarioSeleccionado.rol" @confirmar="onConfirmarDesactivar" />
-
-    <ActivarUsuarioDialog v-model="mostrarActivar" :id="usuarioSeleccionado.id" :nombre="usuarioSeleccionado.nombre"
-      :rol="usuarioSeleccionado.rol" @confirmar="onConfirmarActivar" />
+    <ConfirmarUsuarioDialog v-model="mostrarConfirmar" :id="usuarioSeleccionado.id"
+      :nombre="usuarioSeleccionado.nombre" :rol="usuarioSeleccionado.rol" :tipo="tipoConfirmar"
+      @confirmar="onConfirmarAccion" />
 
     <EditarUsuarioDialog v-model="mostrarEditar" :id="usuarioSeleccionado.id" :username="usuarioSeleccionado.username"
       :roles="usuarioSeleccionado.roles" :empleado-id="usuarioSeleccionado.empleadoId" :empleados="listaEmpleados"
@@ -115,18 +139,17 @@
   import DetalleUsuario from '../../components/usuarios/DetalleUsuarios.vue'
   import CardsUsuario from '../../components/usuarios/CardsUsuario.vue'
   import UsuarioForm from '../../components/usuarios/UsuarioForm.vue'
-  import DesactivarUsuarioDialog from '../../components/usuarios/DesactivarUsuarioDialog.vue'
-  import ActivarUsuarioDialog from '../../components/usuarios/ActivarUsuarioDialog.vue'
+  import ConfirmarUsuarioDialog from '../../components/usuarios/ConfirmarUsuarioDialog.vue'
   import EditarUsuarioDialog from '../../components/usuarios/EditarUsuarioDialog.vue'
-  import { getEmpleadoLista } from '../../api/empleado/empleado'
+  import { getEmpleadoListaEditar, getEmpleadoLista } from '../../api/empleado/empleado'
   import { getListRoles } from '../../api/rol/rol'
-  import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, buscarUsuario } from '../../api/usuario/usuario'
+  import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, buscarUsuarioPaginado } from '../../api/usuario/usuario'
   import { ref, onMounted, watch } from 'vue'
   import { useQuasar } from 'quasar'
 
   const mostrarModal = ref(false)
-  const mostrarDesactivar = ref(false)
-  const mostrarActivar = ref(false)
+  const mostrarConfirmar = ref(false)
+  const tipoConfirmar = ref('activar')
   const usuarioSeleccionado = ref({
     id: null,
     nombre: '',
@@ -164,15 +187,11 @@
     { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' }
   ]
 
-  const getPaginationLabel = (firstRowIndex, endRowIndex, totalRowsNumber) => {
-    return `${firstRowIndex}-${endRowIndex} de ${totalRowsNumber}`
-  }
-
   const pagination = ref({
-    sortBy: 'idUsuario',
+    sortBy: null,
     descending: false,
     page: 1,
-    rowsPerPage: 5,
+    rowsPerPage: 10,
     rowsNumber: 0
   })
 
@@ -234,9 +253,7 @@
     }
   }
 
-  const editarUsuario = (row) => {
-    console.log('Row Completo', row)
-
+  const editarUsuario = async (row) => {
     usuarioSeleccionado.value = {
       id: row.idUsuario,
       nombre: row.nombreCompleto || row.username,
@@ -246,12 +263,18 @@
       empleadoId: row.empleadoId || null
     }
 
+    try {
+      const respuesta = await getEmpleadoListaEditar(row.idUsuario)
+      listaEmpleados.value = respuesta
+    } catch (error) {
+      console.error('Error cargando empleados:', error)
+    }
+
     mostrarEditar.value = true
   }
 
   const onConfirmarEditar = async (data) => {
     try {
-
       await actualizarUsuario(data.id, {
         username: data.username,
         password: data.password,
@@ -275,87 +298,80 @@
     }
   }
 
-  const cargarUsuarios = async (page = 1, size = 5) => {
-    if (!page || isNaN(page)) page = 1
-    if (!size || isNaN(size)) size = 5
-
-    const respuesta = await listarUsuarios(page - 1, size)
-    usuarios.value = respuesta.content
-
-    pagination.value.page = page
-    pagination.value.rowsPerPage = size
-    pagination.value.rowsNumber = respuesta.totalElements
-  }
-
-  const activarUsuarios = (id, nombre, rol = '') => {
-    usuarioSeleccionado.value = { id, nombre, rol }
-    mostrarActivar.value = true
-  }
-
-  const onConfirmarActivar = async (id) => {
+  const cargarUsuarios = async () => {
+    const { page, rowsPerPage } = pagination.value
+    loading.value = true
     try {
-      await activarUsuario(id)
+      const pageIndex = Number(page) - 1
+      const size = Number(rowsPerPage) || 10
+      const respuesta = search.value.trim()
+        ? await buscarUsuarioPaginado(search.value.trim(), pageIndex, size)
+        : await listarUsuarios(pageIndex, size)
+      usuarios.value = respuesta.content
+      pagination.value = {
+        page: respuesta.number + 1,
+        rowsPerPage: respuesta.size,
+        rowsNumber: respuesta.totalElements,
+        sortBy: null,
+        descending: false
+      }
+    } catch (error) {
+      $q.notify({ type: 'negative', message: 'Error al cargar usuarios' })
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const goToPage = (page) => {
+    pagination.value.page = page
+    cargarUsuarios()
+  }
+
+  const onRowsPerPageChange = (val) => {
+    pagination.value.rowsPerPage = val
+    pagination.value.page = 1
+    cargarUsuarios()
+  }
+
+  const confirmarAccion = (tipo, id, nombre, rol = '') => {
+    tipoConfirmar.value = tipo
+    usuarioSeleccionado.value = { id, nombre, rol }
+    mostrarConfirmar.value = true
+  }
+
+  const onConfirmarAccion = async (id) => {
+    const esActivar = tipoConfirmar.value === 'activar'
+    try {
+      if (esActivar) {
+        await activarUsuario(id)
+      } else {
+        await desactivarUsuario(id)
+      }
       $q.notify({
         type: 'positive',
-        message: 'Usuario activado correctamente'
+        message: esActivar ? 'Usuario activado correctamente' : 'Usuario desactivado correctamente'
       })
       await cargarUsuarios()
       dashboardKey.value++
     } catch (error) {
       $q.notify({
         type: 'negative',
-        message: error.response?.data?.message || 'Error al activar usuario'
+        message: error.response?.data?.message || `Error al ${esActivar ? 'activar' : 'desactivar'} usuario`
       })
     }
   }
 
-  const desactivarUsuarios = (id, nombre, rol = '') => {
-    usuarioSeleccionado.value = { id, nombre, rol }
-    mostrarDesactivar.value = true
-  }
-
-  const onConfirmarDesactivar = async (id) => {
-    try {
-      await desactivarUsuario(id)
-      $q.notify({ type: 'positive', message: 'Usuario desactivado correctamente' })
-      await cargarUsuarios()
-      dashboardKey.value++
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: error.response?.data?.message || 'Error al desactivar usuario'
-      })
-    }
-  }
-
-  const onRequest = (props) => {
-    const { page, rowsPerPage } = props.pagination
-    cargarUsuarios(page, rowsPerPage)
-  }
-
-  //bucar los usuario por username y nombre el empleado
-  watch(search, async (nuevoValor) => {
-    try {
-
-      if (!nuevoValor.trim()) {
-        await cargarUsuarios()
-        return
-      }
-
-      const response = await buscarUsuario(nuevoValor)
-      console.log('Response:', response)
-      usuarios.value = response
-
-    } catch (error) {
-      console.error(error)
-    }
+  //buscar los usuario por username y nombre el empleado
+  watch(search, () => {
+    pagination.value.page = 1
+    cargarUsuarios()
   })
 
   onMounted(() => {
-    cargarUsuarios(pagination.value.page, pagination.value.rowsPerPage)
+    cargarUsuarios()
     cargarEmpleados()
     cargarRoles()
   })
 </script>
 
-  <style scoped src="../../assets/styles/user/userTable.css"></style>
+<style scoped src="../../assets/styles/user/userTable.css"></style>

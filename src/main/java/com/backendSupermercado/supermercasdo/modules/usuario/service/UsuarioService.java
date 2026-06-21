@@ -36,6 +36,8 @@ public interface UsuarioService{
 
     //buscar usuario por nombre
     public List<UsuarioListadoResponseDto> buscarPorUsername(String username);
+
+    Page<UsuarioListadoResponseDto> buscarPorUsernamePaginado(String username, Pageable pageable);
  
     //detalle de usuario
     public UsuarioDetalleDto obtenerDetalleUsuario(Long id);

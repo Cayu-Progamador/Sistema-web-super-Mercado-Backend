@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.backendSupermercado.supermercasdo.modules.empleado.entity.Contacto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
@@ -22,8 +23,11 @@ public class UsuarioMapper {
                 dto.setUsername(usuario.getUsername());
 
                 // Empleado (evitar null)
-                if (usuario.getEmpleado() != null) {
-                        dto.setNombreEmpleado(usuario.getEmpleado().getNombre());
+                if (usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null) {
+                        var persona = usuario.getEmpleado().getPersona();
+                        String nombreCompleto = persona.getNombres() + " " + persona.getApellidoPaterno() + " " + persona.getApellidoMaterno();
+
+                        dto.setNombreEmpleado(nombreCompleto);
                         // dto.setApellidoEmpleado(usuario.getEmpleado().getApellido());
                 }
 
@@ -42,15 +46,21 @@ public class UsuarioMapper {
 
                 String nombreCompleto = "";
 
-                if (usuario.getEmpleado() != null) {
-                        nombreCompleto = usuario.getEmpleado().getNombre();
-
+                if (usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null) {
+                        var persona = usuario.getEmpleado().getPersona();
+                        nombreCompleto = persona.getNombres() + " " + persona.getApellidoPaterno() + " " + persona.getApellidoMaterno();
                 }
 
-                String correo = usuario.getEmpleado() != null
-                                ? usuario.getEmpleado().getEmail()
-                                : "";
-
+                String correo = "";
+                if(usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null){
+                correo = usuario.getEmpleado()
+                                .getPersona()
+                                .getContactos()
+                                .stream()
+                                .findFirst()
+                                .map(Contacto::getCorreo)
+                                .orElse("");
+                }
                 String rol = usuario.getUsuarioRoles().isEmpty()
                                 ? ""
                                 : usuario.getUsuarioRoles()
@@ -80,11 +90,25 @@ public class UsuarioMapper {
         }
 
         public UsuarioListadoResponseDto listadoDtoBuscar(Usuario usuario) {
+                String correo = usuario.getEmpleado()
+                                .getPersona()
+                                .getContactos()
+                                .stream()
+                                .findFirst()
+                                .map(Contacto::getCorreo)
+                                .orElse("");
+
+                String nombreEmpleado = "";
+
+                if(usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null){
+                        var persona = usuario.getEmpleado().getPersona();
+                        nombreEmpleado = persona.getNombres();
+                }
                 return new UsuarioListadoResponseDto(
                                 usuario.getIdUsuario(),
-                                usuario.getEmpleado().getNombre(),
+                                nombreEmpleado,
                                 usuario.getUsername(),
-                                usuario.getEmpleado().getEmail(),
+                                correo,
                                 usuario.getUsuarioRoles()
                                                 .stream()
                                                 .findFirst()
@@ -113,13 +137,26 @@ public class UsuarioMapper {
                                 .max(LocalDateTime::compareTo)
                                 .orElse(null);
 
+                String correo = usuario.getEmpleado()
+                                .getPersona()
+                                .getContactos()
+                                .stream()
+                                .findFirst()
+                                .map(Contacto::getCorreo)
+                                .orElse("");
+                String nombreEmpleado = "";
+
+                if(usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null){
+                        var persona = usuario.getEmpleado().getPersona();
+                        nombreEmpleado = persona.getNombres();
+                }
                 return new UsuarioDetalleDto(
                                 usuario.getUsername(),
                                 usuario.getActivo(),
                                 usuario.getFechaCreacion(),
                                 ultimoAcceso,
-                                usuario.getEmpleado().getNombre(),
-                                usuario.getEmpleado().getEmail(),
+                                nombreEmpleado,
+                                correo,
                                 roles);
         }
 

@@ -1,6 +1,5 @@
 package com.backendSupermercado.supermercasdo.security.auth.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.backendSupermercado.supermercasdo.security.auth.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ForgotPasswordRequestDto;
 import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
@@ -19,10 +19,10 @@ import com.backendSupermercado.supermercasdo.security.auth.dto.LoginRequestDto;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     // LOGIN
     @PostMapping("/login")

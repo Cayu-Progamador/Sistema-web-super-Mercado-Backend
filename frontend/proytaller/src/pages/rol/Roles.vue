@@ -10,7 +10,7 @@
           </div>
           <div class="q-ml-md">
             <div class="tc-title">Total Roles</div>
-            <div class="tc-num">{{ roles.length }}</div>
+            <div class="tc-num">{{ totalRoles }}</div>
             <div class="tc-lbl">Roles registrados</div>
           </div>
         </q-card-section>
@@ -73,7 +73,44 @@
         </div>
       </div>
 
-      <q-table flat :rows="rolesFiltrados" :columns="columns" row-key="id" hide-pagination class="roles-table">
+      <q-table
+        flat
+        :rows="roles"
+        :columns="columns"
+        row-key="id"
+        :loading="cargando"
+        v-model:pagination="pagination"
+        :rows-per-page-options="[5, 10, 15, 25, 30, 50, 100]"
+        hide-pagination
+        class="roles-table"
+      >
+        <template #bottom>
+          <div class="q-table__bottom row items-center q-pa-md">
+            <div class="q-table__control">
+              <span class="q-table__bottom-item">Rows per page:</span>
+              <q-select
+                v-model="pagination.rowsPerPage"
+                :options="[5, 10, 15, 25, 30, 50, 100]"
+                dense
+                borderless
+                emit-value
+                map-options
+                class="q-table__select inline-block"
+                style="min-width: 70px"
+                @update:model-value="val => onRowsPerPageChange(val)"
+              />
+            </div>
+            <span class="q-table__bottom-item q-ml-auto">
+              {{ pagination.rowsNumber === 0 ? '0' : (pagination.page - 1) * pagination.rowsPerPage + 1 }}-{{ Math.min(pagination.page * pagination.rowsPerPage, pagination.rowsNumber) }} of {{ pagination.rowsNumber }}
+            </span>
+            <div class="q-table__control q-ml-sm">
+              <q-btn dense flat round icon="first_page" :disable="pagination.page <= 1" @click="goToPage(1)" />
+              <q-btn dense flat round icon="chevron_left" :disable="pagination.page <= 1" @click="goToPage(pagination.page - 1)" />
+              <q-btn dense flat round icon="chevron_right" :disable="pagination.page >= Math.ceil(pagination.rowsNumber / pagination.rowsPerPage)" @click="goToPage(pagination.page + 1)" />
+              <q-btn dense flat round icon="last_page" :disable="pagination.page >= Math.ceil(pagination.rowsNumber / pagination.rowsPerPage)" @click="goToPage(Math.ceil(pagination.rowsNumber / pagination.rowsPerPage))" />
+            </div>
+          </div>
+        </template>
         <template #body-cell-id="props">
           <q-td :props="props">
             <span class="rol-num">{{ props.row.id }}</span>
@@ -118,8 +155,9 @@
           <q-td :props="props">
             <div class="row no-wrap q-gutter-xs">
               <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
+              <q-btn v-if="!props.row.activo" flat round dense class="act-btn act-activar" icon="check" @click="confirmarActivar(props.row)" />
+              <q-btn v-if="props.row.activo" flat round dense class="act-btn act-desactivar" icon="block" @click="confirmarDesactivar(props.row)" />
               <q-btn flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
-              <q-btn flat round dense class="act-btn act-del" icon="delete" @click="eliminarRol(props.row)" />
             </div>
           </q-td>
         </template>
@@ -128,26 +166,53 @@
     
     <EditarRol
      v-model="mostrarModal"
-     @guardar="onGuardarNuevo"
+     :rol="rolSeleccionado"
+     @guardar="onGuardarRol"
+    />
+
+    <VerRol
+     v-model="mostrarVer"
+     :rol-id="rolSeleccionado.id"
+    />
+
+    <ConfirmarRolDialog
+      v-model="mostrarConfirmarRol"
+      :id="rolSeleccionado.id"
+      :nombre="rolSeleccionado.nombre"
+      :descripcion="rolSeleccionado.descripcion"
+      :tipo="tipoConfirmarRol"
+      @actualizar="onActualizarRol"
     />
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted  } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { listarRoles} from '../../api/rol/rol'
-import EditarRol from '../../components/rol/EditarRol.vue' 
+import { listarRoles, obtenerEstadisticasRoles, buscarRol } from '../../api/rol/rol'
+import EditarRol from '../../components/rol/EditarRol.vue'
+import VerRol from '../../components/rol/VerRol.vue'
+import ConfirmarRolDialog from '../../components/rol/ConfirmarRolDialog.vue'
 
 const $q = useQuasar()
 const mostrarModal = ref(false)
 const mostrarVer = ref(false)
 const mostrarEditar = ref(false)
+const mostrarConfirmarRol = ref(false)
+const tipoConfirmarRol = ref('activar')
 const guardando = ref(false)
 const search = ref('')
 const rolSeleccionado = ref({})
 const roles = ref([])
+const cargando = ref(false)
 
+const pagination = ref({
+  sortBy: null,
+  descending: false,
+  page: 1,
+  rowsPerPage: 15,
+  rowsNumber: 0
+})
 
 const columns = [
   { name: 'id', label: '#', field: 'id', align: 'left' },
@@ -159,41 +224,70 @@ const columns = [
 ]
 
 const abrirDialog = () => {
+  rolSeleccionado.value = {}
   mostrarModal.value = true
 }
 
-//cargar los dato de roles
+//cargar roles con paginación y búsqueda
 const cargarRoles = async () => {
+  const { page, rowsPerPage } = pagination.value
+  cargando.value = true
   try {
-    const respuesta = await listarRoles()
-    roles.value = respuesta.map(r => ({
+    const pageIndex = Number(page) - 1
+    const size = Number(rowsPerPage) || 15
+    const respuesta = search.value.trim()
+      ? await buscarRol(search.value.trim(), pageIndex, size)
+      : await listarRoles(pageIndex, size)
+    roles.value = respuesta.content.map(r => ({
       id: r.idRol,
       nombre: (r.nombre || '__').replace('ROLE_',''),
       descripcion: (r.descripcion || "__"),
       usuarios: r.cantidadUsuarios,
       activo: r.estado
     }))
-
+    pagination.value = {
+      page: respuesta.number + 1,
+      rowsPerPage: respuesta.size,
+      rowsNumber: respuesta.totalElements,
+      sortBy: null,
+      descending: false
+    }
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar roles'
-    })
+    $q.notify({ type: 'negative', message: 'Error al cargar roles' })
+  } finally {
+    cargando.value = false
+  }
+}
+
+const goToPage = (page) => {
+  pagination.value.page = page
+  cargarRoles()
+}
+
+const onRowsPerPageChange = (val) => {
+  pagination.value.rowsPerPage = val
+  pagination.value.page = 1
+  cargarRoles()
+}
+
+const cargarEstadisticas = async () => {
+  try {
+    const stats = await obtenerEstadisticasRoles()
+    totalRoles.value = stats.totalRoles
+    rolesActivos.value = stats.rolesActivos
+    rolesInactivos.value = stats.rolesInactivos
+    totalPermisos.value = stats.totalPermisos
+  } catch (error) {
+    console.error('Error al cargar estadisticas:', error)
   }
 }
 
 
 
-const rolesActivos = computed(() => roles.value.filter(r => r.activo).length)
-const rolesInactivos = computed(() => roles.value.filter(r => !r.activo).length)
-const totalPermisos = computed(() => 28) // Ajustar según tu backend
-
-const rolesFiltrados = computed(() =>
-  roles.value.filter(r =>
-    (r.nombre || '').toLowerCase().includes(search.value.toLowerCase()) ||
-    (r.descripcion || '').toLowerCase().includes(search.value.toLowerCase())
-  )
-)
+const totalRoles = ref(0)
+const rolesActivos = ref(0)
+const rolesInactivos = ref(0)
+const totalPermisos = ref(0)
 
 //icons
 const iconosEstaticos = ['shield', 'manage_accounts', 'point_of_sale', 'inventory_2', 'person', 'work', 'star'];
@@ -228,30 +322,56 @@ const verRol = (rol) => {
 
 const editarRol = (rol) => {
   rolSeleccionado.value = { ...rol }
-  mostrarEditar.value = true
+  mostrarModal.value = true
 }
 
-const onGuardarEditar = (data) => {
-  const index = roles.value.findIndex(r => r.id === data.id)
+const onGuardarRol = (data) => {
+  const index = roles.value.findIndex(r => r.id === data.idRol)
   if (index >= 0) {
-    roles.value[index] = { ...roles.value[index], ...data }
-    $q.notify({ type: 'positive', message: 'Rol actualizado correctamente' })
+    roles.value[index] = {
+      id: data.idRol,
+      nombre: (data.nombre || '').replace('ROLE_', ''),
+      descripcion: data.descripcion || '',
+      usuarios: roles.value[index].usuarios,
+      activo: data.estado
+    }
+  } else {
+    roles.value.unshift({
+      id: data.idRol,
+      nombre: (data.nombre || '').replace('ROLE_', ''),
+      descripcion: data.descripcion || '',
+      usuarios: 0,
+      activo: data.estado
+    })
   }
+  cargarEstadisticas()
 }
 
-const eliminarRol = (rol) => {
-  $q.dialog({
-    title: 'Eliminar Rol',
-    message: `¿Estás seguro de eliminar el rol ${rol.nombre}?`,
-    cancel: true,
-    ok: { label: 'Eliminar', color: 'negative' }
-  }).onOk(() => {
-    roles.value = roles.value.filter(r => r.id !== rol.id)
-    $q.notify({ type: 'negative', message: `Rol ${rol.nombre} eliminado` })
-  })
+const confirmarActivar = (rol) => {
+  tipoConfirmarRol.value = 'activar'
+  rolSeleccionado.value = { id: rol.id, nombre: rol.nombre, descripcion: rol.descripcion }
+  mostrarConfirmarRol.value = true
 }
+
+const confirmarDesactivar = (rol) => {
+  tipoConfirmarRol.value = 'desactivar'
+  rolSeleccionado.value = { id: rol.id, nombre: rol.nombre, descripcion: rol.descripcion }
+  mostrarConfirmarRol.value = true
+}
+
+const onActualizarRol = () => {
+  cargarRoles()
+  cargarEstadisticas()
+}
+
+watch(search, () => {
+  pagination.value.page = 1
+  cargarRoles()
+})
+
 onMounted(() => {
   cargarRoles()
+  cargarEstadisticas()
 })
 
 </script>
@@ -478,6 +598,16 @@ onMounted(() => {
   background: #ffebee;
 }
 .act-del:hover { background: #ffcdd2; color: #b71c1c; }
+.act-activar {
+  color: #4a8c25;
+  background: #eaf4d8;
+}
+.act-activar:hover { background: #ddecc5; color: #2a5c1a; }
+.act-desactivar {
+  color: #d97b1a;
+  background: #fef3e2;
+}
+.act-desactivar:hover { background: #f5dbb8; color: #a05c10; }
 
 /* Modal */
 .modal-card {

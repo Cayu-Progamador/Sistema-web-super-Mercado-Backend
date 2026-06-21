@@ -47,7 +47,7 @@ instance.interceptors.response.use(
         break;
 
       case 403:
-        router.push("/401");
+        console.error("Acceso denegado");
         break;
 
       default:

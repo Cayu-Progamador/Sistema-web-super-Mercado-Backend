@@ -1,6 +1,5 @@
 package com.backendSupermercado.supermercasdo.modules.seguridad.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -9,32 +8,43 @@ import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictExceptio
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.ConfiguracionCorreo;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.ConfiguracionCorreoRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.service.EmailService;
+import com.backendSupermercado.supermercasdo.modules.seguridad.service.MailConfigService;
 
 import jakarta.mail.internet.MimeMessage;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
-
-    @Autowired
-    private ConfiguracionCorreoRepository configuracionCorreoRepository;
+   private final MailConfigService mailConfigService;
+   private final ConfiguracionCorreoRepository configuracionCorreoRepository;
 
     @Override
     public void sendRecoverEmail(String destino, String pin) {
 
         try {
 
+            JavaMailSender mailSender = mailConfigService.javaMailSender();
+            
             ConfiguracionCorreo config = configuracionCorreoRepository.findByActivoTrue()
                     .orElseThrow(() -> new ResourceConflictException("No se encontró configuración de correo activa"));
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            String correoRemitente = config.getEmpleado()
+                    .getPersona()
+                    .getContactos()
+                    .stream()
+                    .findFirst()
+                    .map(c -> c.getCorreo())
+                    .orElseThrow(() -> new ResourceConflictException("El empleado no tiene correo registrado"));
+
             helper.setTo(destino);
             helper.setSubject("Código de recuperación de contraseña");
-            helper.setFrom(config.getCorreo(), "Supermercado");
+            helper.setFrom(correoRemitente, "Supermercado");
 
             String contenido = """
                         <div style="font-family:Arial; padding:20px;">

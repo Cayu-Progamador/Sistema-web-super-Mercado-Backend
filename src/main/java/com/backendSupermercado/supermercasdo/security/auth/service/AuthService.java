@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Random;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,36 +31,22 @@ import com.backendSupermercado.supermercasdo.security.jwt.JwtUtil;
 import com.backendSupermercado.supermercasdo.shared.util.FechaUtil;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-        @Autowired
-        private UsuarioRepository usuarioRepository;
-
-        @Autowired
-        private PasswordEncoder passwordEncoder;
-
-        @Autowired
-        private RolRepository rolRepository;
-
-        @Autowired
-        private EmpleadoRepository empleadoRepository;
-
-        @Autowired
-        private PasswordResetTokenRepository passwordResetTokenRepository;
-
-        @Autowired
-        private JwtUtil jwtUtil;
-
-        @Autowired
-        private LoginUsuarioRepository loginUsuarioRepository;
-
-        @Autowired
-        private EmailService emailService;
-
-        @Autowired
-        private SeguridadUsuarioRepository seguridadUsuarioRepository;
+        
+        private final UsuarioRepository usuarioRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final RolRepository rolRepository;
+        private final EmpleadoRepository empleadoRepository;
+        private final PasswordResetTokenRepository passwordResetTokenRepository;
+        private final JwtUtil jwtUtil;
+        private final LoginUsuarioRepository loginUsuarioRepository;
+        private final EmailService emailService;
+        private final SeguridadUsuarioRepository seguridadUsuarioRepository;
 
         // REGISTRAR USUARIO
         public UsuarioResponseDto registrarUsuario(RegistroRequestDto request) {
@@ -229,7 +214,7 @@ public class AuthService {
                         throw new BadCredentialsException("El email es obligatorio");
                 }
 
-                Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
+                Usuario usuario = usuarioRepository.findByCorreo(email)
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 // eliminar PINs anteriores del usuario
@@ -261,7 +246,7 @@ public class AuthService {
         @Transactional
         public void verifyPin(String email, String pinIngresado) {
 
-                Usuario usuario = usuarioRepository.findByEmpleadoEmail(email)
+                Usuario usuario = usuarioRepository.findByCorreo(email)
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 PasswordResetToken token = passwordResetTokenRepository
@@ -300,7 +285,7 @@ public class AuthService {
                         throw new BadCredentialsException("La nueva contraseña no puede estar vacía");
                 }
 
-                Usuario usuario = usuarioRepository.findByEmpleadoEmail(request.getEmail())
+                Usuario usuario = usuarioRepository.findByCorreo(request.getEmail())
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
                 usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));

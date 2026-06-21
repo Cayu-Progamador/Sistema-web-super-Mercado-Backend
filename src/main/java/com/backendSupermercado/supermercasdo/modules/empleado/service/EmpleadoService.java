@@ -8,4 +8,5 @@ public interface EmpleadoService {
     
     //listar los empleados para el select del usuario
     public List<EmpleadoSelectDto> listarParaSelect();
+    public List<EmpleadoSelectDto> listarParaEditar(Long usuarioId);
 }
