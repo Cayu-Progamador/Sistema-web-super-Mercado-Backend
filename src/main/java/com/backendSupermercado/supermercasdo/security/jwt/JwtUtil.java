@@ -3,6 +3,7 @@ package com.backendSupermercado.supermercasdo.security.jwt;
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,8 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-    // 🔐 SECRET EN BASE64 (OBLIGATORIO PARA HS256 BIEN HECHO)
-    private static final String SECRET =
-            "c3VwZXJtZXJjYWRvX2p3dF9zZWNyZXRfa2V5XzIwMjZfc2VndXJhX2Jvb2s=";
+    @Value("${jwt.secret}")
+    private String secret;
 
     // 1 HORA
     private static final long EXPIRATION_TIME = 1000 * 60 * 60;
@@ -25,7 +25,7 @@ public class JwtUtil {
     // 🔑 CLAVE SEGURA
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(SECRET)
+                Decoders.BASE64.decode(secret)
         );
     }
 

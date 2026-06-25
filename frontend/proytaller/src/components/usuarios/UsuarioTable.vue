@@ -2,20 +2,17 @@
   <q-page class="q-pa-md page-bg">
     <CardsUsuario :key="dashboardKey" />
 
+    <FiltroUsuario @buscar="onBuscar" @limpiar="onLimpiar" @roles-cargados="onRolesCargados" />
+
     <q-card flat bordered class="table-card">
-      <div class="row items-center justify-between q-pa-md q-col-gutter-md table-header">
+      <div class="row items-center justify-between q-pa-md table-header">
         <div>
           <div class="text-h6 text-weight-bold table-title">Lista de Usuarios</div>
           <div class="text-caption table-subtitle">Administra y consulta los usuarios del sistema</div>
         </div>
-
         <div class="row items-center q-gutter-sm">
-          <q-input outlined dense debounce="300" v-model="search" placeholder="Buscar usuario..." class="search-input">
-            <template v-slot:append>
-              <q-icon name="search" class="search-icon" />
-            </template>
-          </q-input>
-
+          <q-btn class="btn-add" icon="picture_as_pdf" label="PDF" @click="exportarPDF" unelevated color="red" />
+          <q-btn class="btn-add" icon="table_chart" label="Excel" @click="exportarExcel" unelevated color="green" />
           <q-btn class="btn-add" icon="add" label="Nuevo Usuario" @click="mostrarModal = true" unelevated />
         </div>
       </div>
@@ -141,11 +138,12 @@
   import UsuarioForm from '../../components/usuarios/UsuarioForm.vue'
   import ConfirmarUsuarioDialog from '../../components/usuarios/ConfirmarUsuarioDialog.vue'
   import EditarUsuarioDialog from '../../components/usuarios/EditarUsuarioDialog.vue'
+  import FiltroUsuario from '../../components/usuarios/FiltroUsuario.vue'
   import { getEmpleadoListaEditar, getEmpleadoLista } from '../../api/empleado/empleado'
-  import { getListRoles } from '../../api/rol/rol'
-  import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, buscarUsuarioPaginado } from '../../api/usuario/usuario'
-  import { ref, onMounted, watch } from 'vue'
+  import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, filtrarUsuarios, exportarUsuarios, exportarUsuariosPDF as exportPDF, exportarUsuariosExcel as exportExcel } from '../../api/usuario/usuario'
+  import { ref, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
+  import { useAuthStore } from '../../store/store'
 
   const mostrarModal = ref(false)
   const mostrarConfirmar = ref(false)
@@ -158,7 +156,9 @@
     empleadoId: null
   })
 
-  const search = ref('')
+  const filtrosActivos = ref({})
+  const listaRoles = ref([])
+
   const loading = ref(false)
   const usuarios = ref([])
 
@@ -166,7 +166,6 @@
 
   const mostrarEditar = ref(false)
   const listaEmpleados = ref([])
-  const listaRoles = ref([])
 
   const mostrarVer = ref(false)
 
@@ -237,22 +236,6 @@
     }
   }
 
-  // Cargar roles desde el backend y transformar al formato que el select necesita
-  const cargarRoles = async () => {
-    try {
-      const respuesta = await getListRoles()
-
-      listaRoles.value = respuesta.map(rol => ({
-        label: rol.descripcion,
-        value: rol.nombre
-      }))
-
-    } catch (error) {
-      console.error('Error cargando roles:', error)
-
-    }
-  }
-
   const editarUsuario = async (row) => {
     usuarioSeleccionado.value = {
       id: row.idUsuario,
@@ -304,8 +287,14 @@
     try {
       const pageIndex = Number(page) - 1
       const size = Number(rowsPerPage) || 10
-      const respuesta = search.value.trim()
-        ? await buscarUsuarioPaginado(search.value.trim(), pageIndex, size)
+      const params = {
+        page: pageIndex,
+        size,
+        ...filtrosActivos.value
+      }
+      const tieneFiltros = Object.keys(filtrosActivos.value).length > 0
+      const respuesta = tieneFiltros
+        ? await filtrarUsuarios(params)
         : await listarUsuarios(pageIndex, size)
       usuarios.value = respuesta.content
       pagination.value = {
@@ -319,6 +308,53 @@
       $q.notify({ type: 'negative', message: 'Error al cargar usuarios' })
     } finally {
       loading.value = false
+    }
+  }
+
+  const onBuscar = (params) => {
+    filtrosActivos.value = params
+    pagination.value.page = 1
+    cargarUsuarios()
+  }
+
+  const onLimpiar = () => {
+    filtrosActivos.value = {}
+    pagination.value.page = 1
+    cargarUsuarios()
+  }
+
+  const onRolesCargados = (roles) => {
+    listaRoles.value = roles
+  }
+
+  const authStore = useAuthStore()
+
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportarPDF = async () => {
+    try {
+      const blob = await exportPDF(filtrosActivos.value)
+      downloadBlob(blob, 'reporte_usuarios.pdf')
+    } catch (error) {
+      console.error('Error exportar PDF:', error)
+      $q.notify({ type: 'negative', message: error.message || 'Error al exportar PDF' })
+    }
+  }
+
+  const exportarExcel = async () => {
+    try {
+      const blob = await exportExcel(filtrosActivos.value)
+      downloadBlob(blob, 'reporte_usuarios.xlsx')
+    } catch (error) {
+      console.error('Error exportar Excel:', error)
+      $q.notify({ type: 'negative', message: error.message || 'Error al exportar Excel' })
     }
   }
 
@@ -361,16 +397,9 @@
     }
   }
 
-  //buscar los usuario por username y nombre el empleado
-  watch(search, () => {
-    pagination.value.page = 1
-    cargarUsuarios()
-  })
-
   onMounted(() => {
     cargarUsuarios()
     cargarEmpleados()
-    cargarRoles()
   })
 </script>
 

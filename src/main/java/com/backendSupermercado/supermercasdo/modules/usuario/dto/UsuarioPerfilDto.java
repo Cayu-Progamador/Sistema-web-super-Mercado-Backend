@@ -11,5 +11,6 @@ public class UsuarioPerfilDto {
     private String username;
     private String nombreEmpleado;
     private String apellidoEmpleado;
+    private String fotoUrl;
     private List<String> roles;
 }

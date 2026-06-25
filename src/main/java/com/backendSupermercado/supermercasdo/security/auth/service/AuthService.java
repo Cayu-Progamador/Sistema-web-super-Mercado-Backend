@@ -49,6 +49,7 @@ public class AuthService {
         private final SeguridadUsuarioRepository seguridadUsuarioRepository;
 
         // REGISTRAR USUARIO
+        @Transactional
         public UsuarioResponseDto registrarUsuario(RegistroRequestDto request) {
 
                 // VALIDAR USERNAME
@@ -129,7 +130,7 @@ public class AuthService {
         }
 
         // LOGIN USUARIO
-        // LOGIN USUARIO
+        @Transactional
         public String login(String username, String password, String ip) {
 
                 // 1. Buscar Usuario y Seguridad

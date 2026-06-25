@@ -20,7 +20,21 @@ spring:
         # NOTA: PostgreSQLDialect es a menudo deducido automáticamente
         dialect: org.hibernate.dialect.PostgreSQLDialect
   
+  # Configuración de subida de archivos
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 5MB
+
 # Configuración del Servidor Web
 server: 
   port: 9090
+
+jwt:
+  secret: "c3VwZXJtZXJjYWRvX2p3dF9zZWNyZXRfa2V5XzIwMjZfc2VndXJhX2Jvb2s="
+
+app:
+  uploads:
+    directorio: uploads/fotos-perfil
 

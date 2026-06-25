@@ -25,6 +25,12 @@ export const useAuthStore = defineStore('auth', {
             this.userInfo = userInfo;
         },
 
+        setFotoUrl(url) {
+            if (this.userInfo) {
+                this.userInfo.fotoUrl = url;
+            }
+        },
+
         setToken(token) {
             this.token = token;
         },

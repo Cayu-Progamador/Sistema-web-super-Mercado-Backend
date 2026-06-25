@@ -7,14 +7,20 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Contacto;
+import com.backendSupermercado.supermercasdo.modules.empleado.service.FotoPerfilService;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
+
+import lombok.RequiredArgsConstructor;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.LoginUsuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 
 @Component
+@RequiredArgsConstructor
 public class UsuarioMapper {
+
+        private final FotoPerfilService fotoPerfilService;
 
         // maper de usuario a dto
         public UsuarioPerfilDto toDto(Usuario usuario) {
@@ -28,7 +34,7 @@ public class UsuarioMapper {
                         String nombreCompleto = persona.getNombres() + " " + persona.getApellidoPaterno() + " " + persona.getApellidoMaterno();
 
                         dto.setNombreEmpleado(nombreCompleto);
-                        // dto.setApellidoEmpleado(usuario.getEmpleado().getApellido());
+                        dto.setFotoUrl(fotoPerfilService.obtenerUrlFoto(persona.getIdPersona()));
                 }
 
                 // Roles
@@ -137,26 +143,38 @@ public class UsuarioMapper {
                                 .max(LocalDateTime::compareTo)
                                 .orElse(null);
 
-                String correo = usuario.getEmpleado()
-                                .getPersona()
-                                .getContactos()
-                                .stream()
-                                .findFirst()
-                                .map(Contacto::getCorreo)
-                                .orElse("");
-                String nombreEmpleado = "";
+                String nombreCompleto = "";
+                String ci = "";
+                String correo = "";
+                String telefono = "";
 
-                if(usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null){
+                if (usuario.getEmpleado() != null && usuario.getEmpleado().getPersona() != null) {
                         var persona = usuario.getEmpleado().getPersona();
-                        nombreEmpleado = persona.getNombres();
+                        nombreCompleto = persona.getNombres() + " " 
+                                + (persona.getApellidoPaterno() != null ? persona.getApellidoPaterno() : "")
+                                + " " + (persona.getApellidoMaterno() != null ? persona.getApellidoMaterno() : "");
+                        ci = persona.getCi() != null ? persona.getCi() : "";
+
+                        var contacto = persona.getContactos()
+                                        .stream()
+                                        .findFirst()
+                                        .orElse(null);
+                        if (contacto != null) {
+                                correo = contacto.getCorreo() != null ? contacto.getCorreo() : "";
+                                telefono = contacto.getTelefono() != null ? contacto.getTelefono() : "";
+                        }
                 }
+
                 return new UsuarioDetalleDto(
+                                usuario.getIdUsuario(),
                                 usuario.getUsername(),
                                 usuario.getActivo(),
                                 usuario.getFechaCreacion(),
                                 ultimoAcceso,
-                                nombreEmpleado,
+                                nombreCompleto.trim(),
+                                ci,
                                 correo,
+                                telefono,
                                 roles);
         }
 

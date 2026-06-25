@@ -95,10 +95,57 @@ export function buscarUsuarioPaginado(username, page = 0, size = 10) {
     })
 }
 
+//filtrar usuarios con criterios dinámicos
+export function filtrarUsuarios(params = {}) {
+    return request({
+        url: '/api/usuarios/filtrar',
+        method: 'get',
+        params
+    })
+}
+
 //detalle de usuario
 export function obtenerDetalleUsuario(id) {
   return request({
     url: `/api/usuarios/detalle/${id}`,
     method: 'get'
+  })
+}
+
+//exportar detalle de usuario a PDF
+export function exportarDetalleUsuarioPDF(id) {
+  return request({
+    url: `/api/usuarios/detalle/${id}/pdf`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
+//exportar usuarios (sin paginación)
+export function exportarUsuarios(params = {}) {
+  return request({
+    url: '/api/usuarios/exportar',
+    method: 'get',
+    params
+  })
+}
+
+//exportar usuarios a PDF (descarga directa)
+export function exportarUsuariosPDF(params = {}) {
+  return request({
+    url: '/api/usuarios/exportar/pdf',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
+
+//exportar usuarios a Excel (descarga directa)
+export function exportarUsuariosExcel(params = {}) {
+  return request({
+    url: '/api/usuarios/exportar/excel',
+    method: 'get',
+    params,
+    responseType: 'blob'
   })
 }

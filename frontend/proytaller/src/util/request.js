@@ -19,7 +19,9 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${store.token}`;
     }
 
-    config.headers["Content-Type"] = "application/json";
+    if (!(config.data instanceof FormData)) {
+        config.headers["Content-Type"] = "application/json";
+    }
     return config;
   },
   error => Promise.reject(error)

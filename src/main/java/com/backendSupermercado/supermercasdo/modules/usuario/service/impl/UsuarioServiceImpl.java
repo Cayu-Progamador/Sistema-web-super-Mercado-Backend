@@ -2,6 +2,7 @@ package com.backendSupermercado.supermercasdo.modules.usuario.service.impl;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRep
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioFiltrosDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioUpdateDto;
@@ -33,7 +35,9 @@ import com.backendSupermercado.supermercasdo.modules.usuario.repository.Auditori
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRolRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.service.UsuarioService;
+import com.backendSupermercado.supermercasdo.shared.specification.UsuarioSpecification;
 import com.backendSupermercado.supermercasdo.shared.util.FechaUtil;
+import com.backendSupermercado.supermercasdo.shared.util.ReporteUsuarioUtil;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -127,9 +131,15 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (id == null) {
             throw new ResourceConflictException("El usuario no puede ser nulo");
         }
+
         // buscar el usuario
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
+
+        // no permitir desactivar al dueno del supermercado
+        if (usuario.getIdUsuario().equals(1L)) {
+            throw new ResourceConflictException("No se puede desactivar al propietario del sistema");
+        }
 
         // validar estado actual
         if (!Boolean.TRUE.equals(usuario.getActivo())) {
@@ -177,6 +187,14 @@ public class UsuarioServiceImpl implements UsuarioService {
         actualizarUsername(usuario, dto, cambios);
         actualizarPassword(usuario, dto, cambios);
         actualizarEmpleado(usuario, dto, cambios);
+        // Si es el propietario (ID 1), no permitir quitar ROLE_ADMIN
+        if (usuario.getIdUsuario().equals(1L)
+                && dto.getRoles() != null
+                && !dto.getRoles().contains("ADMIN")) {
+
+            throw new ResourceConflictException(
+                    "No se puede quitar el rol ADMIN al propietario del sistema");
+        }
         actualizarRoles(usuario, dto, cambios);
 
         if (cambios.length() == 0) {
@@ -337,18 +355,17 @@ public class UsuarioServiceImpl implements UsuarioService {
         aud.save(auditoria);
     }
 
-    //obtener estadisticas del usuario
-    public DashboardUsuarioDto obtenerEstadisticasUsuario(){
+    // obtener estadisticas del usuario
+    public DashboardUsuarioDto obtenerEstadisticasUsuario() {
         return new DashboardUsuarioDto(
                 usuarioRepository.count(),
                 usuarioRepository.countByActivoTrue(),
                 usuarioRepository.countByActivoFalse(),
-                usuarioRolRepository.contarAdministradores()
-        );
+                usuarioRolRepository.contarAdministradores());
     }
 
-    //buscar usuario por nombre
-    public List<UsuarioListadoResponseDto> buscarPorUsername(String username){
+    // buscar usuario por nombre
+    public List<UsuarioListadoResponseDto> buscarPorUsername(String username) {
         return usuarioRepository.buscarPorUsername(username)
                 .stream()
                 .map(usuarioMapper::listadoDtoBuscar)
@@ -361,10 +378,54 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(usuarioMapper::toListadoResponse);
     }
 
-    //detalle de usuario
-    public UsuarioDetalleDto obtenerDetalleUsuario(Long id){
+    @Override
+    public Page<UsuarioListadoResponseDto> filtrarUsuarios(UsuarioFiltrosDto filtros, Pageable pageable) {
+        var spec = Specification
+                .where(UsuarioSpecification.busquedaGeneral(filtros.getBusqueda()))
+                .and(UsuarioSpecification.activoEqual(filtros.getActivo()))
+                .and(UsuarioSpecification.rolNombreEqual(filtros.getRol()))
+                .and(UsuarioSpecification.fechaCreacionBetween(filtros.getFechaDesde(), filtros.getFechaHasta()));
+
+        return usuarioRepository.findAll(spec, pageable)
+                .map(usuarioMapper::toListadoResponse);
+    }
+
+    // detalle de usuario
+    public UsuarioDetalleDto obtenerDetalleUsuario(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
         return usuarioMapper.toDetalleDto(usuario);
+    }
+
+    @Override
+    public byte[] exportarUsuarioDetallePDF(Long id, String username) {
+        UsuarioDetalleDto detalle = obtenerDetalleUsuario(id);
+        return ReporteUsuarioUtil.generarPdfDetalle(detalle, username);
+    }
+
+    @Override
+    public List<UsuarioListadoResponseDto> exportarUsuarios(UsuarioFiltrosDto filtros) {
+        var spec = Specification
+                .where(UsuarioSpecification.busquedaGeneral(filtros.getBusqueda()))
+                .and(UsuarioSpecification.activoEqual(filtros.getActivo()))
+                .and(UsuarioSpecification.rolNombreEqual(filtros.getRol()))
+                .and(UsuarioSpecification.fechaCreacionBetween(filtros.getFechaDesde(), filtros.getFechaHasta()));
+
+        return usuarioRepository.findAll(spec)
+                .stream()
+                .map(usuarioMapper::toListadoResponse)
+                .toList();
+    }
+
+    @Override
+    public byte[] exportarUsuariosPDF(UsuarioFiltrosDto filtros, String username) {
+        List<UsuarioListadoResponseDto> data = exportarUsuarios(filtros);
+        return ReporteUsuarioUtil.generarPdf(data, username);
+    }
+
+    @Override
+    public byte[] exportarUsuariosExcel(UsuarioFiltrosDto filtros) {
+        List<UsuarioListadoResponseDto> data = exportarUsuarios(filtros);
+        return ReporteUsuarioUtil.generarExcel(data);
     }
 }

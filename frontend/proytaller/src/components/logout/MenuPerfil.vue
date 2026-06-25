@@ -90,6 +90,9 @@ async function fetchUserInfo() {
   try {
     const response = await getUserList()
     userInfo.value = response
+    if (response.fotoUrl) {
+      store.setFotoUrl(response.fotoUrl.startsWith('http') ? response.fotoUrl : `${import.meta.env.VITE_API_URL}${response.fotoUrl}`)
+    }
   } catch (error) {
     console.error('No se puede obtener la info del usuario')
   }

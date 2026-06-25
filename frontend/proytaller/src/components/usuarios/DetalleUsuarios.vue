@@ -172,6 +172,17 @@
           </div>
           <span class="footer-text">Usuario verificado y con acceso al sistema</span>
         </div>
+        <q-btn 
+         class="btn-pdf"
+         unelevated
+         no-caps
+         @click="exportarPDF"
+         icon="pictures_as_pdf"
+         label="PDF"
+        >
+
+        </q-btn>
+
         <q-btn
           class="btn-cerrar"
           unelevated
@@ -189,7 +200,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { obtenerDetalleUsuario } from '../../api/usuario/usuario'
+import { obtenerDetalleUsuario, exportarDetalleUsuarioPDF } from '../../api/usuario/usuario'
 import { useQuasar } from 'quasar'
 
 const props = defineProps({
@@ -204,6 +215,31 @@ const abierto = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
 })
+
+const exportarPDF = async () => {
+  try {
+  
+    const blob = await exportarDetalleUsuarioPDF(props.idUsuario)
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `ficha_usuario_${props.idUsuario}.pdf`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    $q.notify({
+      type: 'positive',
+      message: 'PDF descargado correctamente'
+    })
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Error al generar PDF'
+    })
+  }
+}
 
 const cargando = ref(false)
 const usuarioDetalle = ref({})

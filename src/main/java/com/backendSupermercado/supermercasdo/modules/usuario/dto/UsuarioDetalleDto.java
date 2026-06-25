@@ -11,16 +11,16 @@ import lombok.*;
 @NoArgsConstructor
 public class UsuarioDetalleDto {
 
-    //informacion de usuario
+    private Long idUsuario;
     private String username;
     private Boolean activo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime ultimoAcceso;
 
-    //empleado asociado
-    private String nombreEmpleado;
+    private String nombreCompleto;
+    private String ci;
     private String correo;
+    private String telefono;
 
-    //roles
     private List<String> roles;
 }

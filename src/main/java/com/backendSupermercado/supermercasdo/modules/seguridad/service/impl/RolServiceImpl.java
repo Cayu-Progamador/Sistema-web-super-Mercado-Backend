@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
 import com.backendSupermercado.supermercasdo.mapper.roles.RolMapper;
@@ -40,6 +41,7 @@ public class RolServiceImpl implements RolService{
     }
 
     //tabla de roles en la tabla de roles para el crud (paginado)
+    @Transactional(readOnly = true)
     public Page<RolDto> listarRoles(Pageable pageable) {
         return rolRepository.findAll(pageable)
                 .map(RolMapper::toDto);
@@ -136,6 +138,7 @@ public class RolServiceImpl implements RolService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RolDetalleDto obtenerDetalle(Long id) {
         Rol rol = rolRepository.findById(id)
                 .orElseThrow(() -> new ResourceConflictException("Rol no encontrado"));

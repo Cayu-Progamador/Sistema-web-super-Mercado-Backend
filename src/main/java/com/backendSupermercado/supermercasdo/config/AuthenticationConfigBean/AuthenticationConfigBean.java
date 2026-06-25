@@ -1,5 +1,6 @@
 package com.backendSupermercado.supermercasdo.config.AuthenticationConfigBean;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -7,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 @Configuration
 public class AuthenticationConfigBean {
 
+    @Bean
     public AuthenticationManager authenticationManager(
         AuthenticationConfiguration authConfig)
     throws Exception{

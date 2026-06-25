@@ -15,8 +15,8 @@
                 <div class="avatar-section">
                     <div class="avatar-wrap">
                         <div class="avatar-circle"
-                            :style="previewUrl ? { backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
-                            <span v-if="!previewUrl">{{ iniciales }}</span>
+                            :style="avatarStyle">
+                            <span v-if="!previewUrl && !props.fotoUrl">{{ iniciales }}</span>
                         </div>
                         <button class="avatar-cam-btn" @click="triggerInput">
                             <q-icon name="photo_camera" size="14px" color="white" />
@@ -97,12 +97,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { actualizarFotoPerfil } from '../../api/fotoPerfil/fotoPerfil'
 
 const $q = useQuasar()
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  nombreUsuario: { type: String, default: 'Admin Sistema' }
+  nombreUsuario: { type: String, default: 'Admin Sistema' },
+  fotoUrl: { type: String, default: '' }
 })
 
 
@@ -136,7 +138,15 @@ const iniciales = computed(() => {
         .join('')
         .toUpperCase()
 })
-
+const avatarStyle = computed(() => {
+    if (previewUrl.value) {
+        return { backgroundImage: `url(${previewUrl.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    }
+    if (props.fotoUrl) {
+        return { backgroundImage: `url(${props.fotoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    }
+    return {}
+})
 
 
 const cerrar = () => {
@@ -225,17 +235,15 @@ const simularProgreso = () => {
     }, 100)
 }
 
-/* ── Guardar — conecta tu API aquí ── */
 const guardarFoto = async () => {
     if (!archivoFile.value) return
     guardando.value = true
     try {
-        // const formData = new FormData()
-        // formData.append('foto', archivoFile.value)
-        // await actualizarFotoPerfil(formData)
-        await new Promise(r => setTimeout(r, 1200)) // simulación
+        const formData = new FormData()
+        formData.append('foto', archivoFile.value)
+        const response = await actualizarFotoPerfil(formData)
         $q.notify({ type: 'positive', message: 'Foto de perfil actualizada correctamente' })
-        emit('foto-actualizada', previewUrl.value)
+        emit('foto-actualizada', response.url || previewUrl.value)
         cerrar()
     } catch {
         $q.notify({ type: 'negative', message: 'Error al guardar la foto. Intenta de nuevo.' })

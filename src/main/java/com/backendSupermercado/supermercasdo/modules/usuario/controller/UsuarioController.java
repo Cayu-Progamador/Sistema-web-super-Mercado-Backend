@@ -8,7 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioFiltrosDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioListadoResponseDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioUpdateDto;
@@ -142,11 +145,69 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.buscarPorUsernamePaginado(username, pageable));
     }
 
+    //filtrar usuarios con criterios dinámicos
+    @GetMapping("/filtrar")
+    public ResponseEntity<Page<UsuarioListadoResponseDto>> filtrarUsuarios(
+            UsuarioFiltrosDto filtros,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(usuarioService.filtrarUsuarios(filtros, pageable));
+    }
+
     //detalle de usuario
     @GetMapping("/detalle/{id}")
     public ResponseEntity<UsuarioDetalleDto> obtenerDetalleUsuarios(@PathVariable Long id){
         UsuarioDetalleDto usuario = usuarioService.obtenerDetalleUsuario(id);
         return ResponseEntity.ok(usuario);
+    }
+
+    //exportar detalle de usuario a PDF
+    @GetMapping("/detalle/{id}/pdf")
+    public ResponseEntity<byte[]> exportarDetalleUsuarioPDF(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : "Usuario";
+        byte[] pdfBytes = usuarioService.exportarUsuarioDetallePDF(id, username);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "ficha_usuario_" + id + ".pdf");
+
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
+    }
+
+    //exportar usuarios (sin paginación)
+    @GetMapping("/exportar")
+    public ResponseEntity<List<UsuarioListadoResponseDto>> exportarUsuarios(UsuarioFiltrosDto filtros) {
+        return ResponseEntity.ok(usuarioService.exportarUsuarios(filtros));
+    }
+
+    //exportar usuarios a PDF
+    @GetMapping("/exportar/pdf")
+    public ResponseEntity<byte[]> exportarUsuariosPDF(
+            UsuarioFiltrosDto filtros,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : "Usuario";
+        byte[] pdfBytes = usuarioService.exportarUsuariosPDF(filtros, username);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "reporte_usuarios.pdf");
+
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
+    }
+
+    //exportar usuarios a Excel
+    @GetMapping("/exportar/excel")
+    public ResponseEntity<byte[]> exportarUsuariosExcel(UsuarioFiltrosDto filtros) {
+        byte[] excelBytes = usuarioService.exportarUsuariosExcel(filtros);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment", "reporte_usuarios.xlsx");
+
+        return ResponseEntity.ok().headers(headers).body(excelBytes);
     }
 
 }

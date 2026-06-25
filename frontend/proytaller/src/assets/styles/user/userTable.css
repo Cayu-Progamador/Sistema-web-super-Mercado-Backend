@@ -34,50 +34,40 @@
   font-size: 12.5px !important;
 }
 
-/* ── Buscador ── */
-.search-input {
-  width: 250px;
-}
-
-.search-input :deep(.q-field__control) {
-  border-radius: 10px !important;
+/* ── Card de Filtros ── */
+.filter-card {
+  border-radius: 18px !important;
+  border: 1px solid #ddecc5 !important;
   background: #ffffff !important;
+  box-shadow: 0 4px 24px rgba(74, 140, 37, 0.08) !important;
 }
 
-.search-input :deep(.q-field__control:before) {
+.filter-title {
+  color: #2a5c1a !important;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+
+.filter-card :deep(.q-field__control) {
+  border-radius: 10px !important;
+  background: #f7f9f4 !important;
+}
+
+.filter-card :deep(.q-field__control:before) {
   border-color: #ddecc5 !important;
   border-radius: 10px !important;
 }
 
-.search-input :deep(.q-field__control:hover:before) {
+.filter-card :deep(.q-field__control:hover:before) {
   border-color: #7aaa4e !important;
 }
 
-.search-input :deep(.q-field__native) {
+.filter-card :deep(.q-field__native),
+.filter-card :deep(.q-field__input) {
   color: #2a5c1a !important;
   font-family: 'Nunito', sans-serif !important;
   font-size: 13.5px !important;
-}
-
-.search-input :deep(input::placeholder) {
-  color: #bdd49a !important;
-}
-
-.search-icon {
-  color: #9dbf78 !important;
-}
-
-/* ── Botón Filtros ── */
-.btn-filter {
-  border-color: #c8e0a0 !important;
-  color: #5a8040 !important;
-  border-radius: 10px !important;
-  font-family: 'Nunito', sans-serif !important;
-  font-weight: 600 !important;
-  font-size: 13.5px !important;
-}
-.btn-filter:hover {
-  background: #f0f7e8 !important;
 }
 
 /* ── Botón Nuevo Usuario ── */

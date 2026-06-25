@@ -1,6 +1,5 @@
-package com.backendSupermercado.supermercasdo.modules.usuario.entity;
+package com.backendSupermercado.supermercasdo.modules.empleado.entity;
 
-import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,29 +11,29 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "seguridad_usuario")
-public class SeguridadUsuario {
+@Table(name = "foto_perfil")
+public class FotoPerfil {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_seguridad")
-    private Long idSeguridad;
+    @Column(name = "id_foto")
+    private Long idFoto;
 
-    @Column(name = "intento_fallidos")
-    private Integer intentoFallidos = 0;
-    
-    @Column(name = "bloqueda_hasta")
-    private LocalDateTime bloquedaHasta;
-    
+    @Column(name = "ruta_archivo", nullable = false)
+    private String rutaArchivo;
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false, unique = true)
-    private Usuario usuario;   
+    @JoinColumn(
+            name = "id_persona",
+            nullable = false,
+            unique = true
+    )
+    private Persona persona;    
 }
