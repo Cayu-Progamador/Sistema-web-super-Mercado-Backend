@@ -8,6 +8,7 @@ import ChangePassword from '../components/auth/nuevoPassword/ChangePassword.vue'
 import UsuariosPage from '../pages/usuario/UsuarioPage.vue'
 import Perfil from '../pages/perfil/Perfil.vue'
 import Roles from '../pages/rol/Roles.vue'
+import Empleado from '../pages/empleado/EmpleadoPage.vue'
 const routes = [
   {
     path: '/login',
@@ -46,7 +47,13 @@ const routes = [
         path: 'roles', 
         name: 'roles',
         component: Roles
+      },
+      {
+        path: 'empleado', 
+        name: 'empleado',
+        component: Empleado
       }
+
 
     ]
   },

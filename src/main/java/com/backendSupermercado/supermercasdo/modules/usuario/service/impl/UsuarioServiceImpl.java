@@ -201,6 +201,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             return;
         }
 
+        usuario.setFechaActualizacion(LocalDateTime.now());
         usuarioRepository.save(usuario);
 
         registrarAuditoria(usuario, cambios, idUsuarioLogueado);

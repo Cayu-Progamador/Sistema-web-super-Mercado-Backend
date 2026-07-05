@@ -40,6 +40,14 @@
         <q-item-section class="sidebar-label">Roles</q-item-section>
       </q-item>
 
+      <!-- Gestion de empleados -->
+      <q-item clickable v-ripple to="/empleado" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="people" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Empleados</q-item-section>
+      </q-item>  
+
       
     </q-list>
   </q-scroll-area>

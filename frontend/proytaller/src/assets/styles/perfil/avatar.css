@@ -3,6 +3,7 @@
   padding: 7px; /* Espacio para que la sombra y el borde respiren */
   transition: all 0.3s ease;
   margin-right: 10px;
+  cursor: pointer;
 }
 
 /* Evitar fondo gris por defecto al hacer hover, ya que no es un q-btn */

@@ -30,7 +30,7 @@ public class Empleado {
     @Column(name = "id_empleado")
     private Long idEmpleado;
 
-      @Column(name = "fecha_contratacion")
+    @Column(name = "fecha_contratacion")
     private LocalDate fechaContratacion;
 
     private Boolean estado = true;
