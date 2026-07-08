@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -47,4 +48,9 @@ public class Empleado {
         fetch = FetchType.LAZY
     )
     private Usuario usuario;
+    
+    //relacion con el cargo del empleado
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_cargo", nullable = false)
+    private Cargo cargo;
 }

@@ -14,11 +14,11 @@ export function getEmpleadoListaEditar(usuarioId) {
     })
 }
 
-export function listarEmpleados(page, size) {
+export function listarEmpleados({ busqueda, estado, page, size, sortBy, sortDir }) {
     return request({
-        url: '/api/empleados',
+        url: '/api/empleados/listar',
         method: 'get',
-        params: { page, size }
+        params: { busqueda, estado, page, size, sortBy, sortDir }
     })
 }
 
