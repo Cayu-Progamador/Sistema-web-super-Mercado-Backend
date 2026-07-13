@@ -1,5 +1,12 @@
 import request from '../../util/request'
 
+export function getDashboardEmpleados() {
+    return request({
+        url: '/api/empleados/estadisticas',
+        method: 'get'
+    })
+}
+
 export function getEmpleadoLista() {
     return request({
         url: '/api/empleados/select',
@@ -14,11 +21,19 @@ export function getEmpleadoListaEditar(usuarioId) {
     })
 }
 
-export function listarEmpleados({ busqueda, estado, page, size, sortBy, sortDir }) {
+export function listarEmpleados(params) {
     return request({
         url: '/api/empleados/listar',
         method: 'get',
-        params: { busqueda, estado, page, size, sortBy, sortDir }
+        params
+    })
+}
+
+export function listarEmpleadosDisponibles(params) {
+    return request({
+        url: '/api/empleados/disponibles-para-contrato',
+        method: 'get',
+        params
     })
 }
 
@@ -56,5 +71,31 @@ export function obtenerEmpleado(id) {
     return request({
         url: `/api/empleados/${id}`,
         method: 'get'
+    })
+}
+
+export function exportarEmpleadoDetallePDF(id) {
+    return request({
+        url: `/api/empleados/${id}/pdf`,
+        method: 'get',
+        responseType: 'blob'
+    })
+}
+
+export function exportarEmpleadosPDF(params = {}) {
+    return request({
+        url: '/api/empleados/exportar/pdf',
+        method: 'get',
+        params,
+        responseType: 'blob'
+    })
+}
+
+export function exportarEmpleadosExcel(params = {}) {
+    return request({
+        url: '/api/empleados/exportar/excel',
+        method: 'get',
+        params,
+        responseType: 'blob'
     })
 }

@@ -67,6 +67,18 @@
   transition: color 0.18s !important;
 }
 
+/* ── Secciones ── */
+.sidebar-section-label {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #d4e8c0 !important;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 10px 16px 4px !important;
+  user-select: none;
+}
+
 /* ── Label ── */
 .sidebar-label {
   font-family: 'Nunito', sans-serif !important;

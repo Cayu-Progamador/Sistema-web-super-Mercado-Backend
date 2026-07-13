@@ -76,6 +76,6 @@ public class Persona {
     private Empleado empleado;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_sexo")
+    @JoinColumn(name = "id_sexo", nullable = false)
     private Sexo sexo;
 }

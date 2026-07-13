@@ -27,10 +27,10 @@ public class Contacto {
     @Column(name = "id_contacto")
     private Long idContacto;
 
-    @Column(name="telefono", length = 20)
+    @Column(name="telefono", length = 20, nullable = false, unique = true)
     private String telefono;
 
-    @Column(name="correo", length = 150 , nullable = false)
+    @Column(name="correo", length = 150 , nullable = false, unique = true)
     private String correo;
 
 

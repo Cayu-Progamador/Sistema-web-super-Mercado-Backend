@@ -1,41 +1,66 @@
 <template>
   <div class="logo-container">
-    <q-img 
-      class="logo-img" 
-      src="/logo/logo2.png" 
-      fit="contain" 
-      alt="Logo de la Empresa" 
-    />
-    <div class="title">Supermercado</div>
-    <div class="title">LA MARTITA</div>
+    <div class="logo-wrapper">
+      <q-img
+        class="logo-img"
+        src="/logo/logo2.png"
+        fit="contain"
+        alt="Logo de la Empresa"
+      />
+      <div class="logo-badge">
+        <span class="logo-super">Supermercado</span>
+        <span class="logo-name">LA MARTITA</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.title {
-    position: relative;
-    bottom: 24px;
-    font-size: 15px;
-    color: var(--text_color);
-    font-weight: bold;
-    margin-bottom: 10px;
-}
 .logo-container {
-    /* Reduje el padding al mínimo para que la imagen ocupe casi todo el espacio */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.3s ease; 
-    width: 100%;
-  /* AUMENTAMOS LA ALTURA AQUÍ (Antes era 60px) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.25rem;
+}
+
+.logo-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .logo-img {
-  width: 100%;
-  height: 100%;
-  transition: all 0.3s ease;
-  transform: scale(1.7);
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 3px 8px rgba(42, 92, 26, 0.25));
 }
 
+.logo-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.logo-super {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #eaf4d8;
+  opacity: 0.85;
+}
+
+.logo-name {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
 </style>

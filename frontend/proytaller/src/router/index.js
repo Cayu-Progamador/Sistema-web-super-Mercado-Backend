@@ -9,6 +9,8 @@ import UsuariosPage from '../pages/usuario/UsuarioPage.vue'
 import Perfil from '../pages/perfil/Perfil.vue'
 import Roles from '../pages/rol/Roles.vue'
 import Empleado from '../pages/empleado/EmpleadoPage.vue'
+import Cargos from '../pages/cargo/CargoPage.vue'
+import Contrato from '../pages/contrato/ContratoPage.vue'
 const routes = [
   {
     path: '/login',
@@ -52,8 +54,17 @@ const routes = [
         path: 'empleado', 
         name: 'empleado',
         component: Empleado
+      },
+      {
+        path: 'cargos',
+        name: 'cargos',
+        component: Cargos
+      },
+      {
+        path: 'contratos',
+        name: 'contratos',
+        component: Contrato
       }
-
 
     ]
   },

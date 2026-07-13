@@ -45,9 +45,6 @@ public class Direccion {
     private Persona persona;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_ciudad",
-            nullable = false
-    )
+    @JoinColumn(name = "id_ciudad")
     private Ciudad ciudad;
 }

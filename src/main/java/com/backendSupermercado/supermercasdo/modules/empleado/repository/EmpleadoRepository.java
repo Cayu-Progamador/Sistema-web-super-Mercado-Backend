@@ -1,19 +1,21 @@
 package com.backendSupermercado.supermercasdo.modules.empleado.repository;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.backendSupermercado.supermercasdo.modules.empleado.dto.EmpleadoDisponibleDto;
 import com.backendSupermercado.supermercasdo.modules.empleado.dto.EmpleadoSelectDto;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
 
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long>, JpaSpecificationExecutor<Empleado> {
 
-    Optional<Empleado> findById(Long id);
+    long countByEstado(Boolean estado);
     @Query("""
         SELECT new com.backendSupermercado.supermercasdo.modules.empleado.dto.EmpleadoSelectDto(
             e.idEmpleado,
@@ -40,4 +42,27 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long>, JpaSp
         ORDER BY e.persona.nombres ASC
     """)
     List<EmpleadoSelectDto> listarParaEditar(@Param("usuarioId") Long usuarioId);
+
+    @Query("""
+        SELECT new com.backendSupermercado.supermercasdo.modules.empleado.dto.EmpleadoDisponibleDto(
+            e.idEmpleado,
+            CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
+            p.ci,
+            (SELECT c.correo FROM Contacto c WHERE c.persona = p),
+            (SELECT c.telefono FROM Contacto c WHERE c.persona = p)
+        )
+        FROM Empleado e
+        JOIN e.persona p
+        WHERE e.estado = true
+        AND e.idEmpleado NOT IN (
+            SELECT ct.empleado.idEmpleado FROM Contrato ct WHERE ct.estado = 'ACTIVO'
+        )
+        AND (:busqueda IS NULL
+             OR LOWER(p.nombres) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(p.apellidoPaterno) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(p.apellidoMaterno) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(p.ci) LIKE LOWER(CONCAT('%', :busqueda, '%')))
+        ORDER BY p.nombres ASC
+    """)
+    Page<EmpleadoDisponibleDto> listarDisponiblesParaContrato(@Param("busqueda") String busqueda, Pageable pageable);
 }

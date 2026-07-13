@@ -4,12 +4,12 @@
       <div class="filter-section">
         <div class="row items-end q-col-gutter-md q-mb-md">
           <div class="col-12 col-md filter-search-col">
-            <label class="filter-field-label">Búsqueda</label>
+            <label class="filter-field-label text-center">Filtros</label>
             <q-input
               v-model="local.search"
               outlined
               dense
-              placeholder="Buscar por nombre, apellido, CI o código..."
+              placeholder="Buscar por nombre, apellido, CI"
               clearable
               class="filter-input"
               :class="{ 'has-value': local.search }"
@@ -45,38 +45,26 @@
             <q-select
               v-model="local.estado"
               :options="estadoOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
               outlined
               dense
-              placeholder="Todos"
-              map-options
-              emit-value
-              clearable
               class="filter-select"
               @update:model-value="onFilterChange"
             >
-              <template v-slot:selected-item="scope">
-                <div class="flex items-center">
-                  <span
-                    class="status-dot"
-                    :class="scope.value === true ? 'dot-active' : 'dot-inactive'"
-                  />
-                  {{ scope.value === true ? 'Activo' : 'Inactivo' }}
-                </div>
-              </template>
+                  <template v-slot:selected-item>
+                    <div v-if="local.estado === 'activo' || local.estado === 'inactivo'" class="flex items-center">
+                      <span
+                        class="status-dot"
+                        :class="local.estado === 'activo' ? 'dot-active' : 'dot-inactive'"
+                      />
+                      {{ local.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+                    </div>
+                    <span v-else>Todos</span>
+                  </template>
             </q-select>
-          </div>
-          <div class="col-12 col-sm-6 col-md">
-            <label class="filter-field-label">Cargo</label>
-            <q-select
-              v-model="local.cargo"
-              :options="cargoOptions"
-              outlined
-              dense
-              placeholder="Todos"
-              clearable
-              class="filter-select"
-              @update:model-value="onFilterChange"
-            />
           </div>
           <div class="col-12 col-sm-6 col-md">
             <label class="filter-field-label">Fecha Desde</label>
@@ -84,10 +72,12 @@
               v-model="local.fechaDesde"
               outlined
               dense
-              placeholder="Seleccionar fecha"
+              placeholder="AAAA-MM-DD"
               clearable
+              mask="####-##-##"
               class="filter-input"
               @clear="onFilterChange"
+              @update:model-value="onFilterChange"
             >
               <template v-slot:append>
                 <q-icon name="calendar_today" size="18px" class="input-icon cursor-pointer">
@@ -95,7 +85,6 @@
                     <q-date
                       v-model="local.fechaDesde"
                       mask="YYYY-MM-DD"
-                      @update:model-value="onFilterChange"
                       class="filter-datepicker"
                     />
                   </q-popup-proxy>
@@ -109,10 +98,12 @@
               v-model="local.fechaHasta"
               outlined
               dense
-              placeholder="Seleccionar fecha"
+              placeholder="AAAA-MM-DD"
               clearable
+              mask="####-##-##"
               class="filter-input"
               @clear="onFilterChange"
+              @update:model-value="onFilterChange"
             >
               <template v-slot:append>
                 <q-icon name="calendar_today" size="18px" class="input-icon cursor-pointer">
@@ -120,7 +111,6 @@
                     <q-date
                       v-model="local.fechaHasta"
                       mask="YYYY-MM-DD"
-                      @update:model-value="onFilterChange"
                       class="filter-datepicker"
                     />
                   </q-popup-proxy>
@@ -135,10 +125,8 @@
               :options="ordenarOptions"
               outlined
               dense
-              placeholder="Más recientes"
               map-options
               emit-value
-              clearable
               class="filter-select"
               @update:model-value="onFilterChange"
             >
@@ -155,14 +143,12 @@
 
 <script setup>
 import { reactive, watch } from 'vue'
-
 const props = defineProps({
   filters: {
     type: Object,
     default: () => ({
       search: '',
       estado: null,
-      cargo: null,
       fechaDesde: null,
       fechaHasta: null,
       ordenarPor: null
@@ -173,17 +159,9 @@ const props = defineProps({
 const emit = defineEmits(['search', 'reset', 'filter-change'])
 
 const estadoOptions = [
-  { label: 'Activo', value: true },
-  { label: 'Inactivo', value: false }
-]
-
-const cargoOptions = [
-  { label: 'Todos', value: null },
-  { label: 'Administrador', value: 'Administrador' },
-  { label: 'Gerente', value: 'Gerente' },
-  { label: 'Supervisor', value: 'Supervisor' },
-  { label: 'Cajero', value: 'Cajero' },
-  { label: 'Bodeguero', value: 'Bodeguero' }
+  { label: 'Todos', value: 'todos' },
+  { label: 'Activo', value: 'activo' },
+  { label: 'Inactivo', value: 'inactivo' }
 ]
 
 const ordenarOptions = [
@@ -194,22 +172,20 @@ const ordenarOptions = [
 ]
 
 const local = reactive({
-  search: props.filters?.search || '',
-  estado: props.filters?.estado ?? null,
-  cargo: props.filters?.cargo ?? null,
-  fechaDesde: props.filters?.fechaDesde || null,
-  fechaHasta: props.filters?.fechaHasta || null,
-  ordenarPor: props.filters?.ordenarPor || null
+  search: props.filters?.search ?? '',
+  estado: props.filters?.estado ?? 'todos',
+  fechaDesde: props.filters?.fechaDesde ?? null,
+  fechaHasta: props.filters?.fechaHasta ?? null,
+  ordenarPor: props.filters?.ordenarPor ?? 'recientes'
 })
 
 watch(() => props.filters, (val) => {
   if (val) {
     local.search = val.search ?? ''
-    local.estado = val.estado ?? null
-    local.cargo = val.cargo ?? null
+    local.estado = val.estado ?? 'todos'
     local.fechaDesde = val.fechaDesde ?? null
     local.fechaHasta = val.fechaHasta ?? null
-    local.ordenarPor = val.ordenarPor ?? null
+    local.ordenarPor = val.ordenarPor ?? 'recientes'
   }
 }, { deep: true })
 
@@ -223,13 +199,14 @@ function emitSearch() {
 
 function resetFilters() {
   local.search = ''
-  local.estado = null
-  local.cargo = null
+  local.estado = 'todos'
   local.fechaDesde = null
   local.fechaHasta = null
-  local.ordenarPor = null
+  local.ordenarPor = 'recientes'
   emit('reset')
 }
+
+
 </script>
 
 <style scoped src="../../assets/styles/empleado/empleadoFiltros.css"></style>

@@ -17,8 +17,8 @@ spring:
     properties:
       hibernate:
         format_sql: true 
-        # NOTA: PostgreSQLDialect es a menudo deducido automáticamente
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   
   # Configuración de subida de archivos
   servlet:

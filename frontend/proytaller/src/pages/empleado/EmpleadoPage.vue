@@ -3,7 +3,7 @@
     <div class="row items-center justify-between q-mb-md">
       <div class="text-h4 text-bold text">Gesti&oacute;n de Empleados</div>
     </div>
-    <EmpleadoDashboard />
+    <EmpleadoDashboard :key="dashboardKey" />
     <EmpleadoFiltros
       :filters="filterState"
       @search="onSearch"
@@ -12,6 +12,7 @@
     <q-card flat bordered class="q-pa-md">
       <EmpleadoTable
         :external-filters="appliedFilters"
+        @actualizado="recargarDashboard"
       />
     </q-card>
   </q-page>
@@ -26,13 +27,17 @@ import EmpleadoTable from '../../components/empleado/EmpleadoTable.vue'
 const filterState = reactive({
   search: '',
   estado: null,
-  cargo: null,
   fechaDesde: null,
   fechaHasta: null,
-  ordenarPor: null
+  ordenarPor: 'recientes'
 })
 
 const appliedFilters = ref(null)
+const dashboardKey = ref(0)
+
+function recargarDashboard() {
+  dashboardKey.value++
+}
 
 function onSearch(filters) {
   appliedFilters.value = { ...filters }
@@ -42,7 +47,6 @@ function onReset() {
   appliedFilters.value = null
   filterState.search = ''
   filterState.estado = null
-  filterState.cargo = null
   filterState.fechaDesde = null
   filterState.fechaHasta = null
   filterState.ordenarPor = null
