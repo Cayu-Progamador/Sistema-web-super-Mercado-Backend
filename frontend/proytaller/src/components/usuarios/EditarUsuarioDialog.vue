@@ -54,24 +54,6 @@
                 class="form-input" />
             </div>
 
-            <div class="form-group">
-              <label class="form-label">
-                <q-icon name="badge" size="14px" class="label-icon" />
-                Empleado Asociado
-              </label>
-              <q-select v-model="form.empleadoId" outlined dense :options="empleados" option-label="nombreCompleto"
-                option-value="id" emit-value map-options placeholder="Selecciona un empleado" class="form-input"
-                :rules="[val => !!val || 'El empleado es obligatorio']">
-                <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps">
-                    <q-item-section>
-                      <q-item-label class="emp-nombre">{{ scope.opt.nombreCompleto }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
-
           </div>
 
           <div class="form-column">
@@ -120,9 +102,6 @@
 
           </div>
 
-          <div>Empleado seleccionado: {{ form.empleadoId }}</div>
-          <div>Roles seleccionados: {{ form.roles }}</div>
-
         </div>
 
       </q-card-section>
@@ -158,8 +137,6 @@
     id: { type: [Number, String], default: null },
     username: { type: String, default: '' },
     roles: { type: Array, default: () => [] },
-    empleadoId: { type: [Number, String], default: null },
-    empleados: { type: Array, default: () => [] },
     rolesDisponibles: { type: Array, default: () => [] }
   })
 
@@ -175,7 +152,6 @@
   const form = ref({
     username: '',
     password: '',
-    empleadoId: null,
     roles: []
   })
 
@@ -192,7 +168,6 @@
 
   const esValido = computed(() => {
     return form.value.username?.trim() &&
-      form.value.empleadoId &&
       form.value.roles?.length > 0
   })
 
@@ -227,7 +202,6 @@
     form.value = {
       username: props.username || '',
       password: '',
-      empleadoId: props.empleadoId ? Number(props.empleadoId) : null,
       roles: [...(props.roles || [])]
     }
 
@@ -245,7 +219,6 @@
 
     const payload = {
       username: form.value.username,
-      empleadoId: form.value.empleadoId,
       roles: form.value.roles
     }
 
@@ -458,18 +431,6 @@
   .form-input :deep(.q-field__label) {
     font-family: 'Nunito', sans-serif;
     color: #9dbf78;
-  }
-
-  .emp-nombre {
-    font-weight: 700;
-    color: #2a5c1a;
-    font-family: 'Nunito', sans-serif;
-  }
-
-  .emp-cargo {
-    font-weight: 600;
-    color: #7aaa4e;
-    font-family: 'Nunito', sans-serif;
   }
 
   .info-box-compact {

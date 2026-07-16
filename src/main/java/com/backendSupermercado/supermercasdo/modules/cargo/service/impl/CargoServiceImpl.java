@@ -49,7 +49,7 @@ public class CargoServiceImpl implements CargoService {
     @Override
     @Transactional
     public CargoDto crear(CargoDto dto) {
-        if (cargoRepository.existsByNombre(dto.getNombre())) {
+        if (cargoRepository.existsByNombreIgnoreCase(dto.getNombre())) {
             throw new IllegalArgumentException("Ya existe un cargo con ese nombre");
         }
         Cargo cargo = new Cargo();
@@ -64,6 +64,9 @@ public class CargoServiceImpl implements CargoService {
     public CargoDto actualizar(Long id, CargoDto dto) {
         Cargo cargo = cargoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cargo no encontrado"));
+        if (cargoRepository.existsByNombreIgnoreCase(dto.getNombre()) && !cargo.getNombre().equalsIgnoreCase(dto.getNombre())) {
+            throw new IllegalArgumentException("Ya existe un cargo con ese nombre");
+        }
         cargo.setNombre(dto.getNombre());
         cargo.setDescripcion(dto.getDescripcion());
         return toDto(cargoRepository.save(cargo));

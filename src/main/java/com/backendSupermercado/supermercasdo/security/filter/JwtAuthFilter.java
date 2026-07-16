@@ -48,7 +48,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             token = authHeader.substring(7);
 
-            // 🔥 VALIDACIÓN SEGURA
             username = jwtUtil.extractUsername(token);
 
             if (username != null &&
@@ -77,10 +76,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
 
-            //  IMPORTANTE: NO DEJAR PASAR TOKEN ROTO
             SecurityContextHolder.clearContext();
-
             System.out.println("JWT ERROR: " + e.getMessage());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"message\":\"Token inválido o expirado\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);

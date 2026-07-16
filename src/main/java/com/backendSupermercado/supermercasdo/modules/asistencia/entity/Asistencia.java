@@ -1,8 +1,10 @@
-package com.backendSupermercado.supermercasdo.modules.contrato.entity;
+package com.backendSupermercado.supermercasdo.modules.asistencia.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.backendSupermercado.supermercasdo.modules.contrato.entity.Contrato;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,6 +56,12 @@ public class Asistencia {
 
     @Column(nullable = false, length = 20)
     private String estado;
+
+    @Column(name = "tipo_justificacion", length = 30)
+    private String tipoJustificacion;
+
+    @Column(name = "motivo_justificacion", length = 500)
+    private String motivoJustificacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_contrato", nullable = false)

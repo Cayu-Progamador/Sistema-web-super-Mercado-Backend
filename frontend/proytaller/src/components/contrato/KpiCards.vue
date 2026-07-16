@@ -1,21 +1,25 @@
 <template>
-  <div class="row q-col-gutter-md q-mb-md kpi-row">
-    <div v-for="kpi in kpis" :key="kpi.label" class="col-12 col-sm-6 col-md-2-4">
-      <q-card flat bordered class="kpi-card" :style="{ borderLeftColor: kpi.color, borderLeftWidth: '4px', borderLeftStyle: 'solid' }">
-        <q-card-section class="q-py-md q-px-lg">
-          <div class="row items-center justify-between">
-            <div>
-              <div class="kpi-number" :style="{ color: kpi.color }">{{ kpi.valor }}</div>
-              <div class="kpi-title">{{ kpi.label }}</div>
+  <div class="kpi-grid q-mb-xl">
+    <div
+      v-for="card in cards"
+      :key="card.id"
+      class="kpi-col"
+    >
+      <q-card
+        class="contrato-stat-card"
+        style="height: 100%"
+        :style="{ '--delay': `${card.delay}s` }"
+      >
+        <q-card-section class="card-content q-pa-lg">
+          <div class="card-main">
+            <div class="card-icon-wrapper" :class="`icon-${card.color}`">
+              <q-icon :name="card.icon" size="22px" />
             </div>
-            <div class="kpi-icon-wrapper" :style="{ background: kpi.bg }">
-              <q-icon :name="kpi.icon" :color="kpi.color" size="32px" />
+            <div class="card-info">
+              <span class="card-label">{{ card.title }}</span>
+              <span class="card-value">{{ card.value }}</span>
+              <span class="card-desc">{{ card.desc }}</span>
             </div>
-          </div>
-          <div class="kpi-variacion q-mt-sm">
-            <q-icon :name="kpi.trending === 'up' ? 'trending_up' : 'trending_down'" :color="kpi.trending === 'up' ? 'green' : 'red'" size="18px" />
-            <span class="q-ml-xs" :class="kpi.trending === 'up' ? 'text-green' : 'text-red'">{{ kpi.porcentaje }}</span>
-            <span class="text-grey-6 q-ml-xs">vs mes anterior</span>
           </div>
         </q-card-section>
       </q-card>
@@ -25,74 +29,224 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { listarContratos } from '../../api/contrato/contrato'
+import { getContratoDashboard } from '../../api/contrato/contrato'
 
-const kpis = ref([
-  { label: 'Total Contratos', valor: 0, icon: 'contract', color: '#2E7D32', bg: '#e8f5e9', trending: 'up', porcentaje: '+12%' },
-  { label: 'Vigentes', valor: 0, icon: 'check_circle', color: '#1565C0', bg: '#e3f2fd', trending: 'up', porcentaje: '+5%' },
-  { label: 'Próximos a vencer', valor: 0, icon: 'schedule', color: '#E65100', bg: '#fff3e0', trending: 'down', porcentaje: '-2%' },
-  { label: 'Vencidos', valor: 0, icon: 'error_outline', color: '#C62828', bg: '#ffebee', trending: 'up', porcentaje: '+1%' },
-  { label: 'Suspendidos', valor: 0, icon: 'pause_circle', color: '#616161', bg: '#f5f5f5', trending: 'down', porcentaje: '-3%' }
+const cards = ref([
+  {
+    id: 'total',
+    title: 'Total Contratos',
+    icon: 'description',
+    color: 'green',
+    value: '0',
+    desc: 'Todos los contratos registrados',
+    delay: 0
+  },
+  {
+    id: 'activos',
+    title: 'Vigentes',
+    icon: 'check_circle',
+    color: 'blue',
+    value: '0',
+    desc: 'Contratos activos actualmente',
+    delay: 0.1
+  },
+  {
+    id: 'proximos',
+    title: 'Próximos a vencer',
+    icon: 'schedule',
+    color: 'orange',
+    value: '0',
+    desc: 'Vencen en los próximos 30 días',
+    delay: 0.2
+  },
+  {
+    id: 'vencidos',
+    title: 'Vencidos',
+    icon: 'error_outline',
+    color: 'red',
+    value: '0',
+    desc: 'Contratos fuera de plazo',
+    delay: 0.3
+  },
+  {
+    id: 'suspendidos',
+    title: 'Suspendidos',
+    icon: 'pause_circle',
+    color: 'purple',
+    value: '0',
+    desc: 'Contratos suspendidos temporalmente',
+    delay: 0.4
+  }
 ])
 
-async function cargarKPIs() {
+async function cargarDatos() {
   try {
-      const res = await listarContratos({ page: 0, size: 1 })
-      const total = res?.totalElements || 0
-      const items = res?.content || []
-      const activos = items.filter(c => c.estado === 'ACTIVO').length
-      const vencidos = items.filter(c => c.estado === 'VENCIDO').length
-      const suspendidos = items.filter(c => c.estado === 'SUSPENDIDO').length
-    kpis.value[0].valor = total
-    kpis.value[1].valor = activos
-    kpis.value[3].valor = vencidos
-    kpis.value[4].valor = suspendidos
-  } catch {
-    kpis.value.forEach(k => { k.valor = 0 })
+    const data = await getContratoDashboard()
+    cards.value[0].value = String(data.total ?? 0)
+    cards.value[1].value = String(data.activos ?? 0)
+    cards.value[2].value = String(data.proximosAVencer ?? 0)
+    cards.value[3].value = String(data.vencidos ?? 0)
+    cards.value[4].value = String(data.suspendidos ?? 0)
+  } catch (e) {
+    console.error('Error cargando dashboard:', e)
   }
 }
 
-onMounted(cargarKPIs)
+onMounted(cargarDatos)
 
-defineExpose({ cargarKPIs })
+defineExpose({ cargarDatos })
 </script>
 
 <style scoped>
-.kpi-row {
-  margin-bottom: 0 !important;
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+.kpi-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
 }
-.kpi-card {
+.kpi-col {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+@media (min-width: 433px) {
+  .kpi-col {
+    flex: 0 0 calc(50% - 16px);
+    max-width: calc(50% - 16px);
+  }
+}
+@media (min-width: 768px) {
+  .kpi-col {
+    flex: 0 0 calc(33.333% - 16px);
+    max-width: calc(33.333% - 16px);
+  }
+}
+@media (min-width: 1200px) {
+  .kpi-col {
+    flex: 1 1 0;
+    min-width: 180px;
+    max-width: 260px;
+  }
+}
+
+.contrato-stat-card {
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid #bce9e2 !important;
+  box-shadow: 0 2px 16px rgba(0, 96, 81, 0.07) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay);
+}
+
+.contrato-stat-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-3px);
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.card-content {
+  padding: 20px !important;
+}
+
+.card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.card-icon-wrapper {
+  width: 55px;
+  height: 55px;
   border-radius: 14px;
-  background: white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-.kpi-number {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.kpi-title {
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-  margin-top: 2px;
-}
-.kpi-icon-wrapper {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.kpi-variacion {
-  font-size: 12px;
+
+.contrato-stat-card:hover .card-icon-wrapper {
+  transform: scale(1.08);
+}
+
+.icon-green {
+  background: #006051;
+  color: #ffffff;
+}
+
+.icon-blue {
+  background: #006051;
+  color: #ffffff;
+}
+
+.icon-orange {
+  background: #d97b1a;
+  color: #ffffff;
+}
+
+.icon-red {
+  background: #C10015;
+  color: #ffffff;
+}
+
+.icon-purple {
+  background: #006051;
+  color: #ffffff;
+}
+
+.card-info {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.card-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a9e8a;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-value {
+  font-family: 'Nunito', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #006051;
+  line-height: 1.2;
+}
+
+.card-desc {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #4a9e8a;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 599px) {
+  .card-content {
+    padding: 20px !important;
+  }
 }
 </style>

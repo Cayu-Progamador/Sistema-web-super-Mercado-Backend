@@ -156,8 +156,8 @@
             <div class="row no-wrap q-gutter-xs">
               <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
               <q-btn v-if="!props.row.activo" flat round dense class="act-btn act-activar" icon="check" @click="confirmarActivar(props.row)" />
-              <q-btn v-if="props.row.activo" flat round dense class="act-btn act-desactivar" icon="block" @click="confirmarDesactivar(props.row)" />
-              <q-btn flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
+              <q-btn v-if="props.row.activo && props.row.nombre !== 'ADMIN'" flat round dense class="act-btn act-desactivar" icon="block" @click="confirmarDesactivar(props.row)" />
+              <q-btn v-if="props.row.nombre !== 'ADMIN'" flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
             </div>
           </q-td>
         </template>

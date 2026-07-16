@@ -113,7 +113,7 @@
     </q-card>
 
     <q-dialog v-model="mostrarModal" persistent>
-      <UsuarioForm @cerrar="mostrarModal = false" />
+      <UsuarioForm @cerrar="mostrarModal = false" @registrado="onUsuarioCreado" />
     </q-dialog>
 
     <ConfirmarUsuarioDialog v-model="mostrarConfirmar" :id="usuarioSeleccionado.id"
@@ -121,8 +121,7 @@
       @confirmar="onConfirmarAccion" />
 
     <EditarUsuarioDialog v-model="mostrarEditar" :id="usuarioSeleccionado.id" :username="usuarioSeleccionado.username"
-      :roles="usuarioSeleccionado.roles" :empleado-id="usuarioSeleccionado.empleadoId" :empleados="listaEmpleados"
-      :roles-disponibles="listaRoles" @guardar="onConfirmarEditar" />
+      :roles="usuarioSeleccionado.roles" :roles-disponibles="listaRoles" @guardar="onConfirmarEditar" />
 
     <DetalleUsuario
       v-model="mostrarVer"
@@ -139,7 +138,6 @@
   import ConfirmarUsuarioDialog from '../../components/usuarios/ConfirmarUsuarioDialog.vue'
   import EditarUsuarioDialog from '../../components/usuarios/EditarUsuarioDialog.vue'
   import FiltroUsuario from '../../components/usuarios/FiltroUsuario.vue'
-  import { getEmpleadoListaEditar, getEmpleadoLista } from '../../api/empleado/empleado'
   import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, filtrarUsuarios, exportarUsuarios, exportarUsuariosPDF as exportPDF, exportarUsuariosExcel as exportExcel } from '../../api/usuario/usuario'
   import { ref, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
@@ -152,8 +150,7 @@
     id: null,
     nombre: '',
     username: '',
-    roles: [],
-    empleadoId: null
+    roles: []
   })
 
   const filtrosActivos = ref({})
@@ -165,7 +162,6 @@
   const dashboardKey = ref(0)
 
   const mostrarEditar = ref(false)
-  const listaEmpleados = ref([])
 
   const mostrarVer = ref(false)
 
@@ -227,33 +223,21 @@
     mostrarVer.value = true
   }
 
-  const cargarEmpleados = async () => {
-    try {
-      const respuesta = await getEmpleadoLista()
-      listaEmpleados.value = respuesta
-    } catch (error) {
-      console.error('Error cargando empleados:', error)
-    }
-  }
-
   const editarUsuario = async (row) => {
     usuarioSeleccionado.value = {
       id: row.idUsuario,
       nombre: row.nombreCompleto || row.username,
       username: row.username,
       rol: row.rol,
-      roles: row.rol ? [row.rol] : [],
-      empleadoId: row.empleadoId || null
-    }
-
-    try {
-      const respuesta = await getEmpleadoListaEditar(row.idUsuario)
-      listaEmpleados.value = respuesta
-    } catch (error) {
-      console.error('Error cargando empleados:', error)
+      roles: row.rol ? [row.rol] : []
     }
 
     mostrarEditar.value = true
+  }
+
+  const onUsuarioCreado = () => {
+    pagination.value.page = 1
+    cargarUsuarios()
   }
 
   const onConfirmarEditar = async (data) => {
@@ -261,7 +245,6 @@
       await actualizarUsuario(data.id, {
         username: data.username,
         password: data.password,
-        empleadoId: data.empleadoId,
         roles: data.roles
       })
 
@@ -399,7 +382,6 @@
 
   onMounted(() => {
     cargarUsuarios()
-    cargarEmpleados()
   })
 </script>
 

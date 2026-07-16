@@ -12,7 +12,7 @@
       </div>
 
       <!-- KPI Cards -->
-      <KpiCards />
+      <KpiCards ref="kpiCardsRef" />
 
       <!-- Toolbar -->
       <div class="row items-center justify-between q-my-md toolbar-row">
@@ -23,7 +23,7 @@
           <q-btn flat color="grey-7" icon="refresh" @click="recargar" />
         </div>
         <div class="row items-center q-gutter-sm">
-          <q-input v-model="searchText" outlined dense placeholder="Buscar contrato..." class="search-input" debounce="300" @update:model-value="onSearch">
+          <q-input v-model="searchText" outlined dense placeholder="Buscar por Nombre o Ci..." class="search-input" debounce="300" @update:model-value="onSearch">
             <template v-slot:prepend>
               <q-icon name="search" color="grey-5" />
             </template>
@@ -49,7 +49,7 @@
                 <q-select v-model="filtros.tipoJornada" :options="tipoJornadaOptions" label="Tipo Jornada" outlined dense clearable class="filter-field" />
               </div>
               <div class="col-12 col-md-3">
-                <q-select v-model="filtros.controlaAsistencia" :options="asistenciaOptions" label="Control Asistencia" outlined dense clearable class="filter-field" />
+                <q-select v-model="filtros.controlaAsistencia" :options="asistenciaOptions" label="Control Asistencia" outlined dense clearable emit-value map-options class="filter-field" />
               </div>
               <div class="col-12 col-md-3">
                 <q-input v-model="filtros.fechaDesde" label="Fecha Inicio Desde" outlined dense type="date" class="filter-field" />
@@ -78,13 +78,15 @@
         @ver-detalle="abrirDetalle"
         @editar="abrirEditar"
         @renovar="abrirRenovar"
-        @historial="abrirHistorial"
         @finalizar="finalizarContrato"
+        @activar="activarContrato"
+        @suspender="suspenderContrato"
+        @pdf="exportarPDFIndividual"
       />
     </div>
 
-    <!-- Drawer Detalle -->
-    <ContractDetailDrawer v-model="drawerAbierto" :contrato-id="contratoSeleccionadoId" />
+    <!-- Dialog Detalle -->
+    <ContractDetailDialog v-model="dialogAbierto" :contrato-id="contratoSeleccionadoId" />
 
     <!-- Dialog Nuevo/Editar -->
     <NewContractDialog v-model="dialogNuevo" :contrato-id="editarContratoId" :es-editar="!!editarContratoId" @saved="onSaved" />
@@ -92,8 +94,11 @@
     <!-- Dialog Renovar -->
     <RenewContractDialog v-model="dialogRenovar" :contrato-id="renovarContratoId" @saved="onSaved" />
 
-    <!-- Dialog Historial -->
-    <ContractHistoryDialog v-model="dialogHistorial" :contrato-id="historialContratoId" />
+    <!-- Dialog Finalizar -->
+    <ConfirmarFinalizarDialog v-model="dialogFinalizar" :contrato-id="finalizarContratoId" :empleado-nombre="finalizarEmpleadoNombre" @finalizado="onFinalizado" />
+
+    <!-- Dialog Activar / Suspender -->
+    <ConfirmarEstadoContratoDialog v-model="dialogEstado" :contrato-id="estadoContratoId" :empleado-nombre="estadoEmpleadoNombre" :tipo="estadoTipo" @finalizado="onFinalizado" />
   </q-page>
 </template>
 
@@ -102,13 +107,16 @@ import { ref, reactive, computed, provide } from 'vue'
 import { useQuasar } from 'quasar'
 import KpiCards from '../../components/contrato/KpiCards.vue'
 import ContractsTable from '../../components/contrato/ContractsTable.vue'
-import ContractDetailDrawer from '../../components/contrato/ContractDetailDrawer.vue'
+import ContractDetailDialog from '../../components/contrato/ContractDetailDialog.vue'
 import NewContractDialog from '../../components/contrato/NewContractDialog.vue'
 import RenewContractDialog from '../../components/contrato/RenewContractDialog.vue'
-import ContractHistoryDialog from '../../components/contrato/ContractHistoryDialog.vue'
+import ConfirmarFinalizarDialog from '../../components/contrato/ConfirmarFinalizarDialog.vue'
+import ConfirmarEstadoContratoDialog from '../../components/contrato/ConfirmarEstadoContratoDialog.vue'
+import { exportarContratosPDF, exportarContratosExcel } from '../../api/contrato/contrato'
 
 const $q = useQuasar()
 const tableRef = ref(null)
+const kpiCardsRef = ref(null)
 
 const searchText = ref('')
 const filtrosVisibles = ref(false)
@@ -139,14 +147,19 @@ const asistenciaOptions = [
   { label: 'No Controla', value: false }
 ]
 
-const drawerAbierto = ref(false)
+const dialogAbierto = ref(false)
 const contratoSeleccionadoId = ref(null)
 const dialogNuevo = ref(false)
 const editarContratoId = ref(null)
 const dialogRenovar = ref(false)
 const renovarContratoId = ref(null)
-const dialogHistorial = ref(false)
-const historialContratoId = ref(null)
+const dialogFinalizar = ref(false)
+const finalizarContratoId = ref(null)
+const finalizarEmpleadoNombre = ref('')
+const dialogEstado = ref(false)
+const estadoContratoId = ref(null)
+const estadoEmpleadoNombre = ref('')
+const estadoTipo = ref('activar')
 
 function abrirNuevo() {
   editarContratoId.value = null
@@ -160,7 +173,7 @@ function abrirEditar(id) {
 
 function abrirDetalle(id) {
   contratoSeleccionadoId.value = id
-  drawerAbierto.value = true
+  dialogAbierto.value = true
 }
 
 function abrirRenovar(id) {
@@ -168,13 +181,9 @@ function abrirRenovar(id) {
   dialogRenovar.value = true
 }
 
-function abrirHistorial(id) {
-  historialContratoId.value = id
-  dialogHistorial.value = true
-}
-
 function onSaved() {
   tableRef.value?.recargar()
+  kpiCardsRef.value?.cargarDatos()
 }
 
 function onSearch(val) {
@@ -205,21 +214,112 @@ function recargar() {
 
 async function finalizarContrato(id) {
   try {
-    const { finalizarContrato } = await import('../../api/contrato/contrato')
-    await finalizarContrato(id, 'FINALIZADO')
-    $q.notify({ type: 'positive', message: 'Contrato finalizado correctamente' })
-    tableRef.value?.recargar()
-  } catch (error) {
-    $q.notify({ type: 'negative', message: error.response?.data?.message || 'Error al finalizar contrato' })
+    const { getContrato } = await import('../../api/contrato/contrato')
+    const data = await getContrato(id)
+    const emp = data.empleado
+    finalizarEmpleadoNombre.value = emp ? `${emp.nombres || ''} ${emp.apellidos || ''}`.trim() : 'Empleado'
+    finalizarContratoId.value = id
+    dialogFinalizar.value = true
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al obtener datos del contrato' })
+  }
+}
+
+async function activarContrato(id) {
+  try {
+    const { getContrato } = await import('../../api/contrato/contrato')
+    const data = await getContrato(id)
+    const emp = data.empleado
+    estadoEmpleadoNombre.value = emp ? `${emp.nombres || ''} ${emp.apellidos || ''}`.trim() : 'Empleado'
+    estadoContratoId.value = id
+    estadoTipo.value = 'activar'
+    dialogEstado.value = true
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al obtener datos del contrato' })
+  }
+}
+
+async function suspenderContrato(id) {
+  try {
+    const { getContrato } = await import('../../api/contrato/contrato')
+    const data = await getContrato(id)
+    const emp = data.empleado
+    estadoEmpleadoNombre.value = emp ? `${emp.nombres || ''} ${emp.apellidos || ''}`.trim() : 'Empleado'
+    estadoContratoId.value = id
+    estadoTipo.value = 'suspender'
+    dialogEstado.value = true
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al obtener datos del contrato' })
+  }
+}
+
+function onFinalizado() {
+  tableRef.value?.recargar()
+  kpiCardsRef.value?.cargarDatos()
+}
+
+async function exportarPDFIndividual(row) {
+  try {
+    const { descargarPdfContrato } = await import('../../api/contrato/contrato')
+    const blob = await descargarPdfContrato(row.id)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Contrato_${row.id}.pdf`
+    link.click()
+    URL.revokeObjectURL(url)
+    $q.notify({ type: 'positive', message: 'PDF descargado correctamente' })
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al descargar el PDF' })
   }
 }
 
 function exportarPDF() {
-  $q.notify({ type: 'info', message: 'Exportando PDF...' })
+  const params = {}
+  if (searchText.value) params.busqueda = searchText.value
+  if (filtros.estado) params.estado = filtros.estado
+  if (filtros.tipoContrato) params.tipoContrato = filtros.tipoContrato
+  if (filtros.tipoJornada) params.tipoJornada = filtros.tipoJornada
+  if (filtros.controlaAsistencia != null) params.controlaAsistencia = filtros.controlaAsistencia
+  if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde
+  if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta
+  if (filtros.fechaFinDesde) params.fechaFinDesde = filtros.fechaFinDesde
+  if (filtros.fechaFinHasta) params.fechaFinHasta = filtros.fechaFinHasta
+  exportarContratosPDF(params)
+    .then(blob => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'reporte_contratos.pdf'
+      link.click()
+      URL.revokeObjectURL(url)
+      $q.notify({ type: 'positive', message: 'PDF exportado correctamente' })
+    })
+    .catch(() => $q.notify({ type: 'negative', message: 'Error al exportar PDF' }))
 }
 
 function exportarExcel() {
-  $q.notify({ type: 'info', message: 'Exportando Excel...' })
+  const params = {}
+  if (searchText.value) params.busqueda = searchText.value
+  if (filtros.estado) params.estado = filtros.estado
+  if (filtros.tipoContrato) params.tipoContrato = filtros.tipoContrato
+  if (filtros.tipoJornada) params.tipoJornada = filtros.tipoJornada
+  if (filtros.controlaAsistencia != null) params.controlaAsistencia = filtros.controlaAsistencia
+  if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde
+  if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta
+  if (filtros.fechaFinDesde) params.fechaFinDesde = filtros.fechaFinDesde
+  if (filtros.fechaFinHasta) params.fechaFinHasta = filtros.fechaFinHasta
+  exportarContratosExcel(params)
+    .then(blob => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'reporte_contratos.xlsx'
+      link.click()
+      URL.revokeObjectURL(url)
+      $q.notify({ type: 'positive', message: 'Excel exportado correctamente' })
+    })
+    .catch(() => $q.notify({ type: 'negative', message: 'Error al exportar Excel' }))
 }
 </script>
 

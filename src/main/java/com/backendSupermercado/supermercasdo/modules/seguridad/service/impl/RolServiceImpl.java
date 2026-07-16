@@ -107,6 +107,9 @@ public class RolServiceImpl implements RolService{
     public void desactivarRol(Long id) {
         Rol rol = rolRepository.findById(id)
                 .orElseThrow(() -> new ResourceConflictException("Rol no encontrado"));
+        if ("ROLE_ADMIN".equals(rol.getNombre())) {
+            throw new ResourceConflictException("No se puede desactivar el rol ADMIN");
+        }
         // Si ya está inactivo, no hacer nada y notificar
         if (!rol.getEstado()) {
             throw new ResourceConflictException("El rol ya está inactivo");
@@ -120,6 +123,9 @@ public class RolServiceImpl implements RolService{
     public RolRespuestaDto actualizarRol(Long id, RolRequestDto dto) {
         Rol rol = rolRepository.findById(id)
                 .orElseThrow(() -> new ResourceConflictException("Rol no encontrado"));
+        if ("ROLE_ADMIN".equals(rol.getNombre())) {
+            throw new ResourceConflictException("No se puede editar el rol ADMIN");
+        }
         // Validar duplicado si el nombre cambió
         String nuevoNombre = dto.getNombre().toUpperCase();
         if (!rol.getNombre().equals(nuevoNombre) && rolRepository.existsByNombre(nuevoNombre)) {

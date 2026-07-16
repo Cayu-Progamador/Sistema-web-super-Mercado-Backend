@@ -102,6 +102,23 @@
 			<version>1.3.40</version>
 		</dependency>
 
+			<!-- iText 7 - Generación de PDF profesional -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>kernel</artifactId>
+			<version>7.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>layout</artifactId>
+			<version>7.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>io</artifactId>
+			<version>7.2.5</version>
+		</dependency>
+
 			<!-- Apache POI - Generación de Excel -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>

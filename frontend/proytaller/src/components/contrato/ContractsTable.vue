@@ -52,26 +52,26 @@
 
       <template v-slot:body-cell-acciones="props">
         <q-td :props="props" class="text-center">
-          <q-btn flat round dense icon="visibility" color="primary" size="sm" @click="$emit('ver-detalle', props.row.id)">
-            <q-tooltip>Ver detalle</q-tooltip>
+          <q-btn flat round icon="visibility" size="md" @click="$emit('ver-detalle', props.row.id)" style="color: #006051">
+            <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="edit" color="warning" size="sm" @click="$emit('editar', props.row.id)">
-            <q-tooltip>Editar</q-tooltip>
+          <q-btn v-if="props.row.estado === 'ACTIVO' || props.row.estado === 'SUSPENDIDO'" flat round icon="edit" size="md" @click="$emit('editar', props.row.id)" style="color: #F57C00">
+            <q-tooltip class="bg-orange text-white">Editar</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="picture_as_pdf" color="red" size="sm">
-            <q-tooltip>PDF</q-tooltip>
+          <q-btn flat round icon="picture_as_pdf" size="md" style="color: #8BC34A" @click="$emit('pdf', props.row)">
+            <q-tooltip class="bg-positive text-white">PDF</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="autorenew" color="secondary" size="sm" @click="$emit('renovar', props.row.id)">
-            <q-tooltip>Renovar</q-tooltip>
+          <q-btn v-if="props.row.estado === 'VENCIDO' || props.row.estado === 'FINALIZADO'" flat round icon="autorenew" size="md" @click="$emit('renovar', props.row.id)" style="color: #006051">
+            <q-tooltip class="bg-primary text-white">Renovar</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="history" color="blue-grey" size="sm" @click="$emit('historial', props.row.id)">
-            <q-tooltip>Historial</q-tooltip>
+          <q-btn v-if="props.row.estado === 'ACTIVO' || props.row.estado === 'VENCIDO' || props.row.estado === 'SUSPENDIDO'" flat round icon="stop_circle" size="md" @click="$emit('finalizar', props.row.id)" style="color: #C10015">
+            <q-tooltip class="bg-negative text-white">Finalizar</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="stop_circle" color="red-7" size="sm" @click="$emit('finalizar', props.row.id)">
-            <q-tooltip>Finalizar</q-tooltip>
+          <q-btn v-if="props.row.estado === 'ACTIVO'" flat round icon="pause_circle" size="md" @click="$emit('suspender', props.row.id)" style="color: #F57C00">
+            <q-tooltip class="bg-orange text-white">Suspender</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="delete_forever" color="negative" size="sm">
-            <q-tooltip>Eliminar</q-tooltip>
+          <q-btn v-if="props.row.estado === 'SUSPENDIDO'" flat round icon="play_arrow" size="md" @click="$emit('activar', props.row.id)" style="color: #006051">
+            <q-tooltip class="bg-primary text-white">Activar</q-tooltip>
           </q-btn>
         </q-td>
       </template>
@@ -90,7 +90,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { listarContratos } from '../../api/contrato/contrato'
 
-defineEmits(['ver-detalle', 'editar', 'renovar', 'historial', 'finalizar'])
+defineEmits(['ver-detalle', 'editar', 'renovar', 'finalizar', 'activar', 'suspender', 'pdf'])
 
 const rows = ref([])
 const loading = ref(false)

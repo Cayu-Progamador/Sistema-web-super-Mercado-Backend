@@ -131,67 +131,26 @@
           </div>
         </div>
 
-        <!-- Información Adicional -->
-        <div class="info-adicional">
-          <div class="section-title">
-            <q-icon name="description" size="14px" style="color:#5a8040" />
-            Información Adicional
-          </div>
-          <div class="info-grid-2">
-            <div class="info-item">
-              <div class="info-icon">🏛</div>
-              <div class="info-content">
-                <div class="info-label">Área</div>
-                <div class="info-value">{{ usuarioDetalle?.empleado?.area || usuarioDetalle?.area || 'Sistemas' }}</div>
-              </div>
-            </div>
-            <div class="info-item">
-              <div class="info-icon">💼</div>
-              <div class="info-content">
-                <div class="info-label">Cargo</div>
-                <div class="info-value">{{ usuarioDetalle?.empleado?.cargo || usuarioDetalle?.cargo || formatRol(usuarioDetalle?.rol) }}</div>
-              </div>
-            </div>
-            <div class="info-item full-width">
-              <div class="info-icon">📝</div>
-              <div class="info-content">
-                <div class="info-label">Observaciones</div>
-                <div class="info-value">{{ usuarioDetalle?.observaciones || usuarioDetalle?.empleado?.observaciones || 'Usuario con permisos para realizar ventas y cobros en caja.' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </q-card-section>
 
-      <!-- Footer SIEMPRE VISIBLE -->
-      <div class="dialog-footer" style="flex-shrink: 0;">
+      <!-- Footer -->
+      <div class="dialog-footer">
         <div class="footer-left">
           <div class="verified-icon">
-            <q-icon name="verified" size="18px" color="white" />
+            <q-icon name="verified" size="16px" color="white" />
           </div>
           <span class="footer-text">Usuario verificado y con acceso al sistema</span>
         </div>
-        <q-btn 
-         class="btn-pdf"
-         unelevated
-         no-caps
-         @click="exportarPDF"
-         icon="pictures_as_pdf"
-         label="PDF"
-        >
-
-        </q-btn>
-
-        <q-btn
-          class="btn-cerrar"
-          unelevated
-          no-caps
-          @click="cerrar"
-        >
-          <q-icon name="close" size="16px" class="q-mr-sm" />
-          Cerrar
-        </q-btn>
+        <div class="footer-actions">
+          <q-btn class="btn-pdf-footer" unelevated no-caps @click="exportarPDF">
+            <q-icon name="picture_as_pdf" size="16px" class="q-mr-xs" />
+            PDF
+          </q-btn>
+          <q-btn class="btn-cerrar" unelevated no-caps @click="cerrar">
+            <q-icon name="close" size="16px" class="q-mr-xs" />
+            Cerrar
+          </q-btn>
+        </div>
       </div>
 
     </q-card>
@@ -587,51 +546,6 @@ const cerrar = () => {
   padding: 4px 12px !important;
 }
 
-/* Info Adicional */
-.info-adicional {
-  margin-bottom: 10px;
-}
-.info-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.info-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #f7f9f4;
-  border: 1px solid #e4edd8;
-  border-radius: 10px;
-  padding: 12px;
-}
-.info-item.full-width {
-  grid-column: 1 / -1;
-}
-.info-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.info-content {
-  flex: 1;
-}
-.info-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: #9dbf78;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 3px;
-  font-family: 'Nunito', sans-serif;
-}
-.info-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #2a5c1a;
-  font-family: 'Nunito', sans-serif;
-  line-height: 1.4;
-}
-
 /* Footer */
 .dialog-footer {
   display: flex;
@@ -662,6 +576,23 @@ const cerrar = () => {
   color: #ffffff;
   font-family: 'Nunito', sans-serif;
 }
+.footer-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-pdf-footer {
+  background: #8BC34A !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  height: 36px;
+  padding: 0 16px;
+}
+.btn-pdf-footer:hover {
+  background: #7cb342 !important;
+}
 .btn-cerrar {
   background: #ffffff !important;
   color: #2a5c1a !important;
@@ -682,9 +613,6 @@ const cerrar = () => {
     grid-template-columns: 1fr;
   }
   .data-grid {
-    grid-template-columns: 1fr;
-  }
-  .info-grid-2 {
     grid-template-columns: 1fr;
   }
   .dialog-card {

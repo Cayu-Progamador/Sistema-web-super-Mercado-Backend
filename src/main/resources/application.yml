@@ -37,4 +37,12 @@ jwt:
 app:
   uploads:
     directorio: uploads/fotos-perfil
+  empresa:
+    nombre: "SUPERMERCADO LA MARTITA"
+    eslogan: "Tu mejor opción en calidad y precio"
+    nit: "1029485024015"
+    direccion: "Av. Principal #123, Zona Central"
+    telefono: "(591) 2-1234567"
+    ciudad: "La Paz, Bolivia"
+    logo: "uploads/logo.png"
 

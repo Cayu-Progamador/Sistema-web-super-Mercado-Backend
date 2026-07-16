@@ -47,8 +47,10 @@
               @filter="filtrarEmpleados"
               option-label="label"
               option-value="id"
-              clearable
+              :disable="esEditar"
+              :clearable="!esEditar"
               :rules="[v => !!v || 'Seleccione un empleado']"
+              :hint="esEditar ? 'El empleado no se puede modificar' : ''"
               class="q-mb-md"
             >
               <template v-slot:option="scope">
@@ -229,6 +231,8 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const $q = useQuasar()
 const tab = ref('empleado')
 const saving = ref(false)
+
+const estadoActual = ref('ACTIVO')
 
 const form = reactive({
   empleado: null,
@@ -468,7 +472,7 @@ async function guardar() {
     }
 
     if (props.esEditar) {
-      await updateContrato(props.contratoId, payload)
+      await updateContrato(props.contratoId, { ...payload, estado: estadoActual.value })
       $q.notify({ type: 'positive', message: 'Contrato actualizado correctamente' })
     } else {
       await createContrato({ ...payload, estado: 'ACTIVO' })
@@ -511,6 +515,7 @@ watch(() => props.contratoId, async (id) => {
       form.turnoId = c.contratoTurno.turnoId || null
       if (c.contratoTurno.dias) Object.assign(form.dias, c.contratoTurno.dias)
     }
+    estadoActual.value = c.estado || 'ACTIVO'
     if (c.empleado) {
       form.empleado = {
         id: c.empleado.id,

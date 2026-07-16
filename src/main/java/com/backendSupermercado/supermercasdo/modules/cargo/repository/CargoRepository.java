@@ -9,7 +9,7 @@ import com.backendSupermercado.supermercasdo.modules.cargo.entity.Cargo;
 
 
 public interface CargoRepository extends JpaRepository<Cargo, Long> {
-    boolean existsByNombre(String nombre);
+    boolean existsByNombreIgnoreCase(String nombre);
     List<Cargo> findByNombreContainingIgnoreCaseAndEstado(String nombre, Boolean estado);
     List<Cargo> findByNombreContainingIgnoreCase(String nombre);
     List<Cargo> findByEstado(Boolean estado);

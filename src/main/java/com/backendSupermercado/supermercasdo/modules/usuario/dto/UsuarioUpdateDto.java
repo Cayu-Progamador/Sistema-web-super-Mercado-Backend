@@ -10,6 +10,5 @@ import lombok.Setter;
 public class UsuarioUpdateDto {
     private String username;
     private String password;
-    private Long empleadoId;
     private List<String> roles;
 }

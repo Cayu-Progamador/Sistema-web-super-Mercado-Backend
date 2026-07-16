@@ -65,6 +65,9 @@ public class Contrato {
     @Column(length = 30)
     private String motivoFin;
 
+    @Column(name = "contrato_renovado_id")
+    private Long contratoRenovadoId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_empleado", nullable = false)
     private Empleado empleado;

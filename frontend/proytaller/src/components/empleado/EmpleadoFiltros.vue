@@ -1,148 +1,95 @@
 <template>
-  <q-card flat class="filter-card q-mb-lg">
-    <q-card-section class="q-pa-lg">
-      <div class="filter-section">
-        <div class="row items-end q-col-gutter-md q-mb-md">
-          <div class="col-12 col-md filter-search-col">
-            <label class="filter-field-label text-center">Filtros</label>
-            <q-input
-              v-model="local.search"
-              outlined
-              dense
-              placeholder="Buscar por nombre, apellido, CI"
-              clearable
-              class="filter-input"
-              :class="{ 'has-value': local.search }"
-              @clear="onFilterChange"
-              @keyup.enter="emitSearch"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" size="20px" class="input-icon" />
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-auto filter-actions">
-            <q-btn
-              unelevated
-              class="btn-filter-search q-mr-sm"
-              icon="search"
-              label="Buscar"
-              @click="emitSearch"
-            />
-            <q-btn
-              flat
-              class="btn-filter-reset"
-              icon="clear"
-              label="Limpiar"
-              @click="resetFilters"
-            />
-          </div>
-        </div>
+  <div>
+    <div class="row items-center q-gutter-sm q-mb-md">
+      <q-input
+        v-model="local.search"
+        outlined
+        dense
+        placeholder="Buscar por nombre, apellido, CI"
+        class="search-input"
+        debounce="300"
+        @update:model-value="emitSearch"
+      >
+        <template v-slot:prepend>
+          <q-icon name="search" class="search-icon" />
+        </template>
+      </q-input>
+      <q-btn flat :icon="filtrosVisibles ? 'expand_less' : 'filter_list'" label="Filtros" class="filter-toggle-btn" @click="filtrosVisibles = !filtrosVisibles" no-caps>
+        <q-badge v-if="filtrosActivos" color="primary" floating>!</q-badge>
+      </q-btn>
+    </div>
 
-        <div class="row q-col-gutter-md">
-          <div class="col-12 col-sm-6 col-md">
-            <label class="filter-field-label">Estado</label>
-            <q-select
-              v-model="local.estado"
-              :options="estadoOptions"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-              outlined
-              dense
-              class="filter-select"
-              @update:model-value="onFilterChange"
-            >
-                  <template v-slot:selected-item>
-                    <div v-if="local.estado === 'activo' || local.estado === 'inactivo'" class="flex items-center">
-                      <span
-                        class="status-dot"
-                        :class="local.estado === 'activo' ? 'dot-active' : 'dot-inactive'"
-                      />
-                      {{ local.estado === 'activo' ? 'Activo' : 'Inactivo' }}
-                    </div>
-                    <span v-else>Todos</span>
-                  </template>
-            </q-select>
+    <q-slide-transition>
+      <div v-show="filtrosVisibles">
+        <q-card flat bordered class="filters-card q-mb-md q-pa-md">
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="local.estado"
+                :options="estadoOptions"
+                option-label="label"
+                option-value="value"
+                emit-value
+                map-options
+                outlined
+                dense
+                clearable
+                label="Estado"
+                class="filter-field"
+                @update:model-value="onFilterChange"
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model="local.fechaDesde"
+                outlined
+                dense
+                label="Fecha Desde"
+                type="date"
+                clearable
+                class="filter-field"
+                @update:model-value="onFilterChange"
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model="local.fechaHasta"
+                outlined
+                dense
+                label="Fecha Hasta"
+                type="date"
+                clearable
+                class="filter-field"
+                @update:model-value="onFilterChange"
+              />
+            </div>
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="local.ordenarPor"
+                :options="ordenarOptions"
+                outlined
+                dense
+                map-options
+                emit-value
+                label="Ordenar por"
+                class="filter-field"
+                @update:model-value="onFilterChange"
+              />
+            </div>
+            <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
+              <q-btn flat color="grey-7" icon="clear" label="Limpiar" @click="resetFilters" no-caps />
+              <q-btn unelevated color="primary" icon="search" label="Buscar" @click="emitSearch" no-caps />
+            </div>
           </div>
-          <div class="col-12 col-sm-6 col-md">
-            <label class="filter-field-label">Fecha Desde</label>
-            <q-input
-              v-model="local.fechaDesde"
-              outlined
-              dense
-              placeholder="AAAA-MM-DD"
-              clearable
-              mask="####-##-##"
-              class="filter-input"
-              @clear="onFilterChange"
-              @update:model-value="onFilterChange"
-            >
-              <template v-slot:append>
-                <q-icon name="calendar_today" size="18px" class="input-icon cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date
-                      v-model="local.fechaDesde"
-                      mask="YYYY-MM-DD"
-                      class="filter-datepicker"
-                    />
-                  </q-popup-proxy>
-                </q-icon>
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-6 col-md">
-            <label class="filter-field-label">Fecha Hasta</label>
-            <q-input
-              v-model="local.fechaHasta"
-              outlined
-              dense
-              placeholder="AAAA-MM-DD"
-              clearable
-              mask="####-##-##"
-              class="filter-input"
-              @clear="onFilterChange"
-              @update:model-value="onFilterChange"
-            >
-              <template v-slot:append>
-                <q-icon name="calendar_today" size="18px" class="input-icon cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date
-                      v-model="local.fechaHasta"
-                      mask="YYYY-MM-DD"
-                      class="filter-datepicker"
-                    />
-                  </q-popup-proxy>
-                </q-icon>
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-6 col-md">
-            <label class="filter-field-label">Ordenar por</label>
-            <q-select
-              v-model="local.ordenarPor"
-              :options="ordenarOptions"
-              outlined
-              dense
-              map-options
-              emit-value
-              class="filter-select"
-              @update:model-value="onFilterChange"
-            >
-              <template v-slot:prepend>
-                <q-icon name="sort" size="18px" class="input-icon" />
-              </template>
-            </q-select>
-          </div>
-        </div>
+        </q-card>
       </div>
-    </q-card-section>
-  </q-card>
+    </q-slide-transition>
+  </div>
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
+
 const props = defineProps({
   filters: {
     type: Object,
@@ -157,6 +104,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['search', 'reset', 'filter-change'])
+
+const filtrosVisibles = ref(false)
+const filtrosActivos = ref(false)
 
 const estadoOptions = [
   { label: 'Todos', value: 'todos' },
@@ -194,6 +144,7 @@ function onFilterChange() {
 }
 
 function emitSearch() {
+  filtrosActivos.value = Object.values(local).some(v => v !== null && v !== undefined && v !== '')
   emit('search', { ...local })
 }
 
@@ -203,10 +154,43 @@ function resetFilters() {
   local.fechaDesde = null
   local.fechaHasta = null
   local.ordenarPor = 'recientes'
+  filtrosActivos.value = false
   emit('reset')
 }
-
-
 </script>
 
-<style scoped src="../../assets/styles/empleado/empleadoFiltros.css"></style>
+<style scoped>
+.search-input {
+  width: 320px;
+}
+.search-input :deep(.q-field__control) {
+  border-radius: 10px;
+  background: white;
+}
+.search-icon {
+  color: #2a5c1a;
+}
+.search-icon:hover {
+  color: #2a5c1a;
+}
+.filter-toggle-btn {
+  color: #2a5c1a;
+}
+.filter-toggle-btn:hover {
+  color: #2a5c1a;
+}
+.filters-card {
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+.filter-field :deep(.q-field__control) {
+  border-radius: 8px;
+  background: #f9fafb;
+}
+@media (max-width: 600px) {
+  .search-input {
+    width: 100%;
+  }
+}
+</style>

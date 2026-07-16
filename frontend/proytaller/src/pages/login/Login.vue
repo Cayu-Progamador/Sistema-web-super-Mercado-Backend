@@ -185,7 +185,8 @@ const submitLogin = async () => {
     
     authStore.login(respuesta.token, {
       username: respuesta.username,
-      nombreCompleto: respuesta.nombreCompleto
+      nombreCompleto: respuesta.nombreCompleto,
+      cargo: respuesta.cargo
     })
     router.push("/")
     

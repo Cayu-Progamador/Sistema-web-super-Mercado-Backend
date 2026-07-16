@@ -1,0 +1,300 @@
+.asistencia-page {
+  background: #F5F7FA;
+  min-height: 100vh;
+}
+
+.clock-gradient {
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #388E3C 70%, #43A047 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  padding: 48px !important;
+}
+
+.clock-gradient::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.clock-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.live-time {
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: 4px;
+  line-height: 1;
+  color: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-date {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 1px;
+}
+
+.employee-avatar {
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.status-badge {
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge .q-icon {
+  font-size: 1.1rem;
+}
+
+.mark-btn {
+  height: 56px;
+  border-radius: 16px !important;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.mark-btn:not(.disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.mark-btn.entrada {
+  background: white !important;
+  color: #2E7D32 !important;
+}
+
+.mark-btn.salida {
+  background: rgba(255,255,255,0.15) !important;
+  color: white !important;
+  border: 2px solid rgba(255,255,255,0.3) !important;
+}
+
+.mark-btn.salida:not(.disabled):hover {
+  background: rgba(255,255,255,0.25) !important;
+  border-color: rgba(255,255,255,0.5) !important;
+}
+
+.geo-text {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.75rem;
+}
+
+.kpi-card {
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.kpi-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.kpi-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.kpi-icon {
+  font-size: 1.5rem;
+  opacity: 0.3;
+}
+
+.timeline-card {
+  border-radius: 16px;
+}
+
+.weekly-table .q-table__top {
+  padding: 12px 16px;
+}
+
+.weekly-table .q-table__card {
+  border-radius: 16px;
+}
+
+.estado-chip {
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.kpi-variacion {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.filters-card {
+  border-radius: 16px;
+  background: white;
+}
+
+.filter-field .q-field__control {
+  border-radius: 10px;
+  background: #F5F7FA;
+}
+
+.toolbar-btn {
+  border-radius: 10px !important;
+}
+
+.admin-table .q-table__card {
+  border-radius: 16px;
+}
+
+.admin-table .q-table__top {
+  padding: 0;
+}
+
+.admin-table th {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  font-size: 0.9rem;
+}
+
+.drawer-card {
+  border-radius: 16px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: default;
+  transition: transform 0.1s;
+}
+
+.calendar-cell:hover {
+  transform: scale(1.1);
+}
+
+.calendar-cell.today {
+  border: 2px solid #2E7D32;
+  font-weight: 700;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.admin-kpi-card {
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.admin-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.date-nav-btn {
+  border-radius: 12px !important;
+  color: #374151 !important;
+}
+
+.date-nav-btn:hover {
+  background: #E8F5E9 !important;
+}
+
+.date-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1B5E20;
+  min-width: 240px;
+  text-align: center;
+}
+
+.drawer-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1B5E20;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drawer-kpi-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.drawer-kpi-label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  .live-time {
+    font-size: 2.8rem;
+  }
+  .mark-btn {
+    height: 48px;
+    font-size: 0.9rem;
+  }
+  .kpi-number {
+    font-size: 1.5rem;
+  }
+  .date-label {
+    font-size: 0.9rem;
+    min-width: 180px;
+  }
+}

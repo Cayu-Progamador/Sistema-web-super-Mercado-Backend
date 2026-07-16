@@ -32,13 +32,12 @@ public class AuthController {
         // obtener ip
         String ip = httpRequest.getRemoteAddr();
 
-        // login
-        String token = authService.login(
+        AuthResponseDto response = authService.login(
                 request.getUsername(),
                 request.getPassword(),
                 ip);
 
-        return ResponseEntity.ok(new AuthResponseDto(token));
+        return ResponseEntity.ok(response);
     }
 
     

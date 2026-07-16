@@ -54,7 +54,7 @@ instance.interceptors.response.use(
 
       default:
         console.error(
-          error.response.data?.detail || "Error en la petición"
+          error.response.data?.message || "Error en la petición"
         );
     }
 

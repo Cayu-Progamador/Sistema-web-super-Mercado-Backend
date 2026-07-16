@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -71,7 +72,7 @@ public class UsuarioController {
     public ResponseEntity<Page<UsuarioListadoResponseDto>> listarUsuarios(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idUsuario"));
 
         return ResponseEntity.ok(usuarioService.listarUsuarios(pageable));
     }
@@ -141,7 +142,7 @@ public class UsuarioController {
             @RequestParam String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idUsuario"));
         return ResponseEntity.ok(usuarioService.buscarPorUsernamePaginado(username, pageable));
     }
 
@@ -151,7 +152,7 @@ public class UsuarioController {
             UsuarioFiltrosDto filtros,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idUsuario"));
         return ResponseEntity.ok(usuarioService.filtrarUsuarios(filtros, pageable));
     }
 

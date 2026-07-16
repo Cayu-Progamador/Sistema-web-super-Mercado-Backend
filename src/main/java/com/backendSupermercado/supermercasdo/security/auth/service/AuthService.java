@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
+import com.backendSupermercado.supermercasdo.modules.empleado.entity.Persona;
+import com.backendSupermercado.supermercasdo.modules.contrato.entity.Contrato;
+import com.backendSupermercado.supermercasdo.modules.contrato.repository.ContratoRepository;
 import com.backendSupermercado.supermercasdo.modules.empleado.repository.EmpleadoRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.dto.ResetPasswordRequestDto;
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.PasswordResetToken;
@@ -25,6 +28,7 @@ import com.backendSupermercado.supermercasdo.modules.usuario.entity.UsuarioRol;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.LoginUsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.SeguridadUsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
+import com.backendSupermercado.supermercasdo.security.auth.dto.AuthResponseDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.RegistroRequestDto;
 import com.backendSupermercado.supermercasdo.security.auth.dto.UsuarioResponseDto;
 import com.backendSupermercado.supermercasdo.security.jwt.JwtUtil;
@@ -42,6 +46,7 @@ public class AuthService {
         private final PasswordEncoder passwordEncoder;
         private final RolRepository rolRepository;
         private final EmpleadoRepository empleadoRepository;
+        private final ContratoRepository contratoRepository;
         private final PasswordResetTokenRepository passwordResetTokenRepository;
         private final JwtUtil jwtUtil;
         private final LoginUsuarioRepository loginUsuarioRepository;
@@ -131,7 +136,7 @@ public class AuthService {
 
         // LOGIN USUARIO
         @Transactional
-        public String login(String username, String password, String ip) {
+        public AuthResponseDto login(String username, String password, String ip) {
 
                 // 1. Buscar Usuario y Seguridad
                 Usuario usuario = usuarioRepository.findByUsername(username)
@@ -202,8 +207,28 @@ public class AuthService {
                 loginUsuario.setUsuario(usuario);
                 loginUsuarioRepository.save(loginUsuario);
 
-                // GENERAR Y RETORNAR TOKEN
-                return jwtUtil.generateToken(usuario.getUsername());
+                // GENERAR Y RETORNAR TOKEN CON DATOS DEL USUARIO
+                String token = jwtUtil.generateToken(usuario.getUsername());
+                String nombreCompleto = "";
+                String cargo = "";
+
+                if (usuario.getEmpleado() != null) {
+                    Persona persona = usuario.getEmpleado().getPersona();
+                    if (persona != null) {
+                        nombreCompleto = String.format("%s %s %s",
+                            persona.getNombres() != null ? persona.getNombres() : "",
+                            persona.getApellidoPaterno() != null ? persona.getApellidoPaterno() : "",
+                            persona.getApellidoMaterno() != null ? persona.getApellidoMaterno() : "")
+                            .trim().replaceAll("\\s+", " ");
+                    }
+                    Contrato contrato = contratoRepository.findByEmpleadoAndEstado(usuario.getEmpleado(), "ACTIVO")
+                        .orElse(null);
+                    if (contrato != null && contrato.getCargo() != null) {
+                        cargo = contrato.getCargo().getNombre();
+                    }
+                }
+
+                return new AuthResponseDto(token, usuario.getUsername(), nombreCompleto, cargo);
         }
 
         

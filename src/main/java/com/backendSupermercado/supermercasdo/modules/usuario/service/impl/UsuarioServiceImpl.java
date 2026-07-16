@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
 import com.backendSupermercado.supermercasdo.mapper.usuario.UsuarioMapper;
-import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
-import com.backendSupermercado.supermercasdo.modules.empleado.repository.EmpleadoRepository;
+
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Rol;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
@@ -50,7 +49,6 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final AuditoriaUsuarioRepository aud;
     private final UsuarioMapper usuarioMapper;
-    private final EmpleadoRepository empleadoRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRolRepository usuarioRolRepository;
@@ -186,11 +184,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         actualizarUsername(usuario, dto, cambios);
         actualizarPassword(usuario, dto, cambios);
-        actualizarEmpleado(usuario, dto, cambios);
         // Si es el propietario (ID 1), no permitir quitar ROLE_ADMIN
         if (usuario.getIdUsuario().equals(1L)
                 && dto.getRoles() != null
-                && !dto.getRoles().contains("ADMIN")) {
+                && !dto.getRoles().contains("ROLE_ADMIN")) {
 
             throw new ResourceConflictException(
                     "No se puede quitar el rol ADMIN al propietario del sistema");
@@ -255,43 +252,6 @@ public class UsuarioServiceImpl implements UsuarioService {
                 passwordEncoder.encode(dto.getPassword()));
 
         cambios.append("Password actualizada; ");
-    }
-
-    // empleado
-    private void actualizarEmpleado(
-            Usuario usuario,
-            UsuarioUpdateDto dto,
-            StringBuilder cambios) {
-
-        if (dto.getEmpleadoId() == null) {
-            return;
-        }
-
-        Long empleadoActualId = usuario.getEmpleado() != null
-                ? usuario.getEmpleado().getIdEmpleado()
-                : null;
-
-        if (dto.getEmpleadoId().equals(empleadoActualId)) {
-            return;
-        }
-
-        Usuario usuarioExistente = usuarioRepository
-                .findByEmpleadoIdEmpleado(dto.getEmpleadoId())
-                .orElse(null);
-
-        if (usuarioExistente != null &&
-                !usuarioExistente.getIdUsuario().equals(usuario.getIdUsuario())) {
-
-            throw new ResourceConflictException(
-                    "El empleado ya tiene usuario");
-        }
-
-        Empleado empleado = empleadoRepository.findById(dto.getEmpleadoId())
-                .orElseThrow(() -> new ResourceConflictException("Empleado no encontrado"));
-
-        cambios.append("Empleado actualizado; ");
-
-        usuario.setEmpleado(empleado);
     }
 
     // roles

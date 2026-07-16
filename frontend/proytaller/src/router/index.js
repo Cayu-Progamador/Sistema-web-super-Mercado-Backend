@@ -11,6 +11,8 @@ import Roles from '../pages/rol/Roles.vue'
 import Empleado from '../pages/empleado/EmpleadoPage.vue'
 import Cargos from '../pages/cargo/CargoPage.vue'
 import Contrato from '../pages/contrato/ContratoPage.vue'
+import MisAsistencia from '../pages/asistencia/MisAsistencia.vue'
+import AsistenciaAdmin from '../pages/asistencia/AsistenciaAdmin.vue'
 const routes = [
   {
     path: '/login',
@@ -64,6 +66,16 @@ const routes = [
         path: 'contratos',
         name: 'contratos',
         component: Contrato
+      },
+      {
+        path: 'asistencia',
+        name: 'asistencia',
+        component: MisAsistencia
+      },
+      {
+        path: 'asistencia/admin',
+        name: 'asistencia-admin',
+        component: AsistenciaAdmin
       }
 
     ]
