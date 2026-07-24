@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/store'
+import { tieneAccesoAsistencia } from '../api/asistencia/asistencia'
 
 import Layout from '../layouts/index.vue'
 import Login from '../pages/login/Login.vue'
@@ -91,20 +92,31 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const store = useAuthStore();
 
-// Leer token de Pinia o de localStorage directamente
   const token = store.token || JSON.parse(localStorage.getItem('auth'))?.token
 
   if (token && to.name === 'login') {
-    // Usuario logueado → redirige al home
     return next({ name: 'home' })
   }
 
   if (!token && to.name !== 'login') {
-    // Usuario no logueado → redirige al login
     return next({ name: 'login' })
+  }
+
+  if (token && (to.name === 'asistencia' || to.name === 'asistencia-admin')) {
+    try {
+      const res = await tieneAccesoAsistencia()
+      if (to.name === 'asistencia-admin' && !res.tieneAcceso) {
+        return next({ name: 'home' })
+      }
+      if (to.name === 'asistencia' && !res.tieneAcceso) {
+        return next({ name: 'home' })
+      }
+    } catch {
+      return next({ name: 'home' })
+    }
   }
 
   next()

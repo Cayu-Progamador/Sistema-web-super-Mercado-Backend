@@ -1,5 +1,6 @@
 package com.backendSupermercado.supermercasdo.modules.asistencia.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -19,8 +20,12 @@ public class AsistenciaResponseDto {
     private LocalTime horaSalida;
     private String estado;
     private Integer minutosRetraso;
+    private BigDecimal horasTrabajadas;
     private String tipoJustificacion;
     private String motivoJustificacion;
+    private String cargo;
+
+    private String observacion;
 
     private LocalTime horaEntradaEsperada;
     private LocalTime horaSalidaEsperada;
@@ -38,5 +43,14 @@ public class AsistenciaResponseDto {
         this.horaSalida = horaSalida;
         this.estado = estado;
         this.minutosRetraso = minutosRetraso;
+    }
+
+    public AsistenciaResponseDto(Long idAsistencia, Long idEmpleado, String nombreEmpleado,
+                                  LocalDate fecha, LocalTime horaEntrada, LocalTime horaSalida,
+                                  String estado, Integer minutosRetraso,
+                                  BigDecimal horasTrabajadas, String cargo) {
+        this(idAsistencia, idEmpleado, nombreEmpleado, fecha, horaEntrada, horaSalida, estado, minutosRetraso);
+        this.horasTrabajadas = horasTrabajadas;
+        this.cargo = cargo;
     }
 }

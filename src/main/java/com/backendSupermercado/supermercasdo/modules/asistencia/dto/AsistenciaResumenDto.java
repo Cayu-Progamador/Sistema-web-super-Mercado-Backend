@@ -13,5 +13,6 @@ public class AsistenciaResumenDto {
     private long asistencias;
     private long tardanzas;
     private long faltas;
-    private double porcentajePuntualidad;
+    private double puntualidad;
+    private long justificados;
 }

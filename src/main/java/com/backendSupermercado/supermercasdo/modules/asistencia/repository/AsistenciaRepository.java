@@ -18,84 +18,161 @@ public interface AsistenciaRepository extends JpaRepository<Asistencia, Long> {
     Optional<Asistencia> findByContratoIdAndFecha(Long idContrato, LocalDate fecha);
 
     @Query("""
-        SELECT new com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaResponseDto(
-            a.id,
-            c.id,
-            CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
-            a.fecha,
-            a.horaEntrada,
-            a.horaSalida,
-            a.estado,
-            a.minutosRetraso
-        )
-        FROM Asistencia a
-        JOIN a.contrato c
-        JOIN c.empleado e
-        JOIN e.persona p
-        WHERE (:idContrato IS NULL OR c.id = :idContrato)
-        AND (:fechaDesde IS NULL OR a.fecha >= :fechaDesde)
-        AND (:fechaHasta IS NULL OR a.fecha <= :fechaHasta)
-        AND (:estado IS NULL OR a.estado = :estado)
-        ORDER BY a.fecha DESC, a.horaEntrada DESC
-    """)
+                SELECT new com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaResponseDto(
+                    a.id,
+                    c.id,
+                    CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
+                    a.fecha,
+                    a.horaEntrada,
+                    a.horaSalida,
+                    a.estado,
+                    a.minutosRetraso
+                )
+                FROM Asistencia a
+                JOIN a.contrato c
+                JOIN c.empleado e
+                JOIN e.persona p
+                WHERE (:idContrato IS NULL OR c.id = :idContrato)
+                AND (:fechaDesde IS NULL OR a.fecha >= :fechaDesde)
+                AND (:fechaHasta IS NULL OR a.fecha <= :fechaHasta)
+                AND (:estado IS NULL OR a.estado = :estado)
+                ORDER BY a.fecha DESC, a.horaEntrada DESC
+            """)
     Page<AsistenciaResponseDto> buscarAsistencias(
-        @Param("idContrato") Long idContrato,
-        @Param("fechaDesde") LocalDate fechaDesde,
-        @Param("fechaHasta") LocalDate fechaHasta,
-        @Param("estado") String estado,
-        Pageable pageable
-    );
+            @Param("idContrato") Long idContrato,
+            @Param("fechaDesde") LocalDate fechaDesde,
+            @Param("fechaHasta") LocalDate fechaHasta,
+            @Param("estado") String estado,
+            Pageable pageable);
 
     @Query("""
-        SELECT new com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaResponseDto(
-            a.id,
-            c.id,
-            CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
-            a.fecha,
-            a.horaEntrada,
-            a.horaSalida,
-            a.estado,
-            a.minutosRetraso
-        )
-        FROM Asistencia a
-        JOIN a.contrato c
-        JOIN c.empleado e
-        JOIN e.persona p
-        WHERE c.id = :idContrato
-        AND (:fechaDesde IS NULL OR a.fecha >= :fechaDesde)
-        AND (:fechaHasta IS NULL OR a.fecha <= :fechaHasta)
-        ORDER BY a.fecha DESC
-    """)
+                SELECT new com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaResponseDto(
+                    a.id,
+                    c.id,
+                    CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
+                    a.fecha,
+                    a.horaEntrada,
+                    a.horaSalida,
+                    a.estado,
+                    a.minutosRetraso
+                )
+                FROM Asistencia a
+                JOIN a.contrato c
+                JOIN c.empleado e
+                JOIN e.persona p
+                WHERE c.id = :idContrato
+                AND a.fecha >= COALESCE(:fechaDesde, a.fecha)
+                AND a.fecha <= COALESCE(:fechaHasta, a.fecha)
+                ORDER BY a.fecha DESC
+            """)
     List<AsistenciaResponseDto> findMisAsistencias(
-        @Param("idContrato") Long idContrato,
-        @Param("fechaDesde") LocalDate fechaDesde,
-        @Param("fechaHasta") LocalDate fechaHasta
-    );
+            @Param("idContrato") Long idContrato,
+            @Param("fechaDesde") LocalDate fechaDesde,
+            @Param("fechaHasta") LocalDate fechaHasta);
 
     @Query("""
-        SELECT COUNT(a)
-        FROM Asistencia a
-        WHERE a.contrato.id = :idContrato
-        AND a.fecha BETWEEN :inicioMes AND :finMes
-        AND a.horaEntrada IS NOT NULL
-    """)
-    long countAsistenciasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes, @Param("finMes") LocalDate finMes);
+                SELECT COUNT(a)
+                FROM Asistencia a
+                WHERE a.contrato.id = :idContrato
+                AND a.fecha BETWEEN :inicioMes AND :finMes
+                AND a.horaEntrada IS NOT NULL
+            """)
+    long countAsistenciasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes,
+            @Param("finMes") LocalDate finMes);
 
     @Query("""
-        SELECT COUNT(a)
-        FROM Asistencia a
-        WHERE a.contrato.id = :idContrato
-        AND a.fecha BETWEEN :inicioMes AND :finMes
-        AND a.estado = 'TARDANZA'
-    """)
-    long countTardanzasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes, @Param("finMes") LocalDate finMes);
+                SELECT COUNT(a)
+                FROM Asistencia a
+                WHERE a.contrato.id = :idContrato
+                AND a.fecha BETWEEN :inicioMes AND :finMes
+                AND a.estado = 'TARDANZA'
+            """)
+    long countTardanzasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes,
+            @Param("finMes") LocalDate finMes);
 
     @Query("""
-        SELECT COUNT(a)
-        FROM Asistencia a
-        WHERE a.contrato.id = :idContrato
-        AND a.fecha BETWEEN :inicioMes AND :finMes
-        AND (a.estado = 'FALTA' OR (a.horaEntrada IS NULL AND a.estado IS NULL))
-    """)
-    long countFaltasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes, @Param("finMes") LocalDate finMes);
+                SELECT COUNT(a)
+                FROM Asistencia a
+                WHERE a.contrato.id = :idContrato
+                AND a.fecha BETWEEN :inicioMes AND :finMes
+                AND (a.estado = 'FALTA' OR (a.horaEntrada IS NULL AND a.estado IS NULL))
+            """)
+    long countFaltasDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes,
+            @Param("finMes") LocalDate finMes);
+
+    @Query("""
+                SELECT COUNT(a)
+                FROM Asistencia a
+                WHERE a.contrato.id = :idContrato
+                AND a.fecha BETWEEN :inicioMes AND :finMes
+                AND a.estado = 'JUSTIFICADO'
+            """)
+    long countJustificadosDelMes(@Param("idContrato") Long idContrato, @Param("inicioMes") LocalDate inicioMes,
+            @Param("finMes") LocalDate finMes);
+
+    @Query("""
+                    SELECT new com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaResponseDto(
+                        a.id,
+                        c.id,
+                        CONCAT(p.nombres, ' ', p.apellidoPaterno, ' ', p.apellidoMaterno),
+                        a.fecha,
+                        a.horaEntrada,
+                        a.horaSalida,
+                        a.estado,
+                        a.minutosRetraso,
+                        a.horasTrabajadas,
+                        ca.nombre
+                    )
+                    FROM Asistencia a
+                    JOIN a.contrato c
+                    JOIN c.empleado e
+                    JOIN e.persona p
+                    JOIN c.cargo ca
+                    WHERE c.controlaAsistencia = true
+                    AND a.fecha >= COALESCE(:fechaDesde, a.fecha)
+                    AND a.fecha <= COALESCE(:fechaHasta, a.fecha)
+                    AND a.estado = COALESCE(:estado, a.estado)
+                    AND c.id = COALESCE(:idContrato, c.id)
+                    AND (:idTurno IS NULL OR EXISTS (
+                        SELECT 1 FROM ContratoTurno ct WHERE ct.contrato.id = c.id AND ct.turno.id = :idTurno
+                    ))
+            AND (:busqueda IS NULL OR (
+                FUNCTION('lower', p.nombres) LIKE :busqueda
+                OR FUNCTION('lower', p.apellidoPaterno) LIKE :busqueda
+                OR FUNCTION('lower', p.apellidoMaterno) LIKE :busqueda
+            ))
+                ORDER BY a.fecha DESC, a.horaEntrada DESC
+                """)
+    Page<AsistenciaResponseDto> buscarAsistenciasAdmin(
+            @Param("fechaDesde") LocalDate fechaDesde,
+            @Param("fechaHasta") LocalDate fechaHasta,
+            @Param("estado") String estado,
+            @Param("idContrato") Long idContrato,
+            @Param("idTurno") Long idTurno,
+            @Param("busqueda") String busqueda,
+            Pageable pageable);
+
+    @Query("""
+                SELECT a FROM Asistencia a
+                JOIN FETCH a.contrato c
+                JOIN FETCH c.empleado e
+                JOIN FETCH e.persona p
+                WHERE c.controlaAsistencia = true
+                AND a.fecha = :fecha
+            """)
+    List<Asistencia> findAllByFechaWithContrato(@Param("fecha") LocalDate fecha);
+
+    @Query("""
+                SELECT a FROM Asistencia a
+                JOIN FETCH a.contrato c
+                LEFT JOIN FETCH c.contratoTurnos ct
+                LEFT JOIN FETCH ct.turno
+                WHERE c.id = :idContrato
+                AND a.fecha BETWEEN :inicioMes AND :finMes
+                ORDER BY a.fecha ASC
+            """)
+    List<Asistencia> findAsistenciasDelMesWithTurno(
+            @Param("idContrato") Long idContrato,
+            @Param("inicioMes") LocalDate inicioMes,
+            @Param("finMes") LocalDate finMes);
 }

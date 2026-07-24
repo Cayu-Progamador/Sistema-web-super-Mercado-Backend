@@ -3,33 +3,7 @@
     <div v-show="visible">
       <q-card flat bordered class="filters-card q-mb-md q-pa-md">
         <div class="row q-col-gutter-md items-end">
-          <div class="col-12 col-md-2">
-            <q-select
-              v-model="filtros.sucursal"
-              :options="sucursalOptions"
-              label="Sucursal"
-              outlined
-              dense
-              clearable
-              class="filter-field"
-              emit-value
-              map-options
-            />
-          </div>
-          <div class="col-12 col-md-2">
-            <q-select
-              v-model="filtros.departamento"
-              :options="departamentoOptions"
-              label="Departamento"
-              outlined
-              dense
-              clearable
-              class="filter-field"
-              emit-value
-              map-options
-            />
-          </div>
-          <div class="col-12 col-md-2">
+          <div class="col-12 col-md-3">
             <q-select
               v-model="filtros.turno"
               :options="turnoOptions"
@@ -56,8 +30,8 @@
             />
           </div>
           <div class="col-12 col-md-3 row q-gutter-sm justify-end">
-            <q-btn flat no-caps color="grey" icon="clear" label="Limpiar" @click="limpiar" />
-            <q-btn unelevated no-caps color="primary" icon="search" label="Buscar" @click="$emit('aplicar-filtros', { ...filtros })" />
+            <q-btn flat no-caps color="teal-9" icon="clear" label="Limpiar" @click="limpiar" />
+            <q-btn unelevated no-caps color="teal-9" icon="search" label="Buscar" @click="$emit('aplicar-filtros', { ...filtros })" />
           </div>
         </div>
       </q-card>
@@ -66,7 +40,8 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { obtenerFiltrosAsistencia } from '../../api/asistencia/asistencia'
 
 defineProps({
   visible: { type: Boolean, default: false }
@@ -75,45 +50,86 @@ defineProps({
 const emit = defineEmits(['aplicar-filtros'])
 
 const filtros = reactive({
-  sucursal: null,
-  departamento: null,
   turno: null,
   estado: null
 })
 
-const sucursalOptions = [
-  { label: 'Central', value: 1 },
-  { label: 'Sucursal Norte', value: 2 },
-  { label: 'Sucursal Sur', value: 3 }
-]
+const turnoOptions = ref([])
+const estadoOptions = ref([])
 
-const departamentoOptions = [
-  { label: 'Ventas', value: 1 },
-  { label: 'Cajas', value: 2 },
-  { label: 'Bodega', value: 3 },
-  { label: 'Atenci&oacute;n al cliente', value: 4 },
-  { label: 'Administraci&oacute;n', value: 5 }
-]
-
-const turnoOptions = [
-  { label: 'Matutino', value: 1 },
-  { label: 'Vespertino', value: 2 },
-  { label: 'Nocturno', value: 3 }
-]
-
-const estadoOptions = [
-  { label: 'A tiempo', value: 'A_TIEMPO' },
-  { label: 'Tardanza', value: 'TARDANZA' },
-  { label: 'Falta', value: 'FALTA' },
-  { label: 'Permiso', value: 'PERMISO' },
-  { label: 'Pendiente', value: 'PENDIENTE' }
-]
+async function cargarOpciones() {
+  try {
+    const res = await obtenerFiltrosAsistencia()
+    turnoOptions.value = (res.turnos || []).map(t => ({
+      label: t.nombre,
+      value: t.id
+    }))
+    estadoOptions.value = res.estados || []
+  } catch {
+    turnoOptions.value = []
+    estadoOptions.value = []
+  }
+}
 
 function limpiar() {
-  filtros.sucursal = null
-  filtros.departamento = null
   filtros.turno = null
   filtros.estado = null
   emit('aplicar-filtros', { ...filtros })
 }
+
+onMounted(cargarOpciones)
 </script>
+
+<style scoped>
+.filters-card {
+  border: 1px solid #bce9e2 !important;
+  border-radius: 16px;
+  background: white;
+}
+
+.filter-field :deep(.q-field--outlined .q-field__control) {
+  background: white;
+  border-radius: 10px;
+}
+
+.filter-field :deep(.q-field--outlined .q-field__control::before) {
+  border: 2px solid #006051 !important;
+  border-radius: 10px;
+  transition: border-color 0.2s ease;
+}
+
+.filter-field :deep(.q-field--outlined .q-field__control:hover::before) {
+  border-color: #006051 !important;
+}
+
+.filter-field :deep(.q-field--outlined .q-field__control:focus-within::before) {
+  border-color: #006051 !important;
+  box-shadow: 0 0 0 3px rgba(0,96,81,0.1);
+}
+
+.filter-field :deep(.q-field__native) {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.filter-field :deep(.q-field__label) {
+  font-family: 'Nunito', sans-serif;
+  color: #006051;
+  font-weight: 600;
+}
+
+.filter-field :deep(.q-field--outlined .q-field__control .q-icon) {
+  color: #006051 !important;
+  font-size: 1.1rem;
+}
+
+.filter-field :deep(.q-field--focused .q-field__label) {
+  color: #006051 !important;
+}
+
+.filter-field :deep(.q-field__control:focus-within) {
+  border-color: #006051;
+}
+</style>

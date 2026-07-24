@@ -4,8 +4,8 @@ import router from "../router";
 
 // Crear instancia de axios
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,     // ✅ CAMBIO AQUÍ
-  timeout: Number(import.meta.env.VITE_TIMEOUT) // ✅ CAMBIO AQUÍ
+  baseURL: import.meta.env.VITE_API_URL,     
+  timeout: Number(import.meta.env.VITE_TIMEOUT) 
 });
 
 // ======================

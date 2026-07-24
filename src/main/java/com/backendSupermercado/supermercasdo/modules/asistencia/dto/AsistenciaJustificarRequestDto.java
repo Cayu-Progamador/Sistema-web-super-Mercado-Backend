@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AsistenciaJustificarRequestDto {
+    private String fecha;
     private String tipoJustificacion;
     private String motivo;
 }

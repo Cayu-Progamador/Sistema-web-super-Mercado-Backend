@@ -25,7 +25,6 @@
           <div class="text-h6 text-weight-bold">{{ empleado.nombreEmpleado }}</div>
           <div style="font-size:0.85rem; color:#666">{{ empleado.codigoEmpleado || 'EMP-'+String(empleado.idEmpleado).padStart(3,'0') }}</div>
           <div style="font-size:0.85rem; color:#666">{{ empleado.cargo || '--' }}</div>
-          <div style="font-size:0.8rem; color:#999">{{ empleado.departamento || '--' }}</div>
         </div>
 
         <q-separator class="q-mb-md" />
@@ -64,22 +63,28 @@
           Resumen del mes
         </div>
         <div class="row q-col-gutter-sm q-mb-md">
-          <div class="col-4">
+          <div class="col-3">
             <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
               <div class="drawer-kpi-number text-positive">{{ resumen.presentes }}</div>
               <div class="drawer-kpi-label">Presentes</div>
             </q-card>
           </div>
-          <div class="col-4">
+          <div class="col-3">
             <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
               <div class="drawer-kpi-number text-orange">{{ resumen.tardanzas }}</div>
               <div class="drawer-kpi-label">Tardanzas</div>
             </q-card>
           </div>
-          <div class="col-4">
+          <div class="col-3">
             <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
               <div class="drawer-kpi-number text-negative">{{ resumen.faltas }}</div>
               <div class="drawer-kpi-label">Faltas</div>
+            </q-card>
+          </div>
+          <div class="col-3">
+            <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
+              <div class="drawer-kpi-number text-grey-7">{{ resumen.justificados }}</div>
+              <div class="drawer-kpi-label">Justificados</div>
             </q-card>
           </div>
         </div>
@@ -94,9 +99,10 @@
             :key="idx"
             class="calendar-cell"
             :class="{
-              'bg-green-2 text-green-9': dia.estado === 'PRESENTE',
+              'bg-green-2 text-green-9': dia.estado === 'PRESENTE' || dia.estado === 'COMPLETO',
               'bg-orange-2 text-orange-9': dia.estado === 'TARDANZA',
-              'bg-red-2 text-red-9': dia.estado === 'AUSENTE',
+              'bg-red-2 text-red-9': dia.estado === 'AUSENTE' || dia.estado === 'FALTA',
+              'bg-blue-2 text-blue-9': dia.estado === 'JUSTIFICADO',
               'bg-grey-2 text-grey-7': dia.estado === 'PERMISO' || dia.estado === 'FUTURO',
               'today': dia.esHoy
             }"
@@ -115,6 +121,9 @@
             <span class="legend-dot bg-red-4"></span> Falta
           </div>
           <div class="legend-item">
+            <span class="legend-dot bg-blue-4"></span> Justificado
+          </div>
+          <div class="legend-item">
             <span class="legend-dot bg-grey-3"></span> Permiso / Futuro
           </div>
         </div>
@@ -129,7 +138,7 @@ import { ref, computed, watch } from 'vue'
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   empleado: { type: Object, default: null },
-  resumen: { type: Object, default: () => ({ presentes: 0, tardanzas: 0, faltas: 0 }) },
+  resumen: { type: Object, default: () => ({ presentes: 0, tardanzas: 0, faltas: 0, justificados: 0 }) },
   diasCalendario: { type: Array, default: () => [] }
 })
 

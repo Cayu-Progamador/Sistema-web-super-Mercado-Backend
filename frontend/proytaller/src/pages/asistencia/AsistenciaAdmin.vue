@@ -47,16 +47,16 @@
       :dias-calendario="drawerDias"
     />
 
-    <JustifyAttendanceDialog
+    <JustifyDialog
       v-model="showJustifyDialog"
       :empleado="justificarEmpleado"
-      @guardar="onGuardarJustificacion"
+      @enviar="onGuardarJustificacion"
     />
   </q-page>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import {
   listarAsistenciasAdmin,
@@ -69,7 +69,7 @@ import AttendanceToolbar from '../../components/asistencia/AttendanceToolbar.vue
 import AttendanceFilters from '../../components/asistencia/AttendanceFilters.vue'
 import AttendanceTable from '../../components/asistencia/AttendanceTable.vue'
 import AttendanceDetailDrawer from '../../components/asistencia/AttendanceDetailDrawer.vue'
-import JustifyAttendanceDialog from '../../components/asistencia/JustifyAttendanceDialog.vue'
+import JustifyDialog from '../../components/asistencia/JustifyDialog.vue'
 
 const $q = useQuasar()
 
@@ -93,8 +93,9 @@ const tablePagination = ref({
 })
 
 const drawerEmpleado = ref(null)
-const drawerResumen = reactive({ presentes: 0, tardanzas: 0, faltas: 0 })
+const drawerResumen = reactive({ presentes: 0, tardanzas: 0, faltas: 0, justificados: 0 })
 const drawerDias = ref([])
+const justificarIdAsistencia = ref(null)
 const justificarEmpleado = ref(null)
 
 const fechaFormateada = computed(() => {
@@ -137,6 +138,9 @@ async function cargarTabla() {
     }
     if (filtrosActivos.value.estado) {
       params.estado = filtrosActivos.value.estado
+    }
+    if (filtrosActivos.value.turno) {
+      params.idTurno = filtrosActivos.value.turno
     }
     const res = await listarAsistenciasAdmin(params)
     tableRows.value = res.content || []
@@ -197,29 +201,33 @@ async function verDetalle(row) {
     drawerResumen.presentes = data.presentes || 0
     drawerResumen.tardanzas = data.tardanzas || 0
     drawerResumen.faltas = data.faltas || 0
+    drawerResumen.justificados = data.justificados || 0
     drawerDias.value = generarCalendario(mes, anio, data.dias || [])
   } catch {
     drawerEmpleado.value = { ...row }
     drawerResumen.presentes = 0
     drawerResumen.tardanzas = 0
     drawerResumen.faltas = 0
+    drawerResumen.justificados = 0
     drawerDias.value = generarCalendario(mes, anio, [])
   }
   showDrawer.value = true
 }
 
 function mostrarJustificar(row) {
-  justificarEmpleado.value = { ...row, fecha: fmtDate(selectedDate.value) }
+  justificarIdAsistencia.value = row.idAsistencia
+  justificarEmpleado.value = { nombreEmpleado: row.nombreEmpleado, cargo: row.cargo }
   showJustifyDialog.value = true
 }
 
 async function onGuardarJustificacion(data) {
   try {
-    await justificarAsistenciaAdmin(data.idAsistencia, data)
+    await justificarAsistenciaAdmin(justificarIdAsistencia.value, data)
     $q.notify({ type: 'positive', message: 'Justificaci&oacute;n guardada correctamente' })
     cargarTabla()
-  } catch {
-    $q.notify({ type: 'negative', message: 'Error al guardar justificaci&oacute;n' })
+  } catch (e) {
+    const msg = e.response?.data?.message || 'Error al guardar justificaci&oacute;n'
+    $q.notify({ type: 'negative', message: msg })
   }
 }
 
@@ -253,9 +261,16 @@ function generarCalendario(mes, anio, diasData) {
   return dias
 }
 
+let kpiIntervalId = null
+
 onMounted(() => {
   cargarKpis()
   cargarTabla()
+  kpiIntervalId = setInterval(cargarKpis, 30000)
+})
+
+onUnmounted(() => {
+  if (kpiIntervalId) clearInterval(kpiIntervalId)
 })
 </script>
 

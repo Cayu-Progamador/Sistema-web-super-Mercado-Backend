@@ -79,7 +79,7 @@
       </div>
       <div class="col-12 col-sm-6">
         <q-btn
-          :disable="!horaEntradaHoy || !!horaSalidaHoy || !!errorMessage || sinTurnoHoy"
+          :disable="!horaEntradaHoy || !!horaSalidaHoy || !!errorMessage || sinTurnoHoy || !btnSalidaActivo"
           class="mark-btn salida full-width"
           unelevated
           no-caps
@@ -185,5 +185,15 @@ const btnEntradaActivo = computed(() => {
     if (minutosAhora > minutosSalida) return false
   }
   return minutosAhora >= minutosEntrada
+})
+
+const btnSalidaActivo = computed(() => {
+  if (!props.horaSalidaEsperada) return false
+  const ahora = props.horaActual
+  const [ah, am] = ahora.split(':').map(Number)
+  const minutosAhora = ah * 60 + am
+  const [sh, sm] = props.horaSalidaEsperada.split(':').map(Number)
+  const minutosSalida = sh * 60 + sm
+  return minutosAhora >= minutosSalida
 })
 </script>

@@ -18,6 +18,8 @@ public interface AsistenciaService {
 
     AsistenciaResponseDto justificarAsistencia(Long idAsistencia, AsistenciaJustificarRequestDto dto);
 
+    AsistenciaResponseDto justificarMiAsistencia(String username, AsistenciaJustificarRequestDto dto);
+
     long ejecutarCierreDiario();
 
     AsistenciaResponseDto obtenerAsistenciaHoy(String username);
@@ -27,4 +29,8 @@ public interface AsistenciaService {
     List<AsistenciaResponseDto> listarMisAsistencias(String username, String fechaDesde, String fechaHasta);
 
     AsistenciaResumenDto obtenerMiResumen(String username, int anio, int mes);
+
+    byte[] descargarReporteSemanal(String username, String fechaDesde, String fechaHasta);
+
+    boolean tieneAccesoAsistencia(String username);
 }

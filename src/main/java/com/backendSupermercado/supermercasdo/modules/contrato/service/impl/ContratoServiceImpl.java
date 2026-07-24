@@ -312,6 +312,9 @@ public class ContratoServiceImpl implements ContratoService {
         if (!"VENCIDO".equals(estado) && !"FINALIZADO".equals(estado)) {
             throw new IllegalArgumentException("Solo se pueden renovar contratos en estado VENCIDO o FINALIZADO");
         }
+        if ("Renovado".equals(contratoActual.getMotivoFin())) {
+            throw new IllegalArgumentException("Este contrato ya fue renovado anteriormente");
+        }
 
         LocalDate nuevaFechaInicio;
         try {
@@ -333,15 +336,6 @@ public class ContratoServiceImpl implements ContratoService {
         }
 
         validarSueldoBase(dto.getSueldoBase());
-
-        // Finalizar contrato actual
-        contratoActual.setEstado("FINALIZADO");
-        contratoActual.setMotivoFin("Renovado");
-        contratoActual.setFechaFin(
-                contratoActual.getFechaFin() != null && contratoActual.getFechaFin().isBefore(LocalDate.now())
-                        ? contratoActual.getFechaFin()
-                        : LocalDate.now());
-        contratoRepository.save(contratoActual);
 
         // Crear nuevo contrato heredando datos del anterior
         Contrato nuevoContrato = new Contrato();
@@ -377,6 +371,15 @@ public class ContratoServiceImpl implements ContratoService {
                 nuevoContrato.getContratoTurnos().add(nuevoCt);
             }
         }
+
+        // Finalizar contrato actual
+        contratoActual.setEstado("FINALIZADO");
+        contratoActual.setMotivoFin("Renovado");
+        contratoActual.setFechaFin(
+                contratoActual.getFechaFin() != null && contratoActual.getFechaFin().isBefore(LocalDate.now())
+                        ? contratoActual.getFechaFin()
+                        : LocalDate.now());
+        contratoRepository.save(contratoActual);
 
         nuevoContrato = contratoRepository.save(nuevoContrato);
         return toListadoDto(nuevoContrato);

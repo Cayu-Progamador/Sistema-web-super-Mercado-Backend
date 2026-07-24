@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md bg-teal-1">
     <div class="row items-center justify-between q-mb-md">
-      <div class="text-h4 text-bold text">Gesti&oacute;n de Empleados</div>
+      <div class="text-h4 text-bold text">Gestion de Empleados</div>
     </div>
     <EmpleadoDashboard :key="dashboardKey" />
     <EmpleadoFiltros

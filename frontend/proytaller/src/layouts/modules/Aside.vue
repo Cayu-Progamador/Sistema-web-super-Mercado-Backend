@@ -67,14 +67,14 @@
         <q-item-section class="sidebar-label">Contratos</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/asistencia" class="sidebar-item" active-class="sidebar-item-active">
+      <q-item v-if="tieneAcceso" clickable v-ripple to="/asistencia" class="sidebar-item" active-class="sidebar-item-active">
         <q-item-section avatar>
           <q-icon name="person_pin" class="sidebar-icon" />
         </q-item-section>
         <q-item-section class="sidebar-label">Mi Asistencia</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/asistencia/admin" class="sidebar-item" active-class="sidebar-item-active">
+      <q-item v-if="tieneAcceso" clickable v-ripple to="/asistencia/admin" class="sidebar-item" active-class="sidebar-item-active">
         <q-item-section avatar>
           <q-icon name="admin_panel_settings" class="sidebar-icon" />
         </q-item-section>
@@ -86,12 +86,28 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import LogoSupermercado from '../../components/logo/LogoSupermercado.vue'
+import { tieneAccesoAsistencia } from '../../api/asistencia/asistencia'
 
 defineProps({
   isMini: {
     type: Boolean,
     default: false
+  }
+})
+
+const tieneAcceso = ref(false)
+const esAdmin = ref(false)
+
+onMounted(async () => {
+  try {
+    const res = await tieneAccesoAsistencia()
+    tieneAcceso.value = res.tieneAcceso
+    esAdmin.value = res.esAdmin
+  } catch {
+    tieneAcceso.value = false
+    esAdmin.value = false
   }
 })
 </script>

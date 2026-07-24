@@ -3,7 +3,7 @@
     <q-card style="border-radius:20px; min-width:420px">
       <q-card-section class="q-pb-none">
         <div class="text-h6 text-weight-bold" style="color:#1B5E20">
-          Justificaci&oacute;n de asistencia
+          Justificar inasistencia
         </div>
         <div v-if="empleado" class="text-caption text-grey q-mt-xs">
           {{ empleado.nombreEmpleado }} &middot; {{ empleado.fecha }}
@@ -38,18 +38,7 @@
           stack-label
           rows="4"
         />
-        <q-file
-          v-model="form.documento"
-          label="Documento de respaldo (opcional)"
-          outlined
-          dense
-          stack-label
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-        >
-          <template v-slot:prepend>
-            <q-icon name="cloud_upload" />
-          </template>
-        </q-file>
+
       </q-card-section>
 
       <q-card-actions align="right" class="q-pa-md q-pt-none">
@@ -81,8 +70,7 @@ const visible = ref(false)
 const form = reactive({
   fecha: '',
   tipo: null,
-  motivo: '',
-  documento: null
+  motivo: ''
 })
 
 const tipoOptions = [
@@ -101,7 +89,6 @@ watch(() => props.modelValue, (val) => {
     form.fecha = ''
     form.tipo = null
     form.motivo = ''
-    form.documento = null
   }
 })
 

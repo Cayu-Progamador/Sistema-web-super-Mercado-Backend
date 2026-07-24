@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,6 +22,7 @@ import com.backendSupermercado.supermercasdo.modules.asistencia.dto.AsistenciaRe
 import com.backendSupermercado.supermercasdo.modules.asistencia.entity.Asistencia;
 import com.backendSupermercado.supermercasdo.modules.asistencia.repository.AsistenciaRepository;
 import com.backendSupermercado.supermercasdo.modules.asistencia.service.AsistenciaService;
+import com.backendSupermercado.supermercasdo.shared.util.ReporteAsistenciaUtil;
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.Contrato;
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.ContratoTurno;
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.Turno;
@@ -133,20 +135,64 @@ public class AsistenciaServiceImpl implements AsistenciaService {
         asistencia.setEstado(ESTADO_COMPLETO);
 
         if (asistencia.getHoraEntrada() != null) {
-            long minutos = ChronoUnit.MINUTES.between(asistencia.getHoraEntrada(), ahora);
-            if (minutos > 0) {
-                BigDecimal horas = BigDecimal.valueOf(minutos)
-                        .divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
+            long segundos = ChronoUnit.SECONDS.between(asistencia.getHoraEntrada(), ahora);
+            if (segundos > 0) {
+                BigDecimal horas = BigDecimal.valueOf(segundos)
+                        .divide(BigDecimal.valueOf(3600), 2, java.math.RoundingMode.HALF_UP);
                 asistencia.setHorasTrabajadas(horas);
-            }
 
-            long minutosEsperados = ChronoUnit.MINUTES.between(turno.getHoraEntrada(), horaSalidaEsperada);
-            if (minutos > 0 && minutos > minutosEsperados) {
-                BigDecimal extra = BigDecimal.valueOf(minutos - minutosEsperados)
-                        .divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
-                asistencia.setHorasExtra(extra);
+                long minutosEsperados = ChronoUnit.MINUTES.between(turno.getHoraEntrada(), horaSalidaEsperada);
+                long minutos = segundos / 60;
+                if (minutos > minutosEsperados) {
+                    BigDecimal extra = BigDecimal.valueOf(minutos - minutosEsperados)
+                            .divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
+                    asistencia.setHorasExtra(extra);
+                }
             }
         }
+
+        asistencia = asistenciaRepository.save(asistencia);
+        return toResponseDto(asistencia);
+    }
+
+    @Override
+    @Transactional
+    public AsistenciaResponseDto justificarMiAsistencia(String username, AsistenciaJustificarRequestDto dto) {
+        if (dto.getFecha() == null || dto.getFecha().isBlank()) {
+            throw new IllegalArgumentException("La fecha es obligatoria");
+        }
+
+        LocalDate fecha = LocalDate.parse(dto.getFecha());
+        LocalDate hoy = LocalDate.now();
+
+        if (!fecha.isBefore(hoy)) {
+            throw new IllegalStateException("No puedes justificar el día de hoy. La justificación es solo para días anteriores.");
+        }
+
+        if (fecha.isBefore(hoy.minusDays(7))) {
+            throw new IllegalStateException("No puedes justificar días con más de 7 días de antigüedad.");
+        }
+
+        if (dto.getMotivo() == null || dto.getMotivo().isBlank()) {
+            throw new IllegalArgumentException("El motivo es obligatorio");
+        }
+
+        Contrato contrato = obtenerContratoActivo(username);
+
+        Asistencia asistencia = asistenciaRepository
+                .findByContratoIdAndFecha(contrato.getId(), fecha)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No hay registro de asistencia para el día " + fecha + ". No puedes justificar un día sin falta registrada."));
+
+        if (ESTADO_JUSTIFICADO.equals(asistencia.getEstado())) {
+            throw new IllegalStateException("Esta fecha ya está justificada");
+        }
+
+        validarJustificacion(asistencia, "No puedes justificar un día en el que marcaste entrada.");
+
+        asistencia.setEstado(ESTADO_JUSTIFICADO);
+        asistencia.setTipoJustificacion(dto.getTipoJustificacion());
+        asistencia.setMotivoJustificacion(dto.getMotivo());
 
         asistencia = asistenciaRepository.save(asistencia);
         return toResponseDto(asistencia);
@@ -162,9 +208,7 @@ public class AsistenciaServiceImpl implements AsistenciaService {
             throw new IllegalStateException("Esta asistencia ya está justificada");
         }
 
-        if (ESTADO_COMPLETO.equals(asistencia.getEstado())) {
-            throw new IllegalStateException("No puedes justificar una jornada completada");
-        }
+        validarJustificacion(asistencia, "No puedes justificar un registro que tiene entrada marcada.");
 
         asistencia.setEstado(ESTADO_JUSTIFICADO);
         asistencia.setTipoJustificacion(dto.getTipoJustificacion());
@@ -177,7 +221,11 @@ public class AsistenciaServiceImpl implements AsistenciaService {
     @Override
     @Transactional
     public long ejecutarCierreDiario() {
-        LocalDate hoy = LocalDate.now();
+        return ejecutarCierreDiario(LocalDate.now());
+    }
+
+    @Transactional
+    public synchronized long ejecutarCierreDiario(LocalDate fecha) {
         List<Contrato> contratosActivos = contratoRepository.findAllWithControlAsistencia();
 
         long marcados = 0;
@@ -189,20 +237,25 @@ public class AsistenciaServiceImpl implements AsistenciaService {
             }
 
             boolean yaTieneRegistro = asistenciaRepository
-                    .findByContratoIdAndFecha(contrato.getId(), hoy)
+                    .findByContratoIdAndFecha(contrato.getId(), fecha)
                     .isPresent();
 
             if (!yaTieneRegistro) {
-                Asistencia falta = new Asistencia();
-                falta.setContrato(contrato);
-                falta.setFecha(hoy);
-                falta.setEstado(ESTADO_FALTA);
-                asistenciaRepository.save(falta);
-                marcados++;
+                try {
+                    Asistencia falta = new Asistencia();
+                    falta.setContrato(contrato);
+                    falta.setFecha(fecha);
+                    falta.setEstado(ESTADO_FALTA);
+                    asistenciaRepository.save(falta);
+                    marcados++;
+                } catch (DataIntegrityViolationException e) {
+                    log.warn("Cierre diario: registro duplicado omitido para contrato {} en fecha {}",
+                            contrato.getId(), fecha);
+                }
             }
         }
 
-        log.info("Cierre diario ejecutado: {} registros de FALTA creados para el día {}", marcados, hoy);
+        log.info("Cierre diario ejecutado: {} registros de FALTA creados para el día {}", marcados, fecha);
         return marcados;
     }
 
@@ -256,6 +309,39 @@ public class AsistenciaServiceImpl implements AsistenciaService {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean tieneAccesoAsistencia(String username) {
+        try {
+            obtenerContratoActivo(username);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] descargarReporteSemanal(String username, String fechaDesde, String fechaHasta) {
+        Contrato contrato = obtenerContratoActivo(username);
+        Empleado empleado = contrato.getEmpleado();
+
+        String nombreEmpleado = empleado.getPersona() != null
+                ? String.format("%s %s %s",
+                        empleado.getPersona().getNombres(),
+                        empleado.getPersona().getApellidoPaterno(),
+                        empleado.getPersona().getApellidoMaterno())
+                        .trim().replaceAll("\\s+", " ")
+                : "";
+
+        LocalDate desde = fechaDesde != null ? LocalDate.parse(fechaDesde) : LocalDate.now().minusDays(6);
+        LocalDate hasta = fechaHasta != null ? LocalDate.parse(fechaHasta) : LocalDate.now();
+
+        List<AsistenciaResponseDto> registros = listarMisAsistencias(username, fechaDesde != null ? fechaDesde : desde.toString(), fechaHasta != null ? fechaHasta : hasta.toString());
+
+        return ReporteAsistenciaUtil.generarPdf(registros, nombreEmpleado, desde, hasta, username);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public AsistenciaResumenDto obtenerMiResumen(String username, int anio, int mes) {
         Contrato contrato = obtenerContratoActivo(username);
 
@@ -265,15 +351,56 @@ public class AsistenciaServiceImpl implements AsistenciaService {
         long asistencias = asistenciaRepository.countAsistenciasDelMes(contrato.getId(), inicioMes, finMes);
         long tardanzas = asistenciaRepository.countTardanzasDelMes(contrato.getId(), inicioMes, finMes);
         long faltas = asistenciaRepository.countFaltasDelMes(contrato.getId(), inicioMes, finMes);
-        long total = asistencias + faltas;
+        long justificados = asistenciaRepository.countJustificadosDelMes(contrato.getId(), inicioMes, finMes);
+        long total = asistencias + faltas + justificados;
         double porcentaje = total > 0 ? ((double) (asistencias - tardanzas) / total) * 100 : 0;
-        return new AsistenciaResumenDto(asistencias, tardanzas, faltas, Math.round(porcentaje * 100.0) / 100.0);
+        return new AsistenciaResumenDto(asistencias, tardanzas, faltas, Math.round(porcentaje * 100.0) / 100.0, justificados);
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 1 * * *")
     @Transactional
     public void cierreDiarioAutomatico() {
-        ejecutarCierreDiario();
+        LocalDate ayer = LocalDate.now().minusDays(1);
+        ejecutarCierreDiario(ayer);
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @Transactional
+    public void marcarSalidaAutomatica() {
+        LocalDate hoy = LocalDate.now();
+        LocalTime ahora = LocalTime.now();
+        List<Contrato> contratosActivos = contratoRepository.findAllWithControlAsistencia();
+
+        for (Contrato contrato : contratosActivos) {
+            Optional<Turno> turnoOpt = obtenerTurnoDelDia(contrato);
+            if (turnoOpt.isEmpty()) continue;
+
+            Turno turno = turnoOpt.get();
+            LocalTime horaSalida = turno.getHoraSalida();
+
+            if (ahora.isBefore(horaSalida.plusMinutes(30))) continue;
+
+            Optional<Asistencia> asistenciaOpt = asistenciaRepository
+                    .findByContratoIdAndFecha(contrato.getId(), hoy);
+
+            if (asistenciaOpt.isEmpty()) continue;
+
+            Asistencia asistencia = asistenciaOpt.get();
+
+            if (asistencia.getHoraEntrada() != null && asistencia.getHoraSalida() == null) {
+                asistencia.setHoraSalida(horaSalida);
+                asistencia.setEstado(ESTADO_COMPLETO);
+
+                long segundos = ChronoUnit.SECONDS.between(asistencia.getHoraEntrada(), horaSalida);
+                if (segundos > 0) {
+                    BigDecimal horas = BigDecimal.valueOf(segundos)
+                            .divide(BigDecimal.valueOf(3600), 2, java.math.RoundingMode.HALF_UP);
+                    asistencia.setHorasTrabajadas(horas);
+                }
+
+                asistenciaRepository.save(asistencia);
+            }
+        }
     }
 
     private Optional<Turno> obtenerTurnoDelDia(Contrato contrato) {
@@ -294,6 +421,12 @@ public class AsistenciaServiceImpl implements AsistenciaService {
             case SATURDAY -> Boolean.TRUE.equals(ct.getSabado());
             case SUNDAY -> Boolean.TRUE.equals(ct.getDomingo());
         };
+    }
+
+    private void validarJustificacion(Asistencia asistencia, String mensajeError) {
+        if (asistencia.getHoraEntrada() != null && !ESTADO_FALTA.equals(asistencia.getEstado())) {
+            throw new IllegalStateException(mensajeError);
+        }
     }
 
     private int obtenerTolerancia(Contrato contrato, Turno turno) {

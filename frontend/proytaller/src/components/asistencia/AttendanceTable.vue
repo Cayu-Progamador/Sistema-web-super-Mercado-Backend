@@ -27,33 +27,27 @@
         </q-td>
       </template>
 
-      <template v-slot:body-cell-departamento="props">
-        <q-td :props="props" style="font-size:0.85rem">
-          {{ props.row.departamento || '--' }}
-        </q-td>
-      </template>
-
       <template v-slot:body-cell-turno="props">
         <q-td :props="props" style="font-size:0.85rem">
-          {{ props.row.turno || '--' }}
+          {{ props.row.turnoNombre || '--' }}
         </q-td>
       </template>
 
       <template v-slot:body-cell-horaEntrada="props">
         <q-td :props="props">
-          <span class="text-weight-medium">{{ props.row.horaEntrada || '--' }}</span>
+          <span class="text-weight-medium">{{ formatearHoraAMPM(props.row.horaEntrada) || '--' }}</span>
         </q-td>
       </template>
 
       <template v-slot:body-cell-horaSalida="props">
         <q-td :props="props">
-          <span class="text-weight-medium">{{ props.row.horaSalida || '--' }}</span>
+          <span class="text-weight-medium">{{ formatearHoraAMPM(props.row.horaSalida) || '--' }}</span>
         </q-td>
       </template>
 
       <template v-slot:body-cell-horasTrabajadas="props">
         <q-td :props="props">
-          <span>{{ props.row.horasTrabajadas || '--' }}</span>
+          <span>{{ props.row.horasTrabajadas ? props.row.horasTrabajadas + 'h' : '--' }}</span>
         </q-td>
       </template>
 
@@ -79,13 +73,13 @@
       <template v-slot:body-cell-acciones="props">
         <q-td :props="props">
           <div class="row no-wrap justify-center q-gutter-xs">
-            <q-btn flat round dense icon="visibility" size="sm" color="primary" @click="$emit('ver-detalle', props.row)">
+            <q-btn flat round dense icon="visibility" size="md" color="teal-9" @click="$emit('ver-detalle', props.row)">
               <q-tooltip>Ver detalle</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="fact_check" size="sm" color="orange" @click="$emit('justificar', props.row)">
+            <q-btn flat round dense icon="fact_check" size="md" color="orange-8" @click="$emit('justificar', props.row)">
               <q-tooltip>Justificar</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="more_vert" size="sm" color="grey">
+            <q-btn flat round dense icon="more_vert" size="md" color="light-green-6">
               <q-tooltip>M&aacute;s acciones</q-tooltip>
             </q-btn>
           </div>
@@ -104,6 +98,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { formatearHoraAMPM } from '../../util/formatearHora'
 
 defineProps({
   rows: { type: Array, default: () => [] },
@@ -115,13 +110,11 @@ defineEmits(['ver-detalle', 'justificar', 'request'])
 
 const columns = [
   { name: 'empleado', label: 'Empleado', align: 'left', field: 'nombreEmpleado', sortable: true },
-  { name: 'departamento', label: 'Departamento', align: 'left', field: 'departamento', sortable: true },
-  { name: 'turno', label: 'Turno', align: 'center', field: 'turno', sortable: true },
+  { name: 'turno', label: 'Turno', align: 'center', field: 'turnoNombre', sortable: true },
   { name: 'horaEntrada', label: 'Hora Entrada', align: 'center', field: 'horaEntrada', sortable: true },
   { name: 'horaSalida', label: 'Hora Salida', align: 'center', field: 'horaSalida', sortable: true },
   { name: 'horasTrabajadas', label: 'Horas Trab.', align: 'center', field: 'horasTrabajadas' },
   { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true },
-  { name: 'observaciones', label: 'Observaciones', align: 'left', field: 'observacion' },
   { name: 'acciones', label: 'Acciones', align: 'center' }
 ]
 
@@ -151,3 +144,42 @@ function onRequest(requestProps) {
   emit('request', requestProps)
 }
 </script>
+
+<style scoped>
+.admin-table :deep(.q-table__card) {
+  border-radius: 16px;
+  border: 2px solid #006051;
+  font-family: 'Nunito', sans-serif;
+}
+
+.admin-table :deep(.q-table__top) {
+  padding: 0;
+}
+
+.admin-table :deep(thead th) {
+  font-weight: 700;
+  color: #006051;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.admin-table :deep(tbody tr:nth-child(even)) {
+  background: #f0faf8;
+}
+
+.admin-table :deep(tbody tr:hover) {
+  background: #e0f5f0;
+}
+
+.admin-table :deep(td) {
+  font-size: 0.9rem;
+  font-family: 'Nunito', sans-serif;
+  color: #333;
+}
+
+.admin-table :deep(.q-table__bottom) {
+  font-family: 'Nunito', sans-serif;
+}
+</style>

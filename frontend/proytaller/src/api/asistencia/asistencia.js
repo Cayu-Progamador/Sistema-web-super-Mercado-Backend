@@ -33,7 +33,7 @@ export function obtenerMiResumen(params) {
 
 export function listarAsistenciasAdmin(params) {
   return request({
-    url: '/api/asistencias/listar',
+    url: '/api/asistencias/admin/listar',
     method: 'get',
     params
   })
@@ -59,5 +59,36 @@ export function justificarAsistenciaAdmin(idAsistencia, data) {
     url: `/api/asistencias/${idAsistencia}/justificar`,
     method: 'put',
     data
+  })
+}
+
+export function justificarMiAsistencia(data) {
+  return request({
+    url: '/api/asistencias/justificar',
+    method: 'post',
+    data
+  })
+}
+
+export function tieneAccesoAsistencia() {
+  return request({
+    url: '/api/asistencias/tiene-acceso',
+    method: 'get'
+  })
+}
+
+export function obtenerFiltrosAsistencia() {
+  return request({
+    url: '/api/asistencias/admin/filtros',
+    method: 'get'
+  })
+}
+
+export function descargarReporteSemanal(params) {
+  return request({
+    url: '/api/asistencias/descargar-reporte',
+    method: 'get',
+    params,
+    responseType: 'blob'
   })
 }

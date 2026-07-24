@@ -81,7 +81,9 @@ import {
   marcarAsistencia,
   obtenerAsistenciaHoy,
   listarMisAsistencias,
-  obtenerMiResumen
+  obtenerMiResumen,
+  justificarMiAsistencia,
+  descargarReporteSemanal
 } from '../../api/asistencia/asistencia'
 import { formatearHoraAMPM } from '../../util/formatearHora'
 import ClockCard from '../../components/asistencia/ClockCard.vue'
@@ -96,6 +98,7 @@ const store = useAuthStore()
 const horaActual = ref('')
 const fechaFormateada = ref('')
 let intervalId = null
+let refreshIntervalId = null
 
 const hoyBackend = ref(null)
 const resumen = ref({ asistencias: 0, tardanzas: 0, faltas: 0, puntualidad: 0 })
@@ -106,7 +109,12 @@ const mostrarDialogJustificar = ref(false)
 const mostrarDialogPermiso = ref(false)
 
 const nombreEmpleado = computed(() => store.fullName || 'Empleado')
-const codigoEmpleado = computed(() => 'EMP-001')
+const codigoEmpleado = computed(() => {
+  if (hoyBackend.value?.idEmpleado) return `EMP-${String(hoyBackend.value.idEmpleado).padStart(3, '0')}`
+  const username = store.getUsername
+  if (username) return `EMP-${username.toUpperCase()}`
+  return 'EMP-???'
+})
 const cargoEmpleado = computed(() => store.userInfo?.cargo || '')
 const fotoUrl = computed(() => store.userInfo?.fotoUrl || '')
 const horaEntradaHoy = computed(() => hoyBackend.value?.horaEntrada || null)
@@ -174,7 +182,7 @@ function obtenerSemanaActual() {
   const lunes = new Date(hoy.setDate(diff))
   const domingo = new Date(new Date(lunes).setDate(lunes.getDate() + 6))
   const fmt = d => d.toISOString().split('T')[0]
-  return { desde: fmt(lunes), hasta: fmt(domingo) }
+  return { fechaDesde: fmt(lunes), fechaHasta: fmt(domingo) }
 }
 
 async function cargarDatos() {
@@ -222,26 +230,60 @@ async function onMarcar(tipo) {
   }
 }
 
-function onJustificar(data) {
-  $q.notify({ type: 'positive', message: 'Justificación enviada correctamente' })
+async function onJustificar(data) {
+  try {
+    await justificarMiAsistencia({
+      fecha: data.fecha,
+      tipoJustificacion: data.tipoJustificacion,
+      motivo: data.motivo
+    })
+    $q.notify({ type: 'positive', message: 'Justificación enviada correctamente' })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: e.response?.data?.message || e.message || 'Error al justificar'
+    })
+  }
 }
 
 function onSolicitarPermiso(data) {
   $q.notify({ type: 'positive', message: 'Solicitud de permiso enviada correctamente' })
 }
 
-function descargarReporte() {
-  $q.notify({ type: 'info', message: 'Funcionalidad de descarga en desarrollo' })
+async function descargarReporte() {
+  try {
+    const semana = obtenerSemanaActual()
+    const blob = await descargarReporteSemanal({
+      fechaDesde: semana.fechaDesde,
+      fechaHasta: semana.fechaHasta
+    })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'reporte-asistencia-semanal.pdf')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    $q.notify({ type: 'positive', message: 'Reporte descargado correctamente' })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al descargar el reporte'
+    })
+  }
 }
 
 onMounted(() => {
   actualizarHora()
   intervalId = setInterval(actualizarHora, 1000)
   cargarDatos()
+  refreshIntervalId = setInterval(cargarDatos, 30000)
 })
 
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
+  if (refreshIntervalId) clearInterval(refreshIntervalId)
 })
 </script>
 

@@ -58,9 +58,9 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long>, JpaSp
             SELECT ct.empleado.idEmpleado FROM Contrato ct WHERE ct.estado = 'ACTIVO'
         )
         AND (:busqueda IS NULL
-             OR LOWER(p.nombres) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-             OR LOWER(p.apellidoPaterno) LIKE LOWER(CONCAT('%', :busqueda, '%'))
-             OR LOWER(p.apellidoMaterno) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(CAST(p.nombres AS text)) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(CAST(p.apellidoPaterno AS text)) LIKE LOWER(CONCAT('%', :busqueda, '%'))
+             OR LOWER(CAST(p.apellidoMaterno AS text)) LIKE LOWER(CONCAT('%', :busqueda, '%'))
              OR LOWER(p.ci) LIKE LOWER(CONCAT('%', :busqueda, '%')))
         ORDER BY p.nombres ASC
     """)
