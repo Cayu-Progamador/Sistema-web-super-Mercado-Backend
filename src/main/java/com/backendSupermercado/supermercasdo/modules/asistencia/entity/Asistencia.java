@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.Contrato;
+import com.backendSupermercado.supermercasdo.modules.permiso_personal.entity.SolicitudPermiso;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -66,4 +67,8 @@ public class Asistencia {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_contrato", nullable = false)
     private Contrato contrato;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_solicitud_permiso")
+    private SolicitudPermiso solicitudPermiso;
 }

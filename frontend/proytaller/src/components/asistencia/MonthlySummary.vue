@@ -34,7 +34,8 @@ const props = defineProps({
   asistencias: { type: Number, default: 0 },
   tardanzas: { type: Number, default: 0 },
   faltas: { type: Number, default: 0 },
-  puntualidad: { type: Number, default: 0 }
+  puntualidad: { type: Number, default: 0 },
+  permisos: { type: Number, default: 0 }
 })
 
 const cards = computed(() => [

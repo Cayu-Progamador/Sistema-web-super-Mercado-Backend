@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.ActualizarPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioFiltrosDto;
@@ -19,6 +20,9 @@ public interface UsuarioService{
 
     //cambiar contrasena del usuario logueado
     public void changePassword(CambiarPasswordrequestDto request);
+
+    //actualizar correo y telefono del usuario logueado
+    public void actualizarMiPerfil(ActualizarPerfilDto dto);
     
     //listar usuarios
     Page<UsuarioListadoResponseDto> listarUsuarios(Pageable pageable);

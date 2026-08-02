@@ -36,6 +36,7 @@ import com.backendSupermercado.supermercasdo.modules.empleado.repository.SexoRep
 import com.backendSupermercado.supermercasdo.modules.empleado.service.EmpleadoService;
 import com.backendSupermercado.supermercasdo.shared.specification.EmpleadoSpecification;
 import com.backendSupermercado.supermercasdo.shared.util.ReporteEmpleadoUtil;
+import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +95,8 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     @Override
     @Transactional
     public EmpleadoResponseDto crearEmpleado(EmpleadoRequestDto dto) {
+        validarUnicidad(null, dto);
+
         Sexo sexo = sexoRepository.findById(dto.getIdSexo())
                 .orElseThrow(() -> new EntityNotFoundException("Sexo no encontrado"));
 
@@ -145,6 +148,8 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         if (persona == null) {
             throw new EntityNotFoundException("Persona no encontrada para el empleado");
         }
+
+        validarUnicidad(persona.getIdPersona(), dto);
 
         Sexo sexo = sexoRepository.findById(dto.getIdSexo())
                 .orElseThrow(() -> new EntityNotFoundException("Sexo no encontrado"));
@@ -262,6 +267,38 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     public byte[] exportarEmpleadoDetallePDF(Long id, String username) {
         EmpleadoResponseDto detalle = obtenerEmpleado(id);
         return ReporteEmpleadoUtil.generarPdfDetalle(detalle, username);
+    }
+
+    private void validarUnicidad(Long idPersonaExcluida, EmpleadoRequestDto dto) {
+        if (dto.getCi() != null && !dto.getCi().isBlank()) {
+            boolean existeCi = idPersonaExcluida == null
+                    ? personaRepository.existsByCi(dto.getCi())
+                    : personaRepository.existsByCiAndIdPersonaNot(dto.getCi(), idPersonaExcluida);
+            if (existeCi) {
+                throw new ResourceConflictException(
+                        "El CI " + dto.getCi() + " ya está registrado para otro empleado");
+            }
+        }
+
+        if (dto.getTelefono() != null && !dto.getTelefono().isBlank()) {
+            boolean existeTelefono = idPersonaExcluida == null
+                    ? contactoRepository.existsByTelefono(dto.getTelefono())
+                    : contactoRepository.existsByTelefonoAndPersona_IdPersonaNot(dto.getTelefono(), idPersonaExcluida);
+            if (existeTelefono) {
+                throw new ResourceConflictException(
+                        "El teléfono " + dto.getTelefono() + " ya está registrado para otro empleado");
+            }
+        }
+
+        if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
+            boolean existeCorreo = idPersonaExcluida == null
+                    ? contactoRepository.existsByCorreo(dto.getCorreo())
+                    : contactoRepository.existsByCorreoAndPersona_IdPersonaNot(dto.getCorreo(), idPersonaExcluida);
+            if (existeCorreo) {
+                throw new ResourceConflictException(
+                        "El correo " + dto.getCorreo() + " ya está registrado para otro empleado");
+            }
+        }
     }
 
     private Ciudad resolverUbicacion(EmpleadoRequestDto dto) {

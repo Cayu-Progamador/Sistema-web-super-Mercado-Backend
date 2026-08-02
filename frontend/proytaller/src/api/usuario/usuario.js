@@ -8,6 +8,15 @@ export function getUserList() {
     })
 }
 
+//actualizar correo y telefono del usuario logueado
+export function actualizarMiPerfil(data) {
+    return request({
+        url: '/api/usuarios/perfil',
+        method: 'put',
+        data
+    })
+}
+
 //registrar un nuevo usuario
 export function registrarUsuario(data) {
     return request({

@@ -32,6 +32,10 @@
     <q-btn outline no-caps icon="refresh" color="light-green-6" size="md" class="toolbar-btn" @click="$emit('actualizar')">
       <q-tooltip>Actualizar</q-tooltip>
     </q-btn>
+    <q-btn outline no-caps icon="person_off" color="green-8" size="md" class="toolbar-btn" @click="$emit('ver-ausentes')">
+      Ver ausentes
+      <q-tooltip>Empleados que no marcaron</q-tooltip>
+    </q-btn>
     <q-btn
       flat no-caps
       :icon="filtrosVisibles ? 'expand_less' : 'filter_list'"
@@ -52,7 +56,7 @@ const props = defineProps({
   filtrosVisibles: { type: Boolean, default: false }
 })
 
-defineEmits(['cambiar-fecha', 'ir-hoy', 'buscar', 'exportar-pdf', 'exportar-excel', 'actualizar', 'toggle-filtros'])
+defineEmits(['cambiar-fecha', 'ir-hoy', 'buscar', 'exportar-pdf', 'exportar-excel', 'actualizar', 'toggle-filtros', 'ver-ausentes'])
 
 const busquedaLocal = ref('')
 </script>

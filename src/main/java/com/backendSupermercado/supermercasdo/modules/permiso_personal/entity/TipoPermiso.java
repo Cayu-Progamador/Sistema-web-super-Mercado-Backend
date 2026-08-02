@@ -1,4 +1,4 @@
-package com.backendSupermercado.supermercasdo.modules.contrato.entity;
+package com.backendSupermercado.supermercasdo.modules.permiso_personal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -15,4 +15,5 @@ public class AsistenciaResumenDto {
     private long faltas;
     private double puntualidad;
     private long justificados;
+    private long permisos;
 }

@@ -1,0 +1,63 @@
+.pv-page {
+  padding: 20px;
+  background: #F5F7FA;
+  min-height: 100vh;
+}
+
+.pv-header {
+  margin-bottom: 16px;
+}
+
+.pv-header-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #E8F5E9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pv-title {
+  font-family: 'DM Sans', 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: #16231c;
+  line-height: 1.2;
+}
+
+.pv-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  color: #7a8a80;
+  margin-top: 2px;
+}
+
+.pv-breadcrumbs {
+  font-family: 'Nunito', sans-serif;
+  font-size: 12.5px;
+}
+
+.pv-bread-actual {
+  font-weight: 800;
+  color: #2E7D32;
+}
+
+.pv-toolbar {
+  background: #ffffff;
+  border: 1px solid #e6ebf1;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.pv-search {
+  width: 320px;
+}
+
+.pv-filters {
+  background: #ffffff;
+  border: 1px solid #e6ebf1;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}

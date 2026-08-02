@@ -55,7 +55,7 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long>, JpaSp
         JOIN e.persona p
         WHERE e.estado = true
         AND e.idEmpleado NOT IN (
-            SELECT ct.empleado.idEmpleado FROM Contrato ct WHERE ct.estado = 'ACTIVO'
+            SELECT ct.empleado.idEmpleado FROM Contrato ct
         )
         AND (:busqueda IS NULL
              OR LOWER(CAST(p.nombres AS text)) LIKE LOWER(CONCAT('%', :busqueda, '%'))

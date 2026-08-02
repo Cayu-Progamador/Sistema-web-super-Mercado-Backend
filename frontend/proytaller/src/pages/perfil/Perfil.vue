@@ -61,7 +61,6 @@
               </div>
               <div>
                 <div class="profile-name">{{ perfil.nombres }} {{ perfil.apellidos }}</div>
-                <div class="profile-role">{{ perfil.cargo }}</div>
                 <div class="profile-badge" v-if="perfil.rol">
                   <q-icon name="verified_user" size="12px" />
                   {{ perfil.rol }}
@@ -80,6 +79,22 @@
                 <q-input v-model="perfil.apellidos" outlined dense class="field-input" bg-color="white" readonly />
               </div>
               <div class="field-group">
+                <label class="field-lbl">CI</label>
+                <q-input v-model="perfil.ci" outlined dense class="field-input" bg-color="white" readonly>
+                  <template #prepend>
+                    <q-icon name="badge" class="input-icon" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="field-group">
+                <label class="field-lbl">Sexo</label>
+                <q-input v-model="perfil.sexo" outlined dense class="field-input" bg-color="white" readonly>
+                  <template #prepend>
+                    <q-icon name="wc" class="input-icon" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="field-group">
                 <label class="field-lbl">Correo Electrónico</label>
                 <q-input v-model="perfil.correo" outlined dense class="field-input" bg-color="white">
                   <template #prepend>
@@ -89,7 +104,7 @@
               </div>
               <div class="field-group">
                 <label class="field-lbl">Teléfono</label>
-                <q-input v-model="perfil.telefono" outlined dense class="field-input" bg-color="white" readonly>
+                <q-input v-model="perfil.telefono" outlined dense class="field-input" bg-color="white">
                   <template #prepend>
                     <q-icon name="phone" class="input-icon" />
                   </template>
@@ -111,9 +126,17 @@
                   </template>
                 </q-input>
               </div>
+              <div class="field-group">
+                <label class="field-lbl">Fecha de Contratación</label>
+                <q-input :model-value="formatearFecha(perfil.fechaContratacion)" outlined dense class="field-input" bg-color="white" readonly>
+                  <template #prepend>
+                    <q-icon name="handshake" class="input-icon" />
+                  </template>
+                </q-input>
+              </div>
               <div class="field-group field-full">
                 <label class="field-lbl">Dirección</label>
-                <q-input v-model="perfil.direccion" outlined dense class="field-input" bg-color="white">
+                <q-input v-model="perfil.direccion" outlined dense class="field-input" bg-color="white" readonly>
                   <template #prepend>
                     <q-icon name="place" class="input-icon" />
                   </template>
@@ -168,7 +191,7 @@
                 </div>
                 <span class="resumen-label">Rol Actual</span>
               </div>
-              <span class="badge-admin">ADMIN</span>
+                <span class="badge-admin">{{ perfil.rol }}</span>
             </div>
 
             <div class="resumen-row">
@@ -178,31 +201,12 @@
                 </div>
                 <span class="resumen-label">Estado</span>
               </div>
-              <span class="badge-activo">
-                <span class="dot-activo"></span>
-                Activo
+              <span :class="perfil.activo ? 'badge-activo' : 'badge-inactivo'">
+                <span :class="perfil.activo ? 'dot-activo' : 'dot-inactivo'"></span>
+                {{ perfil.activo ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
 
-            <div class="resumen-row">
-              <div class="resumen-left">
-                <div class="resumen-icon ri-blue">
-                  <q-icon name="computer" size="16px" style="color:#185fa5" />
-                </div>
-                <span class="resumen-label">Sesiones Activas</span>
-              </div>
-              <span class="resumen-val">1</span>
-            </div>
-
-            <div class="resumen-row" style="border-bottom:none">
-              <div class="resumen-left">
-                <div class="resumen-icon ri-orange">
-                  <q-icon name="place" size="16px" style="color:#d97b1a" />
-                </div>
-                <span class="resumen-label">IP Actual</span>
-              </div>
-              <span class="resumen-val" style="font-size:11.5px">192.168.1.100</span>
-            </div>
           </q-card>
 
           <!-- ESTADÍSTICAS -->
@@ -217,28 +221,28 @@
                 <div class="stat-icon ri-green">
                   <q-icon name="login" size="15px" style="color:#4a8c25" />
                 </div>
-                <div class="stat-num">45</div>
+                <div class="stat-num">{{ perfil.totalIniciosSesion ?? '0' }}</div>
                 <div class="stat-lbl">Total Inicios de Sesión</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon ri-teal">
                   <q-icon name="date_range" size="15px" style="color:#0f6e56" />
                 </div>
-                <div class="stat-num">12</div>
+                <div class="stat-num">{{ perfil.iniciosUltimos7Dias ?? '0' }}</div>
                 <div class="stat-lbl">Últimos 7 días</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon ri-orange">
                   <q-icon name="calendar_month" size="15px" style="color:#d97b1a" />
                 </div>
-                <div class="stat-num">38</div>
+                <div class="stat-num">{{ perfil.iniciosUltimos30Dias ?? '0' }}</div>
                 <div class="stat-lbl">Últimos 30 días</div>
               </div>
               <div class="stat-card">
                 <div class="stat-icon ri-green">
                   <q-icon name="person_add" size="15px" style="color:#4a8c25" />
                 </div>
-                <div class="stat-num" style="font-size:13px">15/01/2024</div>
+                <div class="stat-num" style="font-size:13px">{{ formatearFecha(perfil.fechaRegistro) }}</div>
                 <div class="stat-lbl">Cuenta Creada</div>
               </div>
             </div>
@@ -255,7 +259,7 @@ import CambiarFotoPerfil from '../../components/perfil/CambiarFotoPerfil.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '../../store/store'
-import { getUserList } from '../../api/usuario/usuario'
+import { getUserList, actualizarMiPerfil } from '../../api/usuario/usuario'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -271,16 +275,31 @@ const tabs = [
 const perfil = ref({
   nombres: '',
   apellidos: '',
+  ci: '',
+  sexo: '',
   correo: '',
   telefono: '',
   usuario: '',
   cargo: '',
+  fechaContratacion: '',
   direccion: '',
   fechaRegistro: '',
   ultimoAcceso: '',
   fotoUrl: '',
-  rol: ''
+  rol: '',
+  activo: true,
+  totalIniciosSesion: 0,
+  iniciosUltimos7Dias: 0,
+  iniciosUltimos30Dias: 0
 })
+
+function formatearFecha(fecha) {
+  if (!fecha) return ''
+  if (fecha.includes('T')) fecha = fecha.split('T')[0]
+  const [y, m, d] = fecha.split('-')
+  if (!y || !m || !d) return fecha
+  return `${d}/${m}/${y}`
+}
 
 const iniciales = computed(() => {
   const nombre = perfil.value.nombres || ''
@@ -299,13 +318,26 @@ const onFotoActualizada = (urlFoto) => {
 const cargarPerfil = async () => {
   try {
     const data = await getUserList()
+    console.log('PERFIL API:', data)
     perfil.value.usuario = data.username || ''
     const nombreCompleto = data.nombreEmpleado || ''
     const partes = nombreCompleto.split(' ')
     perfil.value.nombres = partes.slice(0, -2).join(' ') || partes[0] || ''
     perfil.value.apellidos = partes.slice(-2).join(' ') || ''
-    perfil.value.cargo = (data.roles && data.roles.length > 0) ? data.roles[0] : ''
-    perfil.value.rol = (data.roles && data.roles.length > 0) ? data.roles[0] : ''
+    perfil.value.ci = data.ci || ''
+    perfil.value.sexo = data.sexo || ''
+    perfil.value.fechaContratacion = data.fechaContratacion || ''
+    perfil.value.fechaRegistro = formatearFecha(data.fechaRegistro)
+    perfil.value.ultimoAcceso = formatearFecha(data.ultimoAcceso)
+    perfil.value.activo = data.activo !== undefined ? data.activo : true
+    perfil.value.totalIniciosSesion = data.totalIniciosSesion ?? 0
+    perfil.value.iniciosUltimos7Dias = data.iniciosUltimos7Dias ?? 0
+    perfil.value.iniciosUltimos30Dias = data.iniciosUltimos30Dias ?? 0
+    perfil.value.correo = data.correo || ''
+    perfil.value.telefono = data.telefono || ''
+    perfil.value.direccion = data.direccion || ''
+    perfil.value.cargo = data.cargo || ''
+    perfil.value.rol = (data.roles && data.roles.length > 0) ? data.roles[0].replace('ROLE_', '') : ''
     perfil.value.fotoUrl = data.fotoUrl ? `${import.meta.env.VITE_API_URL}${data.fotoUrl}` : ''
 
     if (data.fotoUrl) {
@@ -341,9 +373,20 @@ const actividad = ref([
 
 const guardarCambios = async () => {
   guardando.value = true
-  await new Promise(r => setTimeout(r, 1200))
-  guardando.value = false
-  $q.notify({ type: 'positive', message: 'Perfil actualizado correctamente' })
+  try {
+    await actualizarMiPerfil({
+      correo: perfil.value.correo,
+      telefono: perfil.value.telefono
+    })
+    $q.notify({ type: 'positive', message: 'Perfil actualizado correctamente' })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: e.response?.data?.message || 'Error al actualizar el perfil'
+    })
+  } finally {
+    guardando.value = false
+  }
 }
 
 

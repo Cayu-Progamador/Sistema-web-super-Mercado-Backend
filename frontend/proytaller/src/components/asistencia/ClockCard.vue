@@ -39,24 +39,29 @@
 
     <q-separator dark class="q-my-md" style="opacity:0.15" />
 
-    <div class="text-center q-mb-md" v-if="!errorMessage">
+    <div v-if="permisoActivo" class="q-mb-md q-pa-sm bg-green-7 text-white text-center rounded-borders" style="border-radius:8px; font-size:0.85rem">
+      <q-icon name="beach_access" class="q-mr-xs" />
+      Tienes un permiso aprobado hoy — <strong>{{ permisoActivo.nombreTipo }}</strong>
+    </div>
+
+    <div class="text-center q-mb-md" v-else-if="!errorMessage">
       <span class="status-badge" :style="{ background: estadoColor }">
         <q-icon :name="estadoIcono" />
         {{ estadoTexto }}
       </span>
     </div>
 
-    <div v-if="errorMessage" class="q-mb-md q-pa-sm bg-red-7 text-white text-center rounded-borders" style="border-radius:8px; font-size:0.85rem">
+    <div v-else-if="errorMessage && !permisoActivo" class="q-mb-md q-pa-sm bg-red-7 text-white text-center rounded-borders" style="border-radius:8px; font-size:0.85rem">
       <q-icon name="warning" class="q-mr-xs" />
       {{ errorMessage }}
     </div>
 
-    <div v-else-if="sinTurnoHoy" class="q-mb-md q-pa-sm bg-orange-8 text-white text-center rounded-borders" style="border-radius:8px; font-size:0.85rem">
+    <div v-else-if="sinTurnoHoy && !permisoActivo" class="q-mb-md q-pa-sm bg-orange-8 text-white text-center rounded-borders" style="border-radius:8px; font-size:0.85rem">
       <q-icon name="event_busy" class="q-mr-xs" />
       No tienes turno asignado para hoy
     </div>
 
-    <div class="row q-col-gutter-md q-mb-md">
+    <div v-if="!permisoActivo" class="row q-col-gutter-md q-mb-md">
       <div class="col-12 col-sm-6">
         <q-btn
           :disable="!btnEntradaActivo"
@@ -96,6 +101,11 @@
       </div>
     </div>
 
+    <div v-else class="text-center q-mb-md" style="opacity:0.8; font-size:0.85rem">
+      <q-icon name="check_circle" class="q-mr-xs" />
+      No necesitas marcar asistencia hoy
+    </div>
+
     <div class="text-center geo-text">
       <q-icon name="location_on" size="14px" class="q-mr-xs" />
       Verificaci&oacute;n por sucursal &middot; Supermercado Central
@@ -121,7 +131,8 @@ const props = defineProps({
   horaSalidaEsperada: { type: String, default: null },
   toleranciaMinutos: { type: Number, default: null },
   turnoNombre: { type: String, default: null },
-  errorMessage: { type: String, default: null }
+  errorMessage: { type: String, default: null },
+  permisoActivo: { type: Object, default: null }
 })
 
 defineEmits(['marcar'])
@@ -133,6 +144,7 @@ const iniciales = computed(() => {
 })
 
 const estadoTexto = computed(() => {
+  if (props.estadoHoy === 'PERMISO') return 'Con permiso aprobado'
   if (props.estadoHoy === 'JUSTIFICADO') return 'Ausencia justificada'
   if (props.estadoHoy === 'FALTA') return 'Falta'
   if (props.estadoHoy === 'TARDANZA') return `Tardanza - ${props.horaEntradaHoy ? formatearHoraAMPM(props.horaEntradaHoy) : ''}`
@@ -142,6 +154,7 @@ const estadoTexto = computed(() => {
 })
 
 const estadoIcono = computed(() => {
+  if (props.estadoHoy === 'PERMISO') return 'beach_access'
   if (props.estadoHoy === 'JUSTIFICADO') return 'verified'
   if (props.estadoHoy === 'FALTA') return 'block'
   if (props.estadoHoy === 'TARDANZA') return 'warning'
@@ -158,6 +171,7 @@ const sinTurnoHoy = computed(() => {
 })
 
 const estadoColor = computed(() => {
+  if (props.estadoHoy === 'PERMISO') return 'rgba(0,150,136,0.25)'
   if (!props.horaEntradaHoy) return 'rgba(255,152,0,0.25)'
   if (!props.horaSalidaHoy) return 'rgba(76,175,80,0.25)'
   return 'rgba(33,150,243,0.25)'

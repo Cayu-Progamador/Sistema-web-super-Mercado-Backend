@@ -18,9 +18,14 @@ import org.springframework.stereotype.Service;
 import com.backendSupermercado.supermercasdo.exceptions.ResourceConflictException;
 import com.backendSupermercado.supermercasdo.mapper.usuario.UsuarioMapper;
 
+import com.backendSupermercado.supermercasdo.modules.empleado.entity.Contacto;
+import com.backendSupermercado.supermercasdo.modules.empleado.entity.Persona;
+import com.backendSupermercado.supermercasdo.modules.empleado.repository.ContactoRepository;
+
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Rol;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.RolRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.ActualizarPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioFiltrosDto;
@@ -52,6 +57,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRolRepository usuarioRolRepository;
+    private final ContactoRepository contactoRepository;
 
     // listar los usuarios logueados en el sistema para el perfil
     @Override
@@ -104,6 +110,47 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .creadoPor(usuario.getIdUsuario())
                 .build();
         aud.save(auditoria);
+    }
+
+    // actualizar correo y telefono del usuario logueado
+    @Override
+    @Transactional
+    public void actualizarMiPerfil(ActualizarPerfilDto dto) {
+        Usuario usuario = obtenerUsuarioLogueado();
+
+        if (usuario.getEmpleado() == null || usuario.getEmpleado().getPersona() == null) {
+            throw new ResourceConflictException("El usuario no tiene un empleado asociado");
+        }
+
+        Persona persona = usuario.getEmpleado().getPersona();
+        Long idPersona = persona.getIdPersona();
+
+        if (dto.getCorreo() != null && !dto.getCorreo().isBlank()
+                && contactoRepository.existsByCorreoAndPersona_IdPersonaNot(dto.getCorreo(), idPersona)) {
+            throw new ResourceConflictException("El correo ya está registrado para otro empleado");
+        }
+
+        if (dto.getTelefono() != null && !dto.getTelefono().isBlank()
+                && contactoRepository.existsByTelefonoAndPersona_IdPersonaNot(dto.getTelefono(), idPersona)) {
+            throw new ResourceConflictException("El teléfono ya está registrado para otro empleado");
+        }
+
+        Contacto contacto = persona.getContactos() != null && !persona.getContactos().isEmpty()
+                ? persona.getContactos().get(0)
+                : null;
+        if (contacto == null) {
+            contacto = new Contacto();
+            contacto.setPersona(persona);
+        }
+
+        if (dto.getCorreo() != null && !dto.getCorreo().isBlank()) {
+            contacto.setCorreo(dto.getCorreo());
+        }
+        if (dto.getTelefono() != null && !dto.getTelefono().isBlank()) {
+            contacto.setTelefono(dto.getTelefono());
+        }
+
+        contactoRepository.save(contacto);
     }
 
     // metodo para obtener el usuario logueado

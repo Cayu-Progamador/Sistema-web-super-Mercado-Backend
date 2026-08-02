@@ -25,7 +25,44 @@
       </div>
 
       <q-card-section class="dialog-body">
+        <div v-if="ausencias.length && !esFijo" class="ausencias-box">
+          <div class="ausencias-titulo">
+            <q-icon name="event_busy" size="16px" />
+            Días que faltaste
+          </div>
+          <div class="ausencias-lista">
+            <button
+              v-for="a in ausencias"
+              :key="a.idAsistencia"
+              type="button"
+              class="ausencia-chip"
+              :class="{ 'ausencia-chip--activa': form.fecha === a.fecha }"
+              @click="seleccionarFecha(a.fecha)"
+            >
+              {{ formatearFechaDia(a.fecha) }}
+            </button>
+          </div>
+        </div>
+
+        <div v-else-if="!esFijo" class="ausencias-box ausencias-box--vacio">
+          <q-icon name="check_circle" size="18px" />
+          No tienes faltas sin justificar en los últimos 7 días.
+        </div>
+
         <q-input
+          v-if="esFijo"
+          :model-value="form.fecha"
+          label="Fecha del registro"
+          type="date"
+          outlined
+          dense
+          stack-label
+          class="form-field"
+          :disable="esFijo"
+          hint="Día con falta del empleado"
+        />
+        <q-input
+          v-else
           v-model="form.fecha"
           label="Fecha *"
           type="date"
@@ -82,12 +119,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   tipo: { type: String, default: 'justificar' },
-  empleado: { type: Object, default: null }
+  empleado: { type: Object, default: null },
+  ausencias: { type: Array, default: () => [] },
+  fechaFija: { type: String, default: '' }
 })
 
 const emit = defineEmits(['update:modelValue', 'enviar'])
@@ -102,15 +141,15 @@ const form = reactive({
 const tipoOptions = [
   { label: 'Enfermedad', value: 'ENFERMEDAD' },
   { label: 'Asunto personal', value: 'PERSONAL' },
-  { label: 'Capacitaci&oacute;n', value: 'CAPACITACION' },
+  { label: 'Capacitación', value: 'CAPACITACION' },
   { label: 'Duelo', value: 'DUELO' },
   { label: 'Otro', value: 'OTRO' }
 ]
 
 watch(() => props.modelValue, (val) => {
   visible.value = val
-  if (!val) {
-    form.fecha = ''
+  if (val) {
+    form.fecha = props.fechaFija || ''
     form.tipoJustificacion = null
     form.motivo = ''
   }
@@ -119,6 +158,20 @@ watch(() => props.modelValue, (val) => {
 watch(visible, (val) => {
   emit('update:modelValue', val)
 })
+
+const esFijo = computed(() => !!props.fechaFija)
+
+function seleccionarFecha(fecha) {
+  form.fecha = fecha
+}
+
+function formatearFechaDia(fecha) {
+  if (!fecha) return ''
+  const [y, m, d] = fecha.split('-')
+  const fechaDate = new Date(y, m - 1, d)
+  const diaSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][fechaDate.getDay()]
+  return `${diaSemana} ${d}/${m}`
+}
 
 function cerrar() {
   visible.value = false
@@ -216,6 +269,60 @@ function enviar() {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.ausencias-box {
+  background: #fdf3e3;
+  border: 1px solid #f0d29a;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.ausencias-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #8a5a00;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.ausencias-box--vacio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ausencias-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ausencia-chip {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e0b966;
+  background: #fff;
+  color: #6b4a00;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ausencia-chip:hover {
+  background: #fdf3e3;
+  border-color: #c9973a;
+}
+.ausencia-chip--activa {
+  background: #c9973a;
+  color: #fff;
+  border-color: #c9973a;
 }
 
 .form-field :deep(.q-field__control) {

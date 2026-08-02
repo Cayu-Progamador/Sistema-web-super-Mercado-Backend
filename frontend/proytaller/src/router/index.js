@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/store'
-import { tieneAccesoAsistencia } from '../api/asistencia/asistencia'
 
 import Layout from '../layouts/index.vue'
 import Login from '../pages/login/Login.vue'
@@ -14,6 +13,9 @@ import Cargos from '../pages/cargo/CargoPage.vue'
 import Contrato from '../pages/contrato/ContratoPage.vue'
 import MisAsistencia from '../pages/asistencia/MisAsistencia.vue'
 import AsistenciaAdmin from '../pages/asistencia/AsistenciaAdmin.vue'
+import PermisoPersonal from '../pages/permiso_personal/EmployeePermissionsView.vue'
+import PermisoAdmin from '../pages/permiso_personal/AdminPermissionsView.vue'
+import Proveedores from '../pages/proveedor/ProveedorPage.vue'
 const routes = [
   {
     path: '/login',
@@ -77,6 +79,21 @@ const routes = [
         path: 'asistencia/admin',
         name: 'asistencia-admin',
         component: AsistenciaAdmin
+      },
+      {
+        path: 'permisos',
+        name: 'permisos',
+        component: PermisoPersonal
+      },
+      {
+        path: 'permisos-admin',
+        name: 'permisos-admin',
+        component: PermisoAdmin
+      },
+      {
+        path: 'proveedores',
+        name: 'proveedores',
+        component: Proveedores
       }
 
     ]
@@ -105,18 +122,12 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'login' })
   }
 
-  if (token && (to.name === 'asistencia' || to.name === 'asistencia-admin')) {
-    try {
-      const res = await tieneAccesoAsistencia()
-      if (to.name === 'asistencia-admin' && !res.tieneAcceso) {
-        return next({ name: 'home' })
-      }
-      if (to.name === 'asistencia' && !res.tieneAcceso) {
-        return next({ name: 'home' })
-      }
-    } catch {
-      return next({ name: 'home' })
-    }
+  if (token && to.name === 'asistencia' && !store.controlaAsistencia) {
+    return next({ name: 'home' })
+  }
+
+  if (token && to.name === 'permisos' && !store.controlaAsistencia) {
+    return next({ name: 'home' })
   }
 
   next()

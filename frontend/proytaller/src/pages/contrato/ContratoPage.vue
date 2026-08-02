@@ -17,18 +17,19 @@
       <!-- Toolbar -->
       <div class="row items-center justify-between q-my-md toolbar-row">
         <div class="row items-center q-gutter-sm">
-          <q-btn unelevated color="primary" icon="add" label="Nuevo Contrato" class="btn-primary-custom" @click="abrirNuevo" no-caps />
-          <q-btn outline color="primary" icon="picture_as_pdf" label="PDF" class="btn-outline-custom" @click="exportarPDF" no-caps />
-          <q-btn outline color="primary" icon="table_view" label="Excel" class="btn-outline-custom" @click="exportarExcel" no-caps />
-          <q-btn flat color="grey-7" icon="refresh" @click="recargar" />
+          <q-btn unelevated color="green-8" icon="add" label="Nuevo Contrato" @click="abrirNuevo" no-caps />
+          <q-btn outline color="green-8" icon="picture_as_pdf" label="PDF" @click="exportarPDF" no-caps />
+          <q-btn outline color="green-8" icon="table_view" label="Excel" @click="exportarExcel" no-caps />
+          <q-btn flat color="green-8" icon="refresh" @click="recargar" />
+          
         </div>
         <div class="row items-center q-gutter-sm">
           <q-input v-model="searchText" outlined dense placeholder="Buscar por Nombre o Ci..." class="search-input" debounce="300" @update:model-value="onSearch">
             <template v-slot:prepend>
-              <q-icon name="search" color="grey-5" />
+              <q-icon name="search" color="green-8" />
             </template>
           </q-input>
-          <q-btn flat :icon="filtrosVisibles ? 'expand_less' : 'filter_list'" label="Filtros" color="grey-7" @click="filtrosVisibles = !filtrosVisibles">
+          <q-btn flat :icon="filtrosVisibles ? 'expand_less' : 'filter_list'" label="Filtros" color="green-8" @click="filtrosVisibles = !filtrosVisibles">
             <q-badge v-if="filtrosActivos" color="primary" floating>!</q-badge>
           </q-btn>
         </div>
@@ -64,8 +65,8 @@
                 <q-input v-model="filtros.fechaFinHasta" label="Fecha Fin Hasta" outlined dense type="date" class="filter-field" />
               </div>
               <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
-                <q-btn flat color="grey-7" icon="clear" label="Limpiar" @click="limpiarFiltros" no-caps />
-                <q-btn unelevated color="primary" icon="search" label="Buscar" @click="aplicarFiltros" no-caps />
+                <q-btn flat color="green-8" icon="clear" label="Limpiar" @click="limpiarFiltros" no-caps />
+                <q-btn unelevated color="green-8" icon="search" label="Buscar" @click="aplicarFiltros" no-caps />
               </div>
             </div>
           </q-card>
@@ -348,16 +349,9 @@ function exportarExcel() {
 .toolbar-row {
   gap: 8px;
 }
-.btn-primary-custom {
+.toolbar-row :deep(.q-btn) {
   border-radius: 8px;
   font-weight: 600;
-  padding: 0 20px;
-  height: 40px;
-  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
-}
-.btn-outline-custom {
-  border-radius: 8px;
-  font-weight: 500;
   height: 40px;
 }
 .search-input {
@@ -366,6 +360,25 @@ function exportarExcel() {
 .search-input :deep(.q-field__control) {
   border-radius: 10px;
   background: white;
+  border: 1.5px solid #2E7D32 !important;
+  box-shadow: none !important;
+}
+.search-input :deep(.q-field__control:focus-within) {
+  border-color: #2E7D32 !important;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
+}
+.search-input :deep(.q-field__before),
+.search-input :deep(.q-field__after) {
+  border: none !important;
+}
+.search-input :deep(.q-field__control::before),
+.search-input :deep(.q-field__control::after) {
+  display: none !important;
+}
+.search-input :deep(input),
+.search-input :deep(.q-field__label),
+.search-input :deep(.q-icon) {
+  color: #1B5E20 !important;
 }
 .filters-card {
   border-radius: 12px;
@@ -374,6 +387,24 @@ function exportarExcel() {
 }
 .filter-field :deep(.q-field__control) {
   border-radius: 8px;
-  background: #f9fafb;
+  border: 1.5px solid #2E7D32 !important;
+  box-shadow: none !important;
+}
+.filter-field :deep(.q-field__control:focus-within) {
+  border-color: #2E7D32 !important;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
+}
+.filter-field :deep(.q-field__before),
+.filter-field :deep(.q-field__after) {
+  border: none !important;
+}
+.filter-field :deep(.q-field__control::before),
+.filter-field :deep(.q-field__control::after) {
+  display: none !important;
+}
+.filter-field :deep(input),
+.filter-field :deep(.q-field__label),
+.filter-field :deep(.q-icon) {
+  color: #1B5E20 !important;
 }
 </style>

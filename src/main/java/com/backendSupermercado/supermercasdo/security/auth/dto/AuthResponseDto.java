@@ -14,4 +14,5 @@ public class AuthResponseDto {
     private String username;
     private String nombreCompleto;
     private String cargo;
+    private Boolean controlaAsistencia;
 }

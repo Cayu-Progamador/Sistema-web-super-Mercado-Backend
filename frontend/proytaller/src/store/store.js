@@ -4,7 +4,8 @@ import { defineStore } from 'pinia';
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         token: null,
-        userInfo: null, // { username, nombreCompleto }
+        userInfo: null,
+        controlaAsistencia: false,
     }),
 
     getters: {
@@ -16,13 +17,16 @@ export const useAuthStore = defineStore('auth', {
 
         getUsername: (state) => {
             return state.userInfo?.username ?? "";
-        }
+        },
+
+        tieneControlAsistencia: (state) => state.controlaAsistencia,
     },
 
     actions: {
-        login(token, userInfo) {
+        login(token, userInfo, controlaAsistencia) {
             this.token = token;
             this.userInfo = userInfo;
+            this.controlaAsistencia = controlaAsistencia;
         },
 
         setFotoUrl(url) {
@@ -40,13 +44,13 @@ export const useAuthStore = defineStore('auth', {
         },
 
         logout() {
-            this.$reset(); // Limpia la store completa
+            this.$reset();
         }
     },
 
     persist: {
         key: 'auth',
         storage: localStorage,
-        paths: ['token', 'userInfo'] // Solo guarda las propiedades token y userInfo
+        paths: ['token', 'userInfo', 'controlaAsistencia']
     }
 });

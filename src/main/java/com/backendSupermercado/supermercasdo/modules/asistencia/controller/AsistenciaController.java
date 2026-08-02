@@ -106,6 +106,12 @@ public class AsistenciaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @GetMapping("/mis-ausencias")
+    public ResponseEntity<List<Map<String, Object>>> misAusencias(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(asistenciaService.listarAusenciasRecientes(userDetails.getUsername()));
+    }
+
     @PutMapping("/{id}/justificar")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<AsistenciaResponseDto> justificar(

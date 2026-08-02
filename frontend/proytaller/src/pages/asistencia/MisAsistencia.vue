@@ -24,6 +24,7 @@
             :tolerancia-minutos="toleranciaMinutos"
             :turno-nombre="turnoNombre"
             :error-message="errorAsistencia"
+            :permiso-activo="permisoActivo"
             @marcar="onMarcar"
           />
           <TodayTimeline
@@ -42,6 +43,7 @@
             :tardanzas="resumen.tardanzas"
             :faltas="resumen.faltas"
             :puntualidad="resumen.puntualidad"
+            :permisos="resumen.permisos"
           />
           <WeeklyTable
             :rows="semanaRows"
@@ -60,7 +62,7 @@
           icon="fact_check"
           label="Justificar inasistencia"
           class="full-width"
-          @click="mostrarDialogJustificar = true"
+          @click="abrirJustificar"
         />
       </div>
     </div>
@@ -68,6 +70,7 @@
     <JustifyDialog
       v-model="mostrarDialogJustificar"
       tipo="justificar"
+      :ausencias="misAusencias"
       @enviar="onJustificar"
     />
   </q-page>
@@ -83,8 +86,10 @@ import {
   listarMisAsistencias,
   obtenerMiResumen,
   justificarMiAsistencia,
+  listarMisAusencias,
   descargarReporteSemanal
 } from '../../api/asistencia/asistencia'
+import { listarMisSolicitudes } from '../../api/permiso_personal/permiso_personal'
 import { formatearHoraAMPM } from '../../util/formatearHora'
 import ClockCard from '../../components/asistencia/ClockCard.vue'
 import TodayTimeline from '../../components/asistencia/TodayTimeline.vue'
@@ -101,12 +106,24 @@ let intervalId = null
 let refreshIntervalId = null
 
 const hoyBackend = ref(null)
-const resumen = ref({ asistencias: 0, tardanzas: 0, faltas: 0, puntualidad: 0 })
+const resumen = ref({ asistencias: 0, tardanzas: 0, faltas: 0, puntualidad: 0, permisos: 0 })
 const errorAsistencia = ref(null)
 const semanaData = ref([])
 
 const mostrarDialogJustificar = ref(false)
 const mostrarDialogPermiso = ref(false)
+const permisoActivo = ref(null)
+const misAusencias = ref([])
+
+async function abrirJustificar() {
+  try {
+    const res = await listarMisAusencias()
+    misAusencias.value = res || []
+  } catch {
+    misAusencias.value = []
+  }
+  mostrarDialogJustificar.value = true
+}
 
 const nombreEmpleado = computed(() => store.fullName || 'Empleado')
 const codigoEmpleado = computed(() => {
@@ -142,7 +159,8 @@ const semanaRows = computed(() => {
       TARDANZA: 'Tardanza',
       COMPLETO: 'A tiempo',
       FALTA: 'Falta',
-      JUSTIFICADO: 'Justificado'
+      JUSTIFICADO: 'Justificado',
+      PERMISO: 'Permiso'
     }
     const estado = estadoMap[item.estado] || (item.horaEntrada && !item.horaSalida ? 'Pendiente salida' : 'Falta')
     return {
@@ -206,7 +224,27 @@ async function cargarDatos() {
       anio: new Date().getFullYear(),
       mes: new Date().getMonth() + 1
     })
-    resumen.value = resumenRes || { asistencias: 0, tardanzas: 0, faltas: 0, puntualidad: 0 }
+    resumen.value = resumenRes || { asistencias: 0, tardanzas: 0, faltas: 0, puntualidad: 0, permisos: 0 }
+  } catch (_) {}
+
+  await verificarPermisoHoy()
+}
+
+async function verificarPermisoHoy() {
+  permisoActivo.value = null
+  try {
+    const solicitudes = await listarMisSolicitudes()
+    if (!solicitudes || solicitudes.length === 0) return
+    const hoy = new Date()
+    const hoyStr = hoy.toISOString().split('T')[0]
+    const aprobadoHoy = solicitudes.find(s =>
+      s.nombreEstado === 'Aprobado'
+      && s.fechaInicio <= hoyStr
+      && s.fechaFin >= hoyStr
+    )
+    if (aprobadoHoy) {
+      permisoActivo.value = aprobadoHoy
+    }
   } catch (_) {}
 }
 
@@ -238,6 +276,7 @@ async function onJustificar(data) {
       motivo: data.motivo
     })
     $q.notify({ type: 'positive', message: 'Justificación enviada correctamente' })
+    cargarDatos()
   } catch (e) {
     $q.notify({
       type: 'negative',

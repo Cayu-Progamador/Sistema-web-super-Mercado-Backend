@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.CambiarPasswordrequestDto;
+import com.backendSupermercado.supermercasdo.modules.usuario.dto.ActualizarPerfilDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.DashboardUsuarioDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioDetalleDto;
 import com.backendSupermercado.supermercasdo.modules.usuario.dto.UsuarioFiltrosDto;
@@ -65,6 +66,19 @@ public class UsuarioController {
                 Map.of(
                         "message",
                         "Contraseña cambiada correctamente"));
+    }
+
+    // actualizar correo y telefono del usuario logueado
+    @PutMapping("/perfil")
+    public ResponseEntity<Map<String, String>> actualizarPerfil(
+            @RequestBody ActualizarPerfilDto dto) {
+
+        usuarioService.actualizarMiPerfil(dto);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "Perfil actualizado correctamente"));
     }
 
     // listar usuarios

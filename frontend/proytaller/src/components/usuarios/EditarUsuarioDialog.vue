@@ -50,8 +50,13 @@
                 Nueva Contraseña
                 <span class="label-hint">(opcional)</span>
               </label>
-              <q-input v-model="form.password" outlined dense type="password" placeholder="••••••••"
-                class="form-input" />
+              <q-input v-model="form.password" outlined dense :type="mostrarPassword ? 'text' : 'password'"
+                placeholder="••••••••" class="form-input">
+                <template v-slot:append>
+                  <q-icon :name="mostrarPassword ? 'visibility_off' : 'visibility'" class="cursor-pointer"
+                    style="color:#82bd43" @click="mostrarPassword = !mostrarPassword" />
+                </template>
+              </q-input>
             </div>
 
           </div>
@@ -148,6 +153,7 @@
   })
 
   const cargando = ref(false)
+  const mostrarPassword = ref(false)
 
   const form = ref({
     username: '',
@@ -204,7 +210,7 @@
       password: '',
       roles: [...(props.roles || [])]
     }
-
+    mostrarPassword.value = false
   }
 
   const cerrar = () => {

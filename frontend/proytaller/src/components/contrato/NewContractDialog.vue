@@ -8,16 +8,24 @@
     class="new-contract-dialog"
   >
     <q-card class="dialog-card">
+      <div class="accent-bar"></div>
       <q-card-section class="dialog-header q-px-lg q-py-md">
         <div class="row items-center justify-between">
-          <div class="text-h5 text-weight-bold">{{ esEditar ? 'Editar Contrato' : 'Nuevo Contrato' }}</div>
-          <q-btn flat round dense icon="close" v-close-popup />
+          <div class="row items-center q-gutter-sm">
+            <div class="modal-icon">
+              <q-icon :name="esEditar ? 'edit' : 'description'" size="22px" color="#4a8c25" />
+            </div>
+            <div>
+              <div class="modal-title">{{ esEditar ? 'Editar Contrato' : 'Nuevo Contrato' }}</div>
+            </div>
+          </div>
+          <q-btn icon="close" flat round dense class="close-btn" v-close-popup />
         </div>
         <q-tabs
           v-model="tab"
           dense
-          active-color="primary"
-          indicator-color="primary"
+          active-color="green-8"
+          indicator-color="green-8"
           align="left"
           narrow-indicator
           class="q-mt-sm"
@@ -36,7 +44,7 @@
         <q-tab-panels v-model="tab" animated class="tab-panels">
           <!-- Tab 1: Empleado -->
           <q-tab-panel name="empleado">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Seleccionar Empleado</div>
+            <div class="section-title">Seleccionar Empleado</div>
             <q-select
               v-model="form.empleado"
               :options="empleadosOptions"
@@ -51,7 +59,8 @@
               :clearable="!esEditar"
               :rules="[v => !!v || 'Seleccione un empleado']"
               :hint="esEditar ? 'El empleado no se puede modificar' : ''"
-              class="q-mb-md"
+              class="q-mb-md empleado-select"
+              color="green-8"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps">
@@ -77,57 +86,55 @@
 
           <!-- Tab 2: Contrato -->
           <q-tab-panel name="contrato">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Datos del Contrato</div>
-            <div class="row q-col-gutter-md">
+            <div class="section-title">Datos del Contrato</div>
+            <div class="row q-col-gutter-md contrato-fields">
               <div class="col-12 col-md-6">
-                <q-select v-model="form.cargo" :options="cargoOptions" label="Cargo *" outlined emit-value map-options :rules="[v => !!v || 'Seleccione un cargo']" class="q-mb-md" />
+                <q-select v-model="form.cargo" :options="cargoOptions" label="Cargo *" outlined emit-value map-options color="green-8" :rules="[v => !!v || 'Seleccione un cargo']" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-select v-model="form.tipoContrato" :options="tipoContratoOptions" label="Tipo Contrato *" outlined emit-value map-options :rules="[v => !!v || 'Seleccione tipo']" class="q-mb-md" />
+                <q-select v-model="form.tipoContrato" :options="tipoContratoOptions" label="Tipo Contrato *" outlined emit-value map-options color="green-8" :rules="[v => !!v || 'Seleccione tipo']" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-select v-model="form.tipoJornada" :options="tipoJornadaOptions" label="Tipo Jornada *" outlined emit-value map-options :rules="[v => !!v || 'Seleccione jornada']" class="q-mb-md" />
+                <q-select v-model="form.tipoJornada" :options="tipoJornadaOptions" label="Tipo Jornada *" outlined emit-value map-options color="green-8" :rules="[v => !!v || 'Seleccione jornada']" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.fechaInicio" label="Fecha Inicio *" outlined type="date" :rules="[v => !!v || 'Requerido']" class="q-mb-md" />
+                <q-input v-model="form.fechaInicio" label="Fecha Inicio *" outlined type="date" color="green-8" :rules="[v => !!v || 'Requerido']" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.fechaFin" label="Fecha Fin" outlined type="date" :disable="esIndefinido" :hint="esIndefinido ? 'Contrato indefinido — no aplica fecha de fin' : ''" class="q-mb-md" />
+                <q-input v-model="form.fechaFin" label="Fecha Fin" outlined type="date" color="green-8" :disable="esIndefinido" :hint="esIndefinido ? 'Contrato indefinido — no aplica fecha de fin' : ''" class="q-mb-md field-green" />
               </div>
               <div class="col-12">
-                <q-input v-model="form.observaciones" label="Observaciones" outlined type="textarea" maxlength="500" class="q-mb-md" />
+                <q-input v-model="form.observaciones" label="Observaciones" outlined type="textarea" maxlength="500" class="q-mb-md field-green" color="green-8" />
               </div>
             </div>
           </q-tab-panel>
 
           <!-- Tab 3: Salario -->
           <q-tab-panel name="salario">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Información Salarial</div>
+            <div class="section-title">Información Salarial</div>
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-4">
-              <div class="col-12 col-md-6">
-                <q-input v-model="form.sueldoBase" label="Sueldo Base ($) *" outlined type="number" step="0.01" min="0" placeholder="0.00" @keydown="soloDecimales" class="no-spinners" :rules="[v => (v ?? 0) > 0 || 'Debe ser mayor a 0']">
+                <q-input v-model="form.sueldoBase" label="Sueldo Base (Bs.) *" outlined type="number" step="0.01" min="0" placeholder="0.00" color="green-8" @keydown="soloDecimales" class="no-spinners field-green" :rules="[v => (v ?? 0) > 0 || 'Debe ser mayor a 0']">
                   <template v-slot:prepend>
-                    <span class="text-weight-bold text-grey-7">Bs.</span>
+                    <span class="text-weight-bold text-green-8" style="font-size: 13px;">Bs.</span>
                   </template>
                   <template v-slot:append>
-                    <q-btn unelevated round dense size="xs" color="primary" flat icon="add" @click="ajustarSueldo(10)" />
-                    <q-btn unelevated round dense size="xs" color="primary" flat icon="remove" @click="ajustarSueldo(-10)" class="q-ml-xs" />
+                    <q-btn unelevated round dense size="xs" color="green-8" flat icon="add" @click="ajustarSueldo(10)" />
+                    <q-btn unelevated round dense size="xs" color="green-8" flat icon="remove" @click="ajustarSueldo(-10)" class="q-ml-xs" />
                   </template>
                 </q-input>
               </div>
-              </div>
               <div class="col-12 col-md-4">
               </div>
               <div class="col-12 col-md-4">
-                <q-select v-model="form.tipoPago" :options="tipoPagoOptions" label="Tipo de Pago" outlined emit-value map-options clearable class="q-mb-md" hint="Semanal, Quincenal, Mensual" />
+                <q-select v-model="form.tipoPago" :options="tipoPagoOptions" label="Tipo de Pago" outlined emit-value map-options clearable color="green-8" class="q-mb-md field-green" hint="Semanal, Quincenal, Mensual" />
               </div>
             </div>
           </q-tab-panel>
 
           <!-- Tab 4: Asistencia -->
           <q-tab-panel name="asistencia">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Control de Asistencia</div>
+            <div class="section-title">Control de Asistencia</div>
             <div class="row items-center q-mb-lg">
               <span class="q-mr-md text-body1">¿Controlar asistencia?</span>
               <q-toggle v-model="form.controlaAsistencia" color="green-7" :label="form.controlaAsistencia ? 'Sí' : 'No'" size="md" :disable="asistenciaDisable" />
@@ -156,44 +163,44 @@
           <q-tab-panel name="horario">
             <q-slide-transition>
               <div v-if="form.controlaAsistencia" key="horario-content">
-                <div class="text-subtitle1 text-weight-bold q-mb-md">Asignación de Horario</div>
+                <div class="section-title">Asignación de Horario</div>
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-6">
-                    <q-input v-model="form.horasDia" label="Horas por Día *" outlined type="number" min="1" max="24" @keydown="soloNumeros" :disable="horasDiaDisable" :hint="horasDiaDisable ? `Fijo para ${jornadaSeleccionada?.label || ''}` : ''" class="q-mb-md" />
+                    <q-input v-model="form.horasDia" label="Horas por Día *" outlined type="number" min="1" max="24" color="green-8" @keydown="soloNumeros" :disable="horasDiaDisable" :hint="horasDiaDisable ? `Fijo para ${jornadaSeleccionada?.label || ''}` : ''" class="q-mb-md field-green" />
                   </div>
                   <div class="col-12 col-md-6">
-                    <q-input v-model="form.horasSemana" label="Horas por Semana" outlined type="number" disable class="q-mb-md"
+                    <q-input v-model="form.horasSemana" label="Horas por Semana" outlined type="number" disable color="green-8" class="q-mb-md field-green"
                       :hint="`Calculado: ${form.horasDia || 0}h × ${diasSeleccionados} día(s) = ${form.horasSemana}h/sem`" />
                   </div>
                 </div>
                 <q-separator class="q-my-md" />
-                <div class="text-subtitle2 text-weight-bold q-mb-sm">Asignación de Turno</div>
+                <div class="section-title" style="font-size: 14px;">Asignación de Turno</div>
                 <div class="q-col-gutter-md">
                   <div class="row q-col-gutter-md">
                     <div class="col-12 col-md-6">
-                      <q-select v-model="form.turnoId" :options="turnoOptionsFiltrados" label="Turno" outlined emit-value map-options clearable class="q-mb-md" />
+                      <q-select v-model="form.turnoId" :options="turnoOptionsFiltrados" label="Turno" outlined emit-value map-options clearable color="green-8" class="q-mb-md field-green" />
                     </div>
                     <div class="col-12 col-md-6">
-                      <q-input v-model="form.toleranciaMinutos" label="Tolerancia (min)" outlined type="number" min="0" @keydown="soloNumeros" hint="Minutos de gracia para llegada tarde" class="q-mb-md" />
+                      <q-input v-model="form.toleranciaMinutos" label="Tolerancia (min)" outlined type="number" min="0" max="30" color="green-8" @keydown="soloNumeros" hint="Máximo 30 minutos" :rules="[v => (v ?? 0) <= 30 || 'Máximo 30 minutos']" class="q-mb-md field-green" />
                     </div>
                   </div>
                   <q-slide-transition>
-                    <div v-if="turnoSeleccionado" class="bg-grey-2 q-pa-sm rounded-borders q-mb-md">
+                    <div v-if="turnoSeleccionado" class="bg-green-1 q-pa-sm rounded-borders q-mb-md">
                       <div class="row q-col-gutter-sm items-center">
                         <div class="col-auto">
-                          <q-icon name="schedule" color="primary" size="20px" />
+                          <q-icon name="schedule" color="green-8" size="20px" />
                         </div>
                         <div class="col">
-                          <span class="text-caption text-grey-7">Entrada: <strong class="text-primary">{{ turnoSeleccionado.horaEntrada }}</strong></span>
+                          <span class="text-caption text-grey-7">Entrada: <strong class="text-green-8">{{ turnoSeleccionado.horaEntrada }}</strong></span>
                           <span class="q-mx-sm text-grey-4">|</span>
-                          <span class="text-caption text-grey-7">Salida: <strong class="text-primary">{{ turnoSeleccionado.horaSalida }}</strong></span>
+                          <span class="text-caption text-grey-7">Salida: <strong class="text-green-8">{{ turnoSeleccionado.horaSalida }}</strong></span>
                         </div>
                       </div>
                     </div>
                   </q-slide-transition>
-                <div class="text-caption text-grey-6 q-mb-sm">Días laborables:</div>
+                <div class="text-caption text-green-8 q-mb-sm">Días laborables:</div>
                 <div class="row q-gutter-sm">
-                  <q-checkbox v-for="d in diasSemana" :key="d.val" v-model="form.dias[d.val]" :label="d.label" color="primary" dense />
+                  <q-checkbox v-for="d in diasSemana" :key="d.val" v-model="form.dias[d.val]" :label="d.label" color="green-8" dense />
                 </div>
               </div>
               </div>
@@ -211,8 +218,8 @@
       <q-separator />
 
       <q-card-actions align="right" class="q-pa-md dialog-actions">
-        <q-btn flat label="Cancelar" color="grey-7" v-close-popup no-caps />
-        <q-btn unelevated color="primary" label="Guardar" @click="guardar" no-caps :loading="saving" :disable="saving" />
+        <q-btn flat label="Cancelar" color="green-8" v-close-popup no-caps />
+        <q-btn unelevated color="green-8" label="Guardar" @click="guardar" no-caps :loading="saving" :disable="saving" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -537,10 +544,17 @@ watch(() => props.contratoId, async (id) => {
   border-radius: 16px;
   max-width: 900px;
   margin: 0 auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+.accent-bar {
+  height: 4px;
+  background: linear-gradient(90deg, #2E7D32, #4a8c25, #81C784);
+  border-radius: 16px 16px 0 0;
 }
 .dialog-header {
-  background: #f9fafb;
-  border-radius: 16px 16px 0 0;
+  background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
+  border-radius: 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 .dialog-body {
   min-height: 350px;
@@ -550,8 +564,38 @@ watch(() => props.contratoId, async (id) => {
   background: transparent;
 }
 .dialog-actions {
-  background: #f9fafb;
+  background: #f1f8e9;
   border-radius: 0 0 16px 16px;
+}
+.modal-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(46, 125, 50, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #2E7D32;
+  text-transform: uppercase;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1B5E20;
+}
+.close-btn {
+  color: #2E7D32;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2E7D32;
+  margin-bottom: 12px;
 }
 .no-spinners :deep(input[type=number])::-webkit-inner-spin-button,
 .no-spinners :deep(input[type=number])::-webkit-outer-spin-button {
@@ -560,5 +604,55 @@ watch(() => props.contratoId, async (id) => {
 }
 .no-spinners :deep(input[type=number]) {
   -moz-appearance: textfield;
+}
+.empleado-select :deep(.q-field__control) {
+  border-radius: 10px;
+  background: white;
+  border: 1.5px solid #2E7D32 !important;
+  box-shadow: none !important;
+}
+.empleado-select :deep(.q-field__control:focus-within) {
+  border-color: #2E7D32 !important;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
+}
+.empleado-select :deep(.q-field__before),
+.empleado-select :deep(.q-field__after) {
+  border: none !important;
+}
+.empleado-select :deep(.q-field__control::before),
+.empleado-select :deep(.q-field__control::after) {
+  display: none !important;
+}
+.empleado-select :deep(input),
+.empleado-select :deep(.q-field__label),
+.empleado-select :deep(.q-icon) {
+  color: #1B5E20 !important;
+}
+.field-green :deep(.q-field__control),
+.field-green :deep(.q-field__control:focus-within) {
+  border-radius: 10px;
+  background: white;
+  border: 1.5px solid #2E7D32 !important;
+  box-shadow: none !important;
+}
+.field-green :deep(.q-field__control:focus-within) {
+  border-color: #2E7D32 !important;
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.15) !important;
+}
+.field-green :deep(.q-field__before),
+.field-green :deep(.q-field__after) {
+  border: none !important;
+}
+.field-green :deep(.q-field__control::before),
+.field-green :deep(.q-field__control::after) {
+  display: none !important;
+}
+.field-green :deep(input),
+.field-green :deep(.q-field__label),
+.field-green :deep(.q-icon) {
+  color: #1B5E20 !important;
+}
+.field-green :deep(.q-checkbox__label) {
+  color: #1B5E20 !important;
 }
 </style>

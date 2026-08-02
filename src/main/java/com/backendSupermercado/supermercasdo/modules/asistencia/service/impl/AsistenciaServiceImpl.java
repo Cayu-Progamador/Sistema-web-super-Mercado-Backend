@@ -5,8 +5,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -28,6 +32,8 @@ import com.backendSupermercado.supermercasdo.modules.contrato.entity.ContratoTur
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.Turno;
 import com.backendSupermercado.supermercasdo.modules.contrato.repository.ContratoRepository;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
+import com.backendSupermercado.supermercasdo.modules.permiso_personal.entity.SolicitudPermiso;
+import com.backendSupermercado.supermercasdo.modules.permiso_personal.repository.SolicitudPermisoRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
 
@@ -45,10 +51,12 @@ public class AsistenciaServiceImpl implements AsistenciaService {
     private static final String ESTADO_COMPLETO = "COMPLETO";
     private static final String ESTADO_FALTA = "FALTA";
     private static final String ESTADO_JUSTIFICADO = "JUSTIFICADO";
+    private static final String ESTADO_PERMISO = "PERMISO";
 
     private final AsistenciaRepository asistenciaRepository;
     private final UsuarioRepository usuarioRepository;
     private final ContratoRepository contratoRepository;
+    private final SolicitudPermisoRepository solicitudPermisoRepository;
 
     @Override
     @Transactional
@@ -87,6 +95,10 @@ public class AsistenciaServiceImpl implements AsistenciaService {
 
         if (asistencia.getHoraEntrada() != null) {
             throw new IllegalStateException("Ya registraste tu entrada hoy a las " + asistencia.getHoraEntrada());
+        }
+
+        if (ESTADO_PERMISO.equals(asistencia.getEstado())) {
+            throw new IllegalStateException("Tienes un permiso aprobado hoy, no puedes marcar entrada");
         }
 
         asistencia.setHoraEntrada(ahora);
@@ -131,8 +143,14 @@ public class AsistenciaServiceImpl implements AsistenciaService {
             throw new IllegalStateException("Ya registraste tu salida hoy a las " + asistencia.getHoraSalida());
         }
 
+        if (ESTADO_PERMISO.equals(asistencia.getEstado())) {
+            throw new IllegalStateException("Tienes un permiso aprobado hoy, no puedes marcar salida");
+        }
+
         asistencia.setHoraSalida(ahora);
-        asistencia.setEstado(ESTADO_COMPLETO);
+        if (!ESTADO_TARDANZA.equals(asistencia.getEstado())) {
+            asistencia.setEstado(ESTADO_COMPLETO);
+        }
 
         if (asistencia.getHoraEntrada() != null) {
             long segundos = ChronoUnit.SECONDS.between(asistencia.getHoraEntrada(), ahora);
@@ -199,6 +217,28 @@ public class AsistenciaServiceImpl implements AsistenciaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listarAusenciasRecientes(String username) {
+        Contrato contrato = obtenerContratoActivo(username);
+        LocalDate hoy = LocalDate.now();
+
+        List<Asistencia> ausencias = asistenciaRepository
+                .findByContratoIdAndFechaBetweenAndEstado(
+                        contrato.getId(), hoy.minusDays(7), hoy.minusDays(1), ESTADO_FALTA);
+
+        return ausencias.stream()
+                .sorted(Comparator.comparing(Asistencia::getFecha).reversed())
+                .map(a -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("idAsistencia", a.getId());
+                    m.put("fecha", a.getFecha().toString());
+                    m.put("estado", a.getEstado());
+                    return m;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public AsistenciaResponseDto justificarAsistencia(Long idAsistencia, AsistenciaJustificarRequestDto dto) {
         Asistencia asistencia = asistenciaRepository.findById(idAsistencia)
@@ -242,11 +282,22 @@ public class AsistenciaServiceImpl implements AsistenciaService {
 
             if (!yaTieneRegistro) {
                 try {
-                    Asistencia falta = new Asistencia();
-                    falta.setContrato(contrato);
-                    falta.setFecha(fecha);
-                    falta.setEstado(ESTADO_FALTA);
-                    asistenciaRepository.save(falta);
+                    List<SolicitudPermiso> permisos = solicitudPermisoRepository
+                            .findPermisosAprobadosActivos(contrato.getEmpleado(), fecha);
+                    if (!permisos.isEmpty()) {
+                        Asistencia permisoReg = new Asistencia();
+                        permisoReg.setContrato(contrato);
+                        permisoReg.setFecha(fecha);
+                        permisoReg.setEstado(ESTADO_PERMISO);
+                        permisoReg.setSolicitudPermiso(permisos.get(0));
+                        asistenciaRepository.save(permisoReg);
+                    } else {
+                        Asistencia falta = new Asistencia();
+                        falta.setContrato(contrato);
+                        falta.setFecha(fecha);
+                        falta.setEstado(ESTADO_FALTA);
+                        asistenciaRepository.save(falta);
+                    }
                     marcados++;
                 } catch (DataIntegrityViolationException e) {
                     log.warn("Cierre diario: registro duplicado omitido para contrato {} en fecha {}",
@@ -255,12 +306,12 @@ public class AsistenciaServiceImpl implements AsistenciaService {
             }
         }
 
-        log.info("Cierre diario ejecutado: {} registros de FALTA creados para el día {}", marcados, fecha);
+        log.info("Cierre diario ejecutado: {} registros creados para el día {}", marcados, fecha);
         return marcados;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AsistenciaResponseDto obtenerAsistenciaHoy(String username) {
         Contrato contrato = obtenerContratoActivo(username);
         LocalDate hoy = LocalDate.now();
@@ -269,6 +320,18 @@ public class AsistenciaServiceImpl implements AsistenciaService {
                 .findByContratoIdAndFecha(contrato.getId(), hoy)
                 .map(this::toResponseDto)
                 .orElseGet(() -> {
+                    List<SolicitudPermiso> permisos = solicitudPermisoRepository
+                            .findPermisosAprobadosActivos(contrato.getEmpleado(), hoy);
+                    if (!permisos.isEmpty()) {
+                        SolicitudPermiso permiso = permisos.get(0);
+                        Asistencia nueva = new Asistencia();
+                        nueva.setContrato(contrato);
+                        nueva.setFecha(hoy);
+                        nueva.setEstado(ESTADO_PERMISO);
+                        nueva.setSolicitudPermiso(permiso);
+                        nueva = asistenciaRepository.save(nueva);
+                        return toResponseDto(nueva);
+                    }
                     AsistenciaResponseDto empty = new AsistenciaResponseDto();
                     empty.setIdEmpleado(contrato.getId());
                     empty.setFecha(hoy);
@@ -352,9 +415,10 @@ public class AsistenciaServiceImpl implements AsistenciaService {
         long tardanzas = asistenciaRepository.countTardanzasDelMes(contrato.getId(), inicioMes, finMes);
         long faltas = asistenciaRepository.countFaltasDelMes(contrato.getId(), inicioMes, finMes);
         long justificados = asistenciaRepository.countJustificadosDelMes(contrato.getId(), inicioMes, finMes);
-        long total = asistencias + faltas + justificados;
+        long permisos = asistenciaRepository.countPermisosDelMes(contrato.getId(), inicioMes, finMes);
+        long total = asistencias + faltas + justificados + permisos;
         double porcentaje = total > 0 ? ((double) (asistencias - tardanzas) / total) * 100 : 0;
-        return new AsistenciaResumenDto(asistencias, tardanzas, faltas, Math.round(porcentaje * 100.0) / 100.0, justificados);
+        return new AsistenciaResumenDto(asistencias, tardanzas, faltas, Math.round(porcentaje * 100.0) / 100.0, justificados, permisos);
     }
 
     @Scheduled(cron = "0 0 1 * * *")
@@ -389,7 +453,9 @@ public class AsistenciaServiceImpl implements AsistenciaService {
 
             if (asistencia.getHoraEntrada() != null && asistencia.getHoraSalida() == null) {
                 asistencia.setHoraSalida(horaSalida);
-                asistencia.setEstado(ESTADO_COMPLETO);
+                if (!ESTADO_TARDANZA.equals(asistencia.getEstado())) {
+                    asistencia.setEstado(ESTADO_COMPLETO);
+                }
 
                 long segundos = ChronoUnit.SECONDS.between(asistencia.getHoraEntrada(), horaSalida);
                 if (segundos > 0) {
@@ -424,6 +490,9 @@ public class AsistenciaServiceImpl implements AsistenciaService {
     }
 
     private void validarJustificacion(Asistencia asistencia, String mensajeError) {
+        if (ESTADO_PERMISO.equals(asistencia.getEstado())) {
+            throw new IllegalStateException("No puedes justificar un día con permiso aprobado");
+        }
         if (asistencia.getHoraEntrada() != null && !ESTADO_FALTA.equals(asistencia.getEstado())) {
             throw new IllegalStateException(mensajeError);
         }

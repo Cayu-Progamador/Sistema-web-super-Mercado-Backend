@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.backendSupermercado.supermercasdo.modules.contrato.entity.Contrato;
 import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
@@ -22,4 +23,12 @@ public interface ContratoRepository extends JpaRepository<Contrato, Long>, JpaSp
         AND (c.fechaFin IS NULL OR c.fechaFin >= CURRENT_DATE)
     """)
     List<Contrato> findAllWithControlAsistencia();
+
+    @Query("""
+        SELECT c FROM Contrato c
+        JOIN FETCH c.contratoTurnos ct
+        JOIN FETCH ct.turno t
+        WHERE c.id = :idContrato
+    """)
+    Optional<Contrato> findWithTurnosById(@Param("idContrato") Long idContrato);
 }

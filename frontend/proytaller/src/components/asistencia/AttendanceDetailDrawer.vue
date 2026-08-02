@@ -7,14 +7,15 @@
     bordered
     :width="420"
     class="drawer-card"
+    style="background:#f0f7eb"
   >
     <q-scroll-area class="fit">
       <div v-if="empleado" class="q-pa-md">
         <div class="row items-center q-mb-md">
-          <q-btn flat round dense icon="close" @click="visible = false" />
+          <q-btn flat round dense icon="close" style="color:#2a5c1a" @click="visible = false" />
           <q-space />
-          <q-chip :color="chipColor(empleado.estadoActual)" text-color="white" size="sm" class="estado-chip">
-            {{ chipLabel(empleado.estadoActual) }}
+          <q-chip :color="chipColor(empleado.estado)" text-color="white" size="sm" class="estado-chip">
+            {{ chipLabel(empleado.estado) }}
           </q-chip>
         </div>
 
@@ -37,7 +38,7 @@
           <div class="row q-col-gutter-sm">
             <div class="col-6">
               <div class="text-caption text-grey">Turno</div>
-              <div class="text-weight-medium">{{ empleado.turno || '--' }}</div>
+              <div class="text-weight-medium">{{ empleado.turnoNombre || '--' }}</div>
             </div>
             <div class="col-6">
               <div class="text-caption text-grey">Horas trabajadas</div>
@@ -45,11 +46,11 @@
             </div>
             <div class="col-6">
               <div class="text-caption text-grey">Entrada</div>
-              <div class="text-weight-medium">{{ empleado.horaEntrada || '--' }}</div>
+              <div class="text-weight-medium">{{ formatearHora(empleado.horaEntrada) || '--' }}</div>
             </div>
             <div class="col-6">
               <div class="text-caption text-grey">Salida</div>
-              <div class="text-weight-medium">{{ empleado.horaSalida || '--' }}</div>
+              <div class="text-weight-medium">{{ formatearHora(empleado.horaSalida) || '--' }}</div>
             </div>
           </div>
           <div v-if="empleado.observacion" class="q-mt-sm">
@@ -59,51 +60,60 @@
         </q-card>
 
         <div class="drawer-section-title q-mb-sm">
-          <q-icon name="date_range" class="q-mr-xs" size="16px" />
-          Resumen del mes
+          <q-icon name="date_range" class="q-mr-xs" size="16px" style="color:#2a5c1a" />
+          <span style="color:#2a5c1a">Resumen del mes</span>
         </div>
-        <div class="row q-col-gutter-sm q-mb-md">
-          <div class="col-3">
-            <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
-              <div class="drawer-kpi-number text-positive">{{ resumen.presentes }}</div>
-              <div class="drawer-kpi-label">Presentes</div>
+        <div class="row q-col-gutter-xs q-mb-md">
+          <div class="col-6 col-sm-3">
+            <q-card flat bordered class="kpi-card q-pa-sm text-center">
+              <div class="kpi-number" style="color:#2a5c1a">{{ resumen.presentes }}</div>
+              <div class="kpi-label">Presentes</div>
             </q-card>
           </div>
-          <div class="col-3">
-            <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
-              <div class="drawer-kpi-number text-orange">{{ resumen.tardanzas }}</div>
-              <div class="drawer-kpi-label">Tardanzas</div>
+          <div class="col-6 col-sm-3">
+            <q-card flat bordered class="kpi-card q-pa-sm text-center">
+              <div class="kpi-number" style="color:#e65100">{{ resumen.tardanzas }}</div>
+              <div class="kpi-label">Tardanzas</div>
             </q-card>
           </div>
-          <div class="col-3">
-            <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
-              <div class="drawer-kpi-number text-negative">{{ resumen.faltas }}</div>
-              <div class="drawer-kpi-label">Faltas</div>
+          <div class="col-6 col-sm-3">
+            <q-card flat bordered class="kpi-card q-pa-sm text-center">
+              <div class="kpi-number" style="color:#c62828">{{ resumen.faltas }}</div>
+              <div class="kpi-label">Faltas</div>
             </q-card>
           </div>
-          <div class="col-3">
-            <q-card flat bordered class="q-pa-sm text-center" style="border-radius:12px">
-              <div class="drawer-kpi-number text-grey-7">{{ resumen.justificados }}</div>
-              <div class="drawer-kpi-label">Justificados</div>
+          <div class="col-6 col-sm-3">
+            <q-card flat bordered class="kpi-card q-pa-sm text-center">
+              <div class="kpi-number" style="color:#1565c0">{{ resumen.justificados }}</div>
+              <div class="kpi-label">Justificados</div>
             </q-card>
           </div>
         </div>
 
         <div class="drawer-section-title q-mb-sm">
           <q-icon name="calendar_month" class="q-mr-xs" size="16px" />
-          Calendario de asistencia
+          Calendario de asistencia - {{ mesNombre }}
         </div>
         <div class="calendar-grid q-mb-sm">
+          <div class="calendar-header">L</div>
+          <div class="calendar-header">M</div>
+          <div class="calendar-header">M</div>
+          <div class="calendar-header">J</div>
+          <div class="calendar-header">V</div>
+          <div class="calendar-header">S</div>
+          <div class="calendar-header">D</div>
           <div
             v-for="(dia, idx) in diasCalendario"
             :key="idx"
             class="calendar-cell"
             :class="{
-              'bg-green-2 text-green-9': dia.estado === 'PRESENTE' || dia.estado === 'COMPLETO',
-              'bg-orange-2 text-orange-9': dia.estado === 'TARDANZA',
-              'bg-red-2 text-red-9': dia.estado === 'AUSENTE' || dia.estado === 'FALTA',
+              'calendar-presente': dia.estado === 'PRESENTE' || dia.estado === 'COMPLETO',
+              'calendar-tardanza': dia.estado === 'TARDANZA',
+              'calendar-ausente': dia.estado === 'AUSENTE' || dia.estado === 'FALTA',
               'bg-blue-2 text-blue-9': dia.estado === 'JUSTIFICADO',
-              'bg-grey-2 text-grey-7': dia.estado === 'PERMISO' || dia.estado === 'FUTURO',
+              'calendar-permiso': dia.estado === 'PERMISO',
+              'calendar-futuro': dia.estado === 'FUTURO',
+              'calendar-descanso': dia.estado === 'DESCANSO',
               'today': dia.esHoy
             }"
           >
@@ -112,19 +122,25 @@
         </div>
         <div class="calendar-legend q-mb-md">
           <div class="legend-item">
-            <span class="legend-dot bg-green-4"></span> Presente
+            <span class="legend-dot" style="background:#2a5c1a"></span> Presente
           </div>
           <div class="legend-item">
-            <span class="legend-dot bg-orange-4"></span> Tardanza
+            <span class="legend-dot" style="background:#e65100"></span> Tardanza
           </div>
           <div class="legend-item">
-            <span class="legend-dot bg-red-4"></span> Falta
+            <span class="legend-dot" style="background:#c62828"></span> Falta
           </div>
           <div class="legend-item">
-            <span class="legend-dot bg-blue-4"></span> Justificado
+            <span class="legend-dot" style="background:#1565c0"></span> Justificado
           </div>
           <div class="legend-item">
-            <span class="legend-dot bg-grey-3"></span> Permiso / Futuro
+            <span class="legend-dot" style="background:#e0e0e0"></span> Permiso
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#f5f5f5; border:1px solid #ccc"></span> Futuro
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#ffffff; border:1px solid #e8e8e8"></span> Descanso
           </div>
         </div>
       </div>
@@ -152,6 +168,15 @@ const iniciales = computed(() => {
     : '??'
 })
 
+const mesNombre = computed(() => {
+  if (!props.diasCalendario.length) return ''
+  const fecha = props.diasCalendario.find(d => d.fecha)?.fecha
+  if (!fecha) return ''
+  const [anio, mes] = fecha.split('-')
+  const nombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Setiembre','Octubre','Noviembre','Diciembre']
+  return `${nombres[parseInt(mes) - 1]} ${anio}`
+})
+
 watch(() => props.modelValue, (val) => { visible.value = val })
 watch(visible, (val) => { emit('update:modelValue', val) })
 
@@ -160,8 +185,9 @@ function chipColor(estado) {
     case 'A tiempo': case 'COMPLETO': return 'positive'
     case 'PRESENTE': case 'Pendiente salida': return 'blue'
     case 'TARDANZA': return 'orange'
-    case 'AUSENTE': return 'negative'
-    case 'PERMISO': return 'grey'
+    case 'FALTA': case 'AUSENTE': return 'negative'
+    case 'JUSTIFICADO': return 'blue-5'
+    case 'PERMISO': return 'teal'
     default: return 'grey'
   }
 }
@@ -171,9 +197,148 @@ function chipLabel(estado) {
     case 'COMPLETO': return 'A tiempo'
     case 'PRESENTE': return 'Pendiente salida'
     case 'TARDANZA': return 'Tardanza'
+    case 'FALTA': return 'Falta'
     case 'AUSENTE': return 'Falta'
+    case 'JUSTIFICADO': return 'Justificado'
     case 'PERMISO': return 'Permiso'
     default: return estado || '--'
   }
 }
+
+function formatearHora(hora) {
+  if (!hora) return ''
+  return hora.split(':').slice(0, 2).join(':')
+}
 </script>
+
+<style scoped>
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: default;
+  transition: all 0.15s ease;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #2a5c1a;
+  padding-bottom: 2px;
+}
+
+.calendar-presente {
+  background: #2a5c1a;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.calendar-tardanza {
+  background: #e65100;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.calendar-ausente {
+  background: #c62828;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.calendar-permiso {
+  background: #616161;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.calendar-futuro {
+  background: #e0e0e0;
+  color: #999;
+  font-weight: 400;
+}
+
+.calendar-descanso {
+  background: #ffffff;
+  color: #bbb;
+  font-weight: 400;
+  border: 1px solid #e8e8e8;
+}
+
+.calendar-cell:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.calendar-cell.today {
+  border: 2px solid #2a5c1a;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(42,92,26,0.2);
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.kpi-card {
+  border-radius: 12px;
+  border: 1px solid #4a8c3f !important;
+  box-shadow: 0 2px 6px rgba(42,92,26,0.12) !important;
+}
+
+.drawer-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2a5c1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+:deep(.drawer-card) {
+  background: #f0f7eb !important;
+}
+
+.kpi-number {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #2a5c1a;
+  margin-bottom: 2px;
+}
+
+.kpi-label {
+  font-size: 0.65rem;
+  color: #2a5c1a;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+</style>

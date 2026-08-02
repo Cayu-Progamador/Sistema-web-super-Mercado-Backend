@@ -38,7 +38,7 @@
             </div>
             <div class="profile-label">Empleado</div>
             <div class="profile-name">{{ empleadoNombre || '—' }}</div>
-            <div class="profile-dni">DNI: {{ usuarioDetalle?.empleado?.dni || usuarioDetalle?.dni || '—' }}</div>
+            <div class="profile-dni">DNI: {{ usuarioDetalle?.ci || '—' }}</div>
           </div>
 
           <!-- Columna derecha: Datos -->

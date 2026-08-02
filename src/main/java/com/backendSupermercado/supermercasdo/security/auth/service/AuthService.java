@@ -211,6 +211,7 @@ public class AuthService {
                 String token = jwtUtil.generateToken(usuario.getUsername());
                 String nombreCompleto = "";
                 String cargo = "";
+                Boolean controlaAsistencia = null;
 
                 if (usuario.getEmpleado() != null) {
                     Persona persona = usuario.getEmpleado().getPersona();
@@ -226,9 +227,12 @@ public class AuthService {
                     if (contrato != null && contrato.getCargo() != null) {
                         cargo = contrato.getCargo().getNombre();
                     }
+                    if (contrato != null) {
+                        controlaAsistencia = contrato.getControlaAsistencia();
+                    }
                 }
 
-                return new AuthResponseDto(token, usuario.getUsername(), nombreCompleto, cargo);
+                return new AuthResponseDto(token, usuario.getUsername(), nombreCompleto, cargo, controlaAsistencia);
         }
 
         

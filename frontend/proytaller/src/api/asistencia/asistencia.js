@@ -54,10 +54,42 @@ export function obtenerDetalleEmpleadoAdmin(idEmpleado, params) {
   })
 }
 
+export function descargarPdfAsistenciaAdmin(idAsistencia) {
+  return request({
+    url: `/api/asistencias/admin/${idAsistencia}/pdf`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
+export function editarAsistenciaAdmin(idAsistencia, data) {
+  return request({
+    url: `/api/asistencias/admin/${idAsistencia}`,
+    method: 'put',
+    data
+  })
+}
+
+export function crearAsistenciaAdmin(data) {
+  return request({
+    url: '/api/asistencias/admin/crear',
+    method: 'post',
+    data
+  })
+}
+
 export function justificarAsistenciaAdmin(idAsistencia, data) {
   return request({
     url: `/api/asistencias/${idAsistencia}/justificar`,
     method: 'put',
+    data
+  })
+}
+
+export function justificarAusenteAdmin(idContrato, data) {
+  return request({
+    url: `/api/asistencias/admin/justificar-ausente/${idContrato}`,
+    method: 'post',
     data
   })
 }
@@ -67,6 +99,13 @@ export function justificarMiAsistencia(data) {
     url: '/api/asistencias/justificar',
     method: 'post',
     data
+  })
+}
+
+export function listarMisAusencias() {
+  return request({
+    url: '/api/asistencias/mis-ausencias',
+    method: 'get'
   })
 }
 
@@ -90,5 +129,47 @@ export function descargarReporteSemanal(params) {
     method: 'get',
     params,
     responseType: 'blob'
+  })
+}
+
+export function exportarPDFAdmin(params) {
+  return request({
+    url: '/api/asistencias/admin/exportar/pdf',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
+
+export function exportarExcelAdmin(params) {
+  return request({
+    url: '/api/asistencias/admin/exportar/excel',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}
+
+export function listarAusentesAdmin(mes, anio) {
+  return request({
+    url: '/api/asistencias/admin/ausentes',
+    method: 'get',
+    params: { mes, anio }
+  })
+}
+
+export function listarAusentesDelDiaAdmin(fecha) {
+  return request({
+    url: '/api/asistencias/admin/ausentes',
+    method: 'get',
+    params: { fecha }
+  })
+}
+
+export function listarAusentesDetalleAdmin(mes, anio) {
+  return request({
+    url: '/api/asistencias/admin/ausentes/detalle',
+    method: 'get',
+    params: { mes, anio }
   })
 }

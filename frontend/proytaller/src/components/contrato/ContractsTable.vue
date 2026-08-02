@@ -111,7 +111,7 @@ const columns = [
   { name: 'cargo', label: 'Cargo', align: 'left', field: 'cargoNombre', sortable: true, style: 'min-width: 150px' },
   { name: 'tipoContrato', label: 'Tipo Contrato', align: 'left', field: 'tipoContratoNombre', sortable: true, style: 'width: 130px' },
   { name: 'tipoJornada', label: 'Jornada', align: 'left', field: 'tipoJornadaNombre', sortable: true, style: 'width: 120px' },
-  { name: 'sueldoBase', label: 'Sueldo', align: 'right', field: 'sueldoBase', sortable: true, format: v => `$${v?.toLocaleString()}`, style: 'width: 110px' },
+  { name: 'sueldoBase', label: 'Sueldo', align: 'right', field: 'sueldoBase', sortable: true, format: v => `Bs. ${v?.toLocaleString()}`, style: 'width: 110px' },
   { name: 'horasSemana', label: 'Horas/Sem', align: 'center', field: 'horasSemana', sortable: true, style: 'width: 100px' },
   { name: 'controlaAsistencia', label: 'Ctrl Asis', align: 'center', field: 'controlaAsistencia', sortable: true, style: 'width: 90px' },
   { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true, style: 'width: 110px' },

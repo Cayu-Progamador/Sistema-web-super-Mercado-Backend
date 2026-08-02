@@ -76,11 +76,22 @@
             <q-btn flat round dense icon="visibility" size="md" color="teal-9" @click="$emit('ver-detalle', props.row)">
               <q-tooltip>Ver detalle</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="fact_check" size="md" color="orange-8" @click="$emit('justificar', props.row)">
-              <q-tooltip>Justificar</q-tooltip>
+            <q-btn
+              flat round dense
+              icon="fact_check"
+              size="md"
+              color="orange-8"
+              :disable="!puedeJustificar(props.row)"
+              @click="$emit('justificar', props.row)"
+            >
+              <q-tooltip>{{ motivoNoJustificable(props.row) }}</q-tooltip>
             </q-btn>
-            <q-btn flat round dense icon="more_vert" size="md" color="light-green-6">
-              <q-tooltip>M&aacute;s acciones</q-tooltip>
+            <q-btn flat round dense icon="edit" size="md" color="blue-7" @click="$emit('editar', props.row)">
+              <q-tooltip>{{ props.row.idAsistencia ? 'Editar registro' : 'Registrar asistencia' }}</q-tooltip>
+            </q-btn>
+            <q-btn flat round dense icon="download" size="md" color="teal" :disable="!props.row.idAsistencia"
+              @click="$emit('descargar', props.row)">
+              <q-tooltip>{{ props.row.idAsistencia ? 'Descargar PDF' : 'Sin registro para descargar' }}</q-tooltip>
             </q-btn>
           </div>
         </q-td>
@@ -106,7 +117,7 @@ defineProps({
   pagination: { type: Object, default: () => ({ page: 1, rowsPerPage: 10, rowsNumber: 0, sortBy: 'fecha', descending: true }) }
 })
 
-defineEmits(['ver-detalle', 'justificar', 'request'])
+defineEmits(['ver-detalle', 'justificar', 'request', 'editar', 'descargar'])
 
 const columns = [
   { name: 'empleado', label: 'Empleado', align: 'left', field: 'nombreEmpleado', sortable: true },
@@ -125,6 +136,7 @@ function chipColor(estado) {
     case 'TARDANZA': return 'orange'
     case 'FALTA': return 'negative'
     case 'JUSTIFICADO': return 'blue-5'
+    case 'PERMISO': return 'teal'
     default: return 'grey'
   }
 }
@@ -136,8 +148,23 @@ function chipLabel(estado) {
     case 'TARDANZA': return 'Tardanza'
     case 'FALTA': return 'Falta'
     case 'JUSTIFICADO': return 'Justificado'
-    default: return estado || '--'
+    case 'PERMISO': return 'Permiso'
+    default: return estado || 'Sin marcar'
   }
+}
+
+function puedeJustificar(row) {
+  if (!row.idAsistencia) return true
+  const e = row.estado
+  return e !== 'JUSTIFICADO' && e !== 'PERMISO' && !row.horaEntrada
+}
+
+function motivoNoJustificable(row) {
+  if (!row.idAsistencia) return 'Justificar ausencia'
+  if (row.estado === 'JUSTIFICADO') return 'Ya justificada'
+  if (row.estado === 'PERMISO') return 'Con permiso aprobado'
+  if (row.horaEntrada) return 'Marcó entrada, no justificable'
+  return 'Justificar'
 }
 
 function onRequest(requestProps) {

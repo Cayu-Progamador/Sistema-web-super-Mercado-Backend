@@ -1,7 +1,7 @@
 <template>
   <div class="kpi-grid q-mb-md">
     <div v-for="(kpi, idx) in kpis" :key="kpi.label" class="kpi-col" :style="{ '--delay': `${idx * 0.1}s` }">
-      <q-card class="asistencia-stat-card">
+      <q-card class="asistencia-stat-card" :class="{ 'clickable': kpi.clickable }" @click="kpi.clickable && $emit('click-kpi', kpi.key)">
         <q-card-section class="card-content">
           <div class="card-main">
             <div class="card-icon-wrapper" :class="`icon-${kpi.color}`">
@@ -26,33 +26,43 @@ const props = defineProps({
   presentes: { type: Number, default: 0 },
   ausentes: { type: Number, default: 0 },
   tardanzas: { type: Number, default: 0 },
+  justificados: { type: Number, default: 0 },
   permisos: { type: Number, default: 0 },
   total: { type: Number, default: 0 }
 })
 
+const emit = defineEmits(['click-kpi'])
+
 const kpis = computed(() => [
-  { label: 'Presentes hoy', valor: props.presentes, icono: 'check_circle', color: 'green', desc: 'Marcaron asistencia' },
-  { label: 'Ausentes', valor: props.ausentes, icono: 'cancel', color: 'red', desc: 'Sin registro hoy' },
-  { label: 'Tardanzas', valor: props.tardanzas, icono: 'access_time', color: 'orange', desc: 'Llegaron tarde' },
-  { label: 'Justificados', valor: props.permisos, icono: 'event_busy', color: 'lime', desc: 'Ausencias justificadas' },
-  { label: '% Asistencia', valor: props.total > 0 ? Math.round((props.presentes / props.total) * 100) + '%' : '0%', icono: 'analytics', color: 'green', desc: 'Del total de empleados' }
+  { key: 'presentes', label: 'Presentes hoy', valor: props.presentes, icono: 'check_circle', color: 'green', desc: 'Marcaron asistencia', clickable: false },
+  { key: 'ausentes', label: 'Ausentes', valor: props.ausentes, icono: 'cancel', color: 'red', desc: 'Sin registro hoy', clickable: props.ausentes > 0 },
+  { key: 'tardanzas', label: 'Tardanzas', valor: props.tardanzas, icono: 'access_time', color: 'orange', desc: 'Llegaron tarde', clickable: false },
+  { key: 'justificados', label: 'Justificados', valor: props.justificados, icono: 'verified', color: 'lime', desc: 'Ausencias justificadas', clickable: false },
+  { key: 'permisos', label: 'Permisos', valor: props.permisos, icono: 'event_busy', color: 'lime', desc: 'Permisos aprobados', clickable: false },
+  { key: 'asistencia', label: '% Asistencia', valor: props.total > 0 ? Math.round((props.presentes / props.total) * 100) + '%' : '0%', icono: 'analytics', color: 'green', desc: 'Del total de empleados', clickable: false }
 ])
 </script>
 
 <style scoped>
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .kpi-grid {
     grid-template-columns: 1fr;
   }
@@ -72,6 +82,13 @@ const kpis = computed(() => [
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
   transform: translateY(-3px);
   border-color: rgba(0, 0, 0, 0.06) !important;
+}
+.asistencia-stat-card.clickable {
+  cursor: pointer;
+}
+.asistencia-stat-card.clickable:hover {
+  border-color: #C10015 !important;
+  box-shadow: 0 8px 30px rgba(193, 0, 21, 0.12) !important;
 }
 
 .card-content {

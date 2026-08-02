@@ -74,11 +74,39 @@
         <q-item-section class="sidebar-label">Mi Asistencia</q-item-section>
       </q-item>
 
-      <q-item v-if="tieneAcceso" clickable v-ripple to="/asistencia/admin" class="sidebar-item" active-class="sidebar-item-active">
+      <q-item clickable v-ripple to="/asistencia/admin" class="sidebar-item" active-class="sidebar-item-active">
         <q-item-section avatar>
           <q-icon name="admin_panel_settings" class="sidebar-icon" />
         </q-item-section>
         <q-item-section class="sidebar-label">Panel Asistencia</q-item-section>
+      </q-item>
+
+      <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
+
+      <div v-show="!isMini" class="sidebar-section-label">Permisos</div>
+
+      <q-item v-if="tieneAcceso" clickable v-ripple to="/permisos" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="event_note" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Mis Permisos</q-item-section>
+      </q-item>
+      <q-item clickable v-ripple to="/permisos-admin" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="admin_panel_settings" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Admin Permisos</q-item-section>
+      </q-item>
+
+      <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
+
+      <div v-show="!isMini" class="sidebar-section-label">Compras</div>
+
+      <q-item clickable v-ripple to="/proveedores" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="storefront" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Proveedores</q-item-section>
       </q-item>
 
     </q-list>
@@ -86,9 +114,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import LogoSupermercado from '../../components/logo/LogoSupermercado.vue'
-import { tieneAccesoAsistencia } from '../../api/asistencia/asistencia'
+import { useAuthStore } from '../../store/store'
 
 defineProps({
   isMini: {
@@ -97,19 +125,8 @@ defineProps({
   }
 })
 
-const tieneAcceso = ref(false)
-const esAdmin = ref(false)
-
-onMounted(async () => {
-  try {
-    const res = await tieneAccesoAsistencia()
-    tieneAcceso.value = res.tieneAcceso
-    esAdmin.value = res.esAdmin
-  } catch {
-    tieneAcceso.value = false
-    esAdmin.value = false
-  }
-})
+const store = useAuthStore()
+const tieneAcceso = computed(() => store.controlaAsistencia)
 </script>
 
 <style scoped src="../../assets/styles/layout/aside.css">

@@ -187,7 +187,7 @@ const submitLogin = async () => {
       username: respuesta.username,
       nombreCompleto: respuesta.nombreCompleto,
       cargo: respuesta.cargo
-    })
+    }, respuesta.controlaAsistencia)
     router.push("/")
     
   } catch (error) {
