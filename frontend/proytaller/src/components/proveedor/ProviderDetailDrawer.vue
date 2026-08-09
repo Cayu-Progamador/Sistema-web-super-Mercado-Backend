@@ -34,8 +34,18 @@
         <div class="pv-seccion">
           <div class="pv-seccion-titulo">Contacto</div>
           <div class="pv-contact-row"><q-icon name="person" size="15px" /><span>{{ proveedor.contacto.nombre }}</span></div>
-          <div class="pv-contact-row"><q-icon name="phone" size="15px" /><span>{{ proveedor.contacto.telefono }}</span></div>
-          <div class="pv-contact-row"><q-icon name="email" size="15px" /><span>{{ proveedor.contacto.correo }}</span></div>
+
+          <template v-if="proveedor.contactos && proveedor.contactos.length">
+            <div v-for="(c, i) in proveedor.contactos" :key="i" class="pv-contacto-bloque">
+              <div v-if="c.telefono" class="pv-contact-row"><q-icon name="phone" size="15px" /><span>{{ c.telefono }}</span></div>
+              <div v-if="c.correo" class="pv-contact-row"><q-icon name="email" size="15px" /><span>{{ c.correo }}</span></div>
+            </div>
+          </template>
+          <template v-else>
+            <div v-if="proveedor.contacto.telefono" class="pv-contact-row"><q-icon name="phone" size="15px" /><span>{{ proveedor.contacto.telefono }}</span></div>
+            <div v-if="proveedor.contacto.correo" class="pv-contact-row"><q-icon name="email" size="15px" /><span>{{ proveedor.contacto.correo }}</span></div>
+          </template>
+
           <div class="pv-contact-row"><q-icon name="place" size="15px" /><span>{{ proveedor.ciudad }}{{ proveedor.zona ? ' · ' + proveedor.zona : '' }}</span></div>
         </div>
 
@@ -284,6 +294,18 @@ function initials(nombre) {
 
 .pv-contact-row .q-icon {
   color: #8a9a90;
+}
+
+.pv-contacto-bloque {
+  padding: 6px 10px;
+  margin: 4px 0;
+  background: #F1F8E9;
+  border: 1px solid #e4edd8;
+  border-radius: 10px;
+}
+
+.pv-contacto-bloque + .pv-contacto-bloque {
+  margin-top: 6px;
 }
 
 .pv-calif-row {

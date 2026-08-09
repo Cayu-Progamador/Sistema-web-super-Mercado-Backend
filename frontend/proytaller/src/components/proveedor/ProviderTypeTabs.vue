@@ -1,5 +1,5 @@
 <template>
-  <q-tabs v-model="tabActiva" class="pv-tabs" active-color="primary" indicator-color="primary" dense>
+  <q-tabs v-model="tabActiva" class="pv-tabs" active-color="green-8" indicator-color="green-8" dense>
     <q-tab v-for="tab in tabs" :key="tab.key" :name="tab.key" no-caps class="pv-tab">
       <div class="pv-tab-inner">
         <span>{{ tab.label }}</span>
@@ -29,19 +29,19 @@ const tabActiva = computed({
 })
 
 const tabs = computed(() => [
-  { key: 'todos', label: 'Todos', count: props.total, color: '#2E7D32' },
-  { key: 'empresa', label: 'Proveedor Empresa', count: props.empresas, color: '#1976D2' },
-  { key: 'persona', label: 'Proveedor Persona', count: props.personas, color: '#7B1FA2' }
+  { key: 'todos', label: 'Todos', count: props.total, color: '#43A047' },
+  { key: 'empresa', label: 'Proveedor Empresa', count: props.empresas, color: '#66BB6A' },
+  { key: 'persona', label: 'Proveedor Persona', count: props.personas, color: '#81C784' }
 ])
 </script>
 
 <style scoped>
 .pv-tabs {
-  background: #ffffff;
-  border: 1px solid #e6ebf1;
+  background: #E8F5E9;
+  border: 1.5px solid #c8dfda;
   border-radius: 12px;
   padding: 0 6px;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+  box-shadow: 0 2px 10px rgba(0, 96, 81, 0.08);
   min-height: 44px;
 }
 
@@ -49,8 +49,16 @@ const tabs = computed(() => [
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 13px;
-  color: #5a6a60;
+  color: #0f6e56;
   min-height: 42px;
+  border-radius: 8px;
+  margin: 4px 2px;
+}
+
+.pv-tab.q-tab--active {
+  background: #ffffff;
+  color: #006051;
+  box-shadow: 0 2px 8px rgba(0, 96, 81, 0.15);
 }
 
 .pv-tab-inner {
@@ -68,5 +76,9 @@ const tabs = computed(() => [
   align-items: center;
   justify-content: center;
   padding: 0 6px;
+  border-radius: 8px;
+  background: #F1F8E9 !important;
+  color: #2E7D32 !important;
+  border: 1px solid #dcf0df;
 }
 </style>

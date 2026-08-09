@@ -10,4 +10,6 @@ import com.backendSupermercado.supermercasdo.modules.empleado.entity.Departament
 public interface CiudadRepository extends JpaRepository<Ciudad, Long> {
     Optional<Ciudad> findFirstByOrderByIdCiudadAsc();
     Optional<Ciudad> findByNombreAndDepartamento(String nombre, DepartamentoGeografico departamento);
+    Optional<Ciudad> findByNombreIgnoreCase(String nombre);
+    Optional<Ciudad> findFirstByNombreIgnoreCase(String nombre);
 }

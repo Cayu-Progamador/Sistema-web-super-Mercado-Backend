@@ -4,11 +4,13 @@
     :columns="columns"
     :pagination="paginacion"
     :rows-per-page-options="[5, 10, 20, 50]"
+    :rows-number="rowsNumber"
     row-key="id"
     class="pv-table"
     flat
     :loading="loading"
     :visible-columns="visibleColumns"
+    @request="onRequest"
   >
     <template v-slot:loading>
       <q-inner-loading showing color="primary" />
@@ -30,8 +32,8 @@
 
     <template v-slot:body-cell-tipo="props">
       <q-td :props="props">
-        <q-chip :color="props.row.tipo === 'Empresa' ? 'blue-9' : 'purple-10'" text-color="white" dense size="12px" class="pv-chip-tipo">
-          <q-icon :name="props.row.tipo === 'Empresa' ? 'apartment' : 'person'" size="14px" />
+        <q-chip :color="props.row.tipo === 'Empresa' ? 'green-8' : 'green-6'" text-color="white" dense class="pv-chip-tipo">
+          <q-icon :name="props.row.tipo === 'Empresa' ? 'apartment' : 'person'" size="15px" />
           {{ props.row.tipo }}
         </q-chip>
       </q-td>
@@ -39,21 +41,12 @@
 
     <template v-slot:body-cell-documento="props">
       <q-td :props="props">
-        <span class="pv-doc">{{ props.row.documento.tipo }}: </span>
-        <span class="pv-doc-num">{{ props.row.documento.numero }}</span>
-      </q-td>
-    </template>
-
-    <template v-slot:body-cell-productos="props">
-      <q-td :props="props">
-        <div class="pv-products">
-          <q-chip v-for="(prod, i) in props.row.productos.slice(0, 2)" :key="prod" dense size="12px" class="pv-product-chip">
-            {{ prod }}
-          </q-chip>
-          <q-chip v-if="props.row.productos.length > 2" dense size="12px" color="grey-8" text-color="white" class="pv-product-chip">
-            +{{ props.row.productos.length - 2 }} más
-          </q-chip>
-        </div>
+        <template v-if="props.row.documento.tipo === 'CI' || filtroTipo === 'persona'">
+          <span class="pv-doc-num">CI: {{ props.row.documento.numero }}</span>
+        </template>
+        <template v-else>
+          <span class="pv-doc-num">{{ props.row.documento.numero }}</span>
+        </template>
       </q-td>
     </template>
 
@@ -66,15 +59,15 @@
       </q-td>
     </template>
 
-    <template v-slot:body-cell-calificacion="props">
+    <template v-slot:body-cell-ciudad="props">
       <q-td :props="props">
-        <q-rating :model-value="props.row.calificacion" readonly size="15px" color="amber-7" icon="star" />
+        <span class="pv-ciudad">{{ props.row.ciudad || '—' }}</span>
       </q-td>
     </template>
 
     <template v-slot:body-cell-estado="props">
       <q-td :props="props">
-        <q-chip :color="props.row.estado === 'Activo' ? 'green-7' : 'grey-6'" text-color="white" dense size="12px">
+        <q-chip :color="props.row.estado === 'Activo' ? 'green-7' : 'grey-6'" text-color="white" dense class="pv-chip-estado">
           <q-icon :name="props.row.estado === 'Activo' ? 'check_circle' : 'cancel'" size="14px" />
           {{ props.row.estado }}
         </q-chip>
@@ -83,14 +76,14 @@
 
     <template v-slot:body-cell-acciones="props">
       <q-td :props="props" class="pv-acciones">
-        <q-btn flat round dense icon="visibility" color="primary" @click="$emit('ver-detalle', props.row)">
-          <q-tooltip>Ver detalle</q-tooltip>
+        <q-btn flat round dense icon="visibility" size="md" @click="$emit('ver-detalle', props.row)" style="color: #006051">
+          <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
         </q-btn>
-        <q-btn flat round dense icon="edit" color="blue-7" @click="$emit('editar', props.row)">
-          <q-tooltip>Editar proveedor</q-tooltip>
+        <q-btn flat round dense icon="edit" size="md" @click="$emit('editar', props.row)" style="color: #F57C00">
+          <q-tooltip class="bg-orange text-white">Editar proveedor</q-tooltip>
         </q-btn>
-        <q-btn flat round dense icon="history" color="teal-7" @click="$emit('historial', props.row)">
-          <q-tooltip>Historial de compras</q-tooltip>
+        <q-btn flat round dense icon="file_download" size="md" @click="$emit('exportar', props.row)" style="color: #8BC34A">
+          <q-tooltip class="bg-positive text-white">Exportar</q-tooltip>
         </q-btn>
         <q-btn
           flat
@@ -100,10 +93,7 @@
           :color="props.row.estado === 'Activo' ? 'orange-8' : 'green-7'"
           @click="$emit('cambiar-estado', props.row)"
         >
-          <q-tooltip>{{ props.row.estado === 'Activo' ? 'Desactivar' : 'Activar' }}</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="delete" color="red-6" @click="$emit('eliminar', props.row)">
-          <q-tooltip>Eliminar</q-tooltip>
+          <q-tooltip class="bg-orange text-white">{{ props.row.estado === 'Activo' ? 'Desactivar' : 'Activar' }}</q-tooltip>
         </q-btn>
       </q-td>
     </template>
@@ -118,40 +108,50 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   rows: { type: Array, default: () => [] },
-  loading: { type: Boolean, default: false }
+  loading: { type: Boolean, default: false },
+  filtroTipo: { type: String, default: 'todos' },
+  rowsNumber: { type: Number, default: 0 }
 })
 
-defineEmits(['ver-detalle', 'editar', 'historial', 'cambiar-estado', 'eliminar'])
+const emit = defineEmits(['ver-detalle', 'editar', 'historial', 'cambiar-estado', 'eliminar', 'exportar', 'pagina-cambio'])
 
 const paginacion = {
   sortBy: 'nombre',
   descending: false,
   page: 1,
-  rowsPerPage: 10
+  rowsPerPage: 10,
+  rowsNumber: 0
 }
 
-const columns = [
+function onRequest(requestProp) {
+  emit('pagina-cambio', {
+    page: requestProp.pagination.page,
+    rowsPerPage: requestProp.pagination.rowsPerPage,
+    sortBy: requestProp.pagination.sortBy,
+    descending: requestProp.pagination.descending
+  })
+}
+
+const columns = computed(() => [
   { name: 'proveedor', label: 'Proveedor', field: 'nombre', align: 'left', sortable: true },
   { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'left', sortable: true },
-  { name: 'documento', label: 'NIT / CI', field: 'documento', align: 'left' },
-  { name: 'productos', label: 'Productos', field: 'productos', align: 'left' },
+  { name: 'documento', label: props.filtroTipo === 'persona' ? 'CI' : props.filtroTipo === 'empresa' ? 'NIT' : 'NIT / CI', field: 'documento', align: 'left' },
   { name: 'contacto', label: 'Contacto y teléfono', field: 'contacto', align: 'left' },
   { name: 'ciudad', label: 'Ciudad', field: 'ciudad', align: 'left', sortable: true },
-  { name: 'calificacion', label: 'Calificación', field: 'calificacion', align: 'center', sortable: true },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'right' }
-]
+])
 
 const visibleColumns = [
   'proveedor',
   'tipo',
   'documento',
-  'productos',
   'contacto',
   'ciudad',
-  'calificacion',
   'estado',
   'acciones'
 ]
@@ -170,8 +170,50 @@ function initials(nombre) {
 .pv-table {
   border-radius: 14px;
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
-  border: 1px solid #e6ebf1;
+  box-shadow: 0 2px 12px rgba(0, 96, 81, 0.08);
+  border: 1.5px solid #c8dfda;
+}
+
+.pv-table :deep(.q-table__top),
+.pv-table :deep(.q-table__card) {
+  background: #ffffff;
+}
+
+.pv-table :deep(.q-table thead tr th) {
+  background: #E8F5E9 !important;
+  color: #006051 !important;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #c8dfda;
+  padding: 12px 14px;
+}
+
+.pv-table :deep(.q-table tbody td) {
+  border-bottom: 1px solid #e8f0ec;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  color: #2E7D32;
+  padding: 12px 14px;
+}
+
+.pv-table :deep(.q-table tbody tr:hover) {
+  background: #F1F8E9 !important;
+}
+
+.pv-table :deep(.q-table__separator) {
+  background: #c8dfda;
+}
+
+.pv-table :deep(.q-pagination .q-btn) {
+  border-radius: 8px;
+}
+
+.pv-table :deep(.q-pagination .q-btn.q-btn--active) {
+  background: #006051 !important;
+  color: #ffffff !important;
 }
 
 .pv-prov {
@@ -181,7 +223,7 @@ function initials(nombre) {
 }
 
 .pv-avatar {
-  border-radius: 9px !important;
+  border-radius: 50% !important;
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 700;
 }
@@ -190,18 +232,32 @@ function initials(nombre) {
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 13.5px;
-  color: #16231c;
+  color: #2E7D32;
 }
 
 .pv-prov-sub {
   font-size: 11.5px;
-  color: #7a8a80;
+  color: #66a35f;
   font-family: 'Nunito', sans-serif;
 }
 
 .pv-chip-tipo {
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(46, 125, 50, 0.25);
+  gap: 6px;
+}
+
+.pv-chip-estado {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  gap: 6px;
 }
 
 .pv-doc {
@@ -214,36 +270,27 @@ function initials(nombre) {
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 700;
   font-size: 12.5px;
-  color: #2b3b30;
-}
-
-.pv-products {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  max-width: 240px;
-}
-
-.pv-product-chip {
-  background: #eef3f0;
-  color: #2f4438;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
+  color: #2E7D32;
 }
 
 .pv-contacto-nombre {
   font-family: 'Nunito', sans-serif;
   font-weight: 700;
   font-size: 12.5px;
-  color: #33443a;
+  color: #2E7D32;
 }
 
 .pv-contacto-tel {
   font-size: 11.5px;
-  color: #7a8a80;
+  color: #66a35f;
   font-family: 'Nunito', sans-serif;
+}
+
+.pv-ciudad {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #2E7D32;
 }
 
 .pv-acciones {
@@ -253,7 +300,7 @@ function initials(nombre) {
 .pv-no-data {
   padding: 40px 0;
   text-align: center;
-  color: #8a9a90;
+  color: #2E7D32;
   font-family: 'Nunito', sans-serif;
   font-weight: 600;
   display: flex;

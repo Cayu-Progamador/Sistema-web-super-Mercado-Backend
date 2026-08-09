@@ -17,8 +17,8 @@
               <q-icon :name="form.tipo === 'Empresa' ? 'apartment' : 'person'" size="22px" color="#4a8c25" />
             </div>
             <div>
-              <div class="modal-title">Nuevo Proveedor</div>
-              <div class="modal-eyebrow">Proveedor Empresa o Persona Natural</div>
+              <div class="modal-title">{{ esEdicion ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</div>
+              <div class="modal-eyebrow">{{ esEdicion ? 'Modificar datos del proveedor' : 'Proveedor Empresa o Persona Natural' }}</div>
             </div>
           </div>
           <q-btn icon="close" flat round dense class="close-btn" v-close-popup />
@@ -96,7 +96,7 @@
               <span class="text-weight-bold text-green-8">Proveedor {{ form.tipo }}</span>
             </div>
             <q-space />
-            <q-btn unelevated color="green-8" no-caps icon="swap_horiz" label="Cambiar tipo" @click="cambiarTipo" />
+            <q-btn v-if="!esEdicion" unelevated color="green-8" no-caps icon="swap_horiz" label="Cambiar tipo" @click="cambiarTipo" />
           </div>
 
           <q-tab-panels v-model="tab" animated class="tab-panels">
@@ -106,7 +106,10 @@
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-4">
                   <q-input v-model="form.empresa.nit" label="NIT *" stack-label outlined color="green-8" mask="###-#######-#" placeholder="102-4567890-1" class="q-mb-md field-green" :rules="[v => !!v || 'NIT requerido']">
-                    <template v-slot:prepend><q-icon name="badge" size="20px" /></template>
+                    <template v-slot:prepend>
+                      <q-icon name="badge" size="20px" class="q-mr-xs" />
+                      <span class="doc-prefix">NIT:</span>
+                    </template>
                   </q-input>
                 </div>
                 <div class="col-12 col-md-8">
@@ -211,7 +214,10 @@
                 </div>
                 <div class="col-12 col-md-4">
                   <q-input v-model="form.persona.ci" label="CI *" stack-label outlined color="green-8" mask="#######-#" placeholder="6734567-1" class="q-mb-md field-green" :rules="[v => !!v || 'Requerido']">
-                  <template v-slot:prepend><q-icon name="badge" size="20px" /></template>
+                  <template v-slot:prepend>
+                    <q-icon name="badge" size="20px" class="q-mr-xs" />
+                    <span class="doc-prefix">CI:</span>
+                  </template>
                 </q-input>
                 </div>
                 <div class="col-12 col-md-4">
@@ -283,7 +289,7 @@
           v-if="form.tipo"
           unelevated
           color="green-8"
-          label="Guardar proveedor"
+          :label="esEdicion ? 'Guardar cambios' : 'Guardar proveedor'"
           no-caps
           :disable="!formValido"
           @click="guardar"
@@ -294,18 +300,31 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { listarSexos } from '../../api/proveedor/proveedor'
 
 const props = defineProps({
-  modelValue: { type: Boolean, default: false }
+  modelValue: { type: Boolean, default: false },
+  proveedorEditar: { type: Object, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'guardar'])
 
+const esEdicion = computed(() => !!props.proveedorEditar)
+
 const tab = ref('empresa')
 
 const ciudades = ['La Paz', 'El Alto', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Sucre', 'Tarija', 'Beni', 'Pando']
-const sexos = ['Masculino', 'Femenino', 'Otro']
+const sexos = ref([])
+
+onMounted(async () => {
+  try {
+    const respuesta = await listarSexos()
+    sexos.value = (respuesta || []).map((s) => ({ label: s.nombre, value: s.nombre }))
+  } catch (error) {
+    sexos.value = []
+  }
+})
 
 const form = reactive({
   tipo: null,
@@ -364,6 +383,43 @@ function cambiarTipo() {
   tab.value = 'empresa'
 }
 
+function precargar(proveedor) {
+  form.tipo = proveedor.tipo
+  tab.value = proveedor.tipo === 'Empresa' ? 'empresa' : 'datos'
+
+  if (proveedor.tipo === 'Empresa' && proveedor.empresa) {
+    const e = proveedor.empresa
+    form.empresa.nit = e.nit || ''
+    form.empresa.razonSocial = e.razonSocial || ''
+    form.empresa.nombreComercial = e.nombreComercial || ''
+    form.empresa.representanteLegal = e.representanteLegal || ''
+    form.empresa.contactos = (e.contactos && e.contactos.length ? e.contactos : [{ telefono: '', correo: '' }])
+      .map((c) => ({ telefono: c.telefono || '', correo: c.correo || '' }))
+    const d = e.direccion || {}
+    form.empresa.direccion.zona = d.zona || ''
+    form.empresa.direccion.calle = d.calle || ''
+    form.empresa.direccion.numero = d.numero || ''
+    form.empresa.direccion.referencia = d.referencia || ''
+    form.empresa.direccion.ciudad = d.ciudad || ''
+  } else if (proveedor.tipo === 'Persona' && proveedor.persona) {
+    const p = proveedor.persona
+    form.persona.nombres = p.nombres || ''
+    form.persona.apellidoPaterno = p.apellidoPaterno || ''
+    form.persona.apellidoMaterno = p.apellidoMaterno || ''
+    form.persona.ci = p.ci || ''
+    form.persona.fechaNacimiento = p.fechaNacimiento || ''
+    form.persona.sexo = p.sexo || ''
+    form.persona.telefono = p.telefono || ''
+    form.persona.correo = p.correo || ''
+    const d = p.direccion || {}
+    form.persona.direccion.ciudad = d.ciudad || ''
+    form.persona.direccion.zona = d.zona || ''
+    form.persona.direccion.calle = d.calle || ''
+    form.persona.direccion.numero = d.numero || ''
+    form.persona.direccion.referencia = d.referencia || ''
+  }
+}
+
 watch(
   () => form.tipo,
   (tipo) => {
@@ -373,6 +429,7 @@ watch(
 
 function guardar() {
   emit('guardar', {
+    id: props.proveedorEditar?.id,
     tipo: form.tipo,
     ...(form.tipo === 'Empresa'
       ? { empresa: JSON.parse(JSON.stringify(form.empresa)) }
@@ -385,33 +442,36 @@ function guardar() {
 watch(
   () => props.modelValue,
   (val) => {
-    if (val) {
-      tab.value = 'empresa'
-      form.tipo = null
-      form.empresa.nit = ''
-      form.empresa.razonSocial = ''
-      form.empresa.nombreComercial = ''
-      form.empresa.representanteLegal = ''
-      form.empresa.contactos = [{ telefono: '', correo: '' }]
-      form.empresa.direccion.zona = ''
-      form.empresa.direccion.calle = ''
-      form.empresa.direccion.numero = ''
-      form.empresa.direccion.referencia = ''
-      form.empresa.direccion.ciudad = ''
-      form.persona.nombres = ''
-      form.persona.apellidoPaterno = ''
-      form.persona.apellidoMaterno = ''
-      form.persona.ci = ''
-      form.persona.fechaNacimiento = ''
-      form.persona.sexo = ''
-      form.persona.telefono = ''
-      form.persona.correo = ''
-      form.persona.direccion.ciudad = ''
-      form.persona.direccion.zona = ''
-      form.persona.direccion.calle = ''
-      form.persona.direccion.numero = ''
-      form.persona.direccion.referencia = ''
+    if (!val) return
+    if (esEdicion.value) {
+      precargar(props.proveedorEditar)
+      return
     }
+    tab.value = 'empresa'
+    form.tipo = null
+    form.empresa.nit = ''
+    form.empresa.razonSocial = ''
+    form.empresa.nombreComercial = ''
+    form.empresa.representanteLegal = ''
+    form.empresa.contactos = [{ telefono: '', correo: '' }]
+    form.empresa.direccion.zona = ''
+    form.empresa.direccion.calle = ''
+    form.empresa.direccion.numero = ''
+    form.empresa.direccion.referencia = ''
+    form.empresa.direccion.ciudad = ''
+    form.persona.nombres = ''
+    form.persona.apellidoPaterno = ''
+    form.persona.apellidoMaterno = ''
+    form.persona.ci = ''
+    form.persona.fechaNacimiento = ''
+    form.persona.sexo = ''
+    form.persona.telefono = ''
+    form.persona.correo = ''
+    form.persona.direccion.ciudad = ''
+    form.persona.direccion.zona = ''
+    form.persona.direccion.calle = ''
+    form.persona.direccion.numero = ''
+    form.persona.direccion.referencia = ''
   }
 )
 </script>
@@ -483,7 +543,8 @@ watch(
   border-radius: 14px;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  background: #ffffff;
+  background: #e8f5e9;
+  height: 100%;
 }
 .tipo-card:hover {
   border-color: #2E7D32;
@@ -529,6 +590,10 @@ watch(
   border-radius: 14px;
   padding: 12px;
 }
+.selector-card .row {
+  justify-content: center;
+  align-items: stretch;
+}
 .row-sub {
   padding-top: 2px;
 }
@@ -552,6 +617,13 @@ watch(
   background: #2E7D32 !important;
   box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
   transform: translateY(-1px);
+}
+.doc-prefix {
+  font-weight: 700;
+  font-size: 12px;
+  color: #1B5E20;
+  white-space: nowrap;
+  user-select: none;
 }
 .pv-contact-index {
   width: 26px;
@@ -589,9 +661,6 @@ watch(
 .field-green :deep(input),
 .field-green :deep(.q-field__label),
 .field-green :deep(.q-icon) {
-  color: #1B5E20 !important;
-}
-.field-green :deep(.q-checkbox__label) {
   color: #1B5E20 !important;
 }
 </style>

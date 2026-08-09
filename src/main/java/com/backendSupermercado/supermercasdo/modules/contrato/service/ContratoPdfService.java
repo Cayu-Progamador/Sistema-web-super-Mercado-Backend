@@ -52,8 +52,7 @@ public class ContratoPdfService {
     private static final Color GRIS_TEXTO = new DeviceRgb(100, 100, 100);
     private static final Color BLANCO = ColorConstants.WHITE;
     private static final Color NEGRO = ColorConstants.BLACK;
-    private static final Color VERDE_BADGE = new DeviceRgb(76, 175, 80);
-    private static final Color ROJO_BADGE = new DeviceRgb(244, 67, 54);
+  
 
     private static final float MARGEN_IZQUIERDO = 25f;
     private static final float MARGEN_DERECHO = 25f;

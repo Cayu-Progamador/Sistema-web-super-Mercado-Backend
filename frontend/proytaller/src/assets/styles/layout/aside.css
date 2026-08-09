@@ -87,3 +87,27 @@
   color: #fff !important;
   transition: color 0.18s !important;
 }
+
+.sidebar-sub-item {
+  min-height: 40px !important;
+  margin: 2px 8px 2px 12px !important;
+  border-radius: 10px !important;
+  transition: background 0.18s, color 0.18s !important;
+}
+
+.sidebar-sub-item:hover {
+  background: #f0f7e8 !important;
+}
+
+.sidebar-sub-item .sidebar-label {
+  color: #d4e8c0 !important;
+}
+
+.sidebar-sub-item:hover .sidebar-label,
+.sidebar-sub-item:hover .sidebar-icon {
+  color: #2a5c1a !important;
+}
+
+.sidebar-sub-icon {
+  font-size: 20px !important;
+}

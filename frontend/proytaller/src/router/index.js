@@ -16,6 +16,10 @@ import AsistenciaAdmin from '../pages/asistencia/AsistenciaAdmin.vue'
 import PermisoPersonal from '../pages/permiso_personal/EmployeePermissionsView.vue'
 import PermisoAdmin from '../pages/permiso_personal/AdminPermissionsView.vue'
 import Proveedores from '../pages/proveedor/ProveedorPage.vue'
+import Productos from '../pages/productos/ProductosPage.vue'
+import Categorias from '../pages/categorias/CategoriesPage.vue'
+import UnidadMedida from '../pages/unidadMedida/UnidadMedidaPage.vue'
+import Marca from '../pages/marca/MarcaPage.vue'
 const routes = [
   {
     path: '/login',
@@ -94,6 +98,26 @@ const routes = [
         path: 'proveedores',
         name: 'proveedores',
         component: Proveedores
+      },
+      {
+        path: 'productos',
+        name: 'productos',
+        component: Productos
+      },
+      {
+        path: 'categorias',
+        name: 'categorias',
+        component: Categorias
+      },
+      {
+        path: 'unidad_medida',
+        name: 'unidad_medida',
+        component: UnidadMedida
+      },
+      {
+        path: 'marcas',
+        name: 'marcas',
+        component: Marca
       }
 
     ]

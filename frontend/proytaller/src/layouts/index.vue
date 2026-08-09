@@ -38,7 +38,7 @@ import MyHeader from "./modules/Header.vue";    // Was Header
 import MySidebar from "./modules/Aside.vue";    // Was Aside
 import '../assets/styles/layout/layouts.css'
 const leftDrawerOpen = ref(false)
-const drawerWidth = ref(200)
+const drawerWidth = ref(240)
 
 const miniState = ref(false)
 
