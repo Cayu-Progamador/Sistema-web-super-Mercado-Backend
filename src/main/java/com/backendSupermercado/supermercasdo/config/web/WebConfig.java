@@ -11,9 +11,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.uploads.directorio:uploads/fotos-perfil}")
     private String directorioUploads;
 
+    @Value("${app.uploads.directorio-productos:uploads/productos}")
+    private String directorioProductos;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + directorioUploads + "/");
+                .addResourceLocations("file:" + directorioUploads + "/", "file:" + directorioProductos + "/");
     }
 }

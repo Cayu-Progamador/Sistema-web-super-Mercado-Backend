@@ -21,6 +21,7 @@ public class SubcategoriaResponseDto {
     private Boolean estado;
     private Long idCategoria;
     private String nombreCategoria;
+    private Long cantidadProductos;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
 }

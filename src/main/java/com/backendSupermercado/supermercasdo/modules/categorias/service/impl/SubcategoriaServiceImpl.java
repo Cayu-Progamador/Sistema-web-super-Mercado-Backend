@@ -135,6 +135,9 @@ public class SubcategoriaServiceImpl implements SubcategoriaService {
                 .estado(subcategoria.getEstado())
                 .idCategoria(categoria != null ? categoria.getIdCategoria() : null)
                 .nombreCategoria(categoria != null ? categoria.getNombre() : null)
+                .cantidadProductos(subcategoria.getProductos() != null
+                        ? (long) subcategoria.getProductos().size()
+                        : 0L)
                 .fechaCreacion(subcategoria.getFechaCreacion())
                 .fechaActualizacion(subcategoria.getFechaActualizacion())
                 .build();

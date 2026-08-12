@@ -37,6 +37,7 @@ jwt:
 app:
   uploads:
     directorio: uploads/fotos-perfil
+    directorio-productos: uploads/productos
   empresa:
     nombre: "SUPERMERCADO LA MARTITA"
     eslogan: "Tu mejor opción en calidad y precio"

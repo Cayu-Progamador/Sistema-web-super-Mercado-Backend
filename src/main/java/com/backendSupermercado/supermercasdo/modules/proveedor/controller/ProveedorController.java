@@ -4,8 +4,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,6 +23,7 @@ import com.backendSupermercado.supermercasdo.modules.proveedor.dto.ProveedorList
 import com.backendSupermercado.supermercasdo.modules.proveedor.dto.ProveedorRequestDto;
 import com.backendSupermercado.supermercasdo.modules.proveedor.dto.ProveedorResponseDto;
 import com.backendSupermercado.supermercasdo.modules.proveedor.service.ProveedorService;
+import com.backendSupermercado.supermercasdo.security.auth.service.CustomUserDetails;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +78,72 @@ public class ProveedorController {
             @PathVariable Long id,
             @Valid @RequestBody ProveedorRequestDto request) {
         return ResponseEntity.ok(proveedorService.actualizarProveedor(id, request));
+    }
+
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<ProveedorResponseDto> activarProveedor(@PathVariable Long id) {
+        return ResponseEntity.ok(proveedorService.activarProveedor(id));
+    }
+
+    @PatchMapping("/{id}/desactivar")
+    public ResponseEntity<ProveedorResponseDto> desactivarProveedor(@PathVariable Long id) {
+        return ResponseEntity.ok(proveedorService.desactivarProveedor(id));
+    }
+
+    @GetMapping("/exportar/pdf")
+    public ResponseEntity<byte[]> exportarProveedoresPDF(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Boolean estado,
+            @RequestParam(required = false) Long ciudad,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : "Usuario";
+        byte[] pdfBytes = proveedorService.exportarProveedoresPDF(busqueda, tipo, estado, ciudad, username);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "reporte_proveedores.pdf");
+
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
+    }
+
+    @GetMapping("/exportar/excel")
+    public ResponseEntity<byte[]> exportarProveedoresExcel(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Boolean estado,
+            @RequestParam(required = false) Long ciudad) {
+        byte[] excelBytes = proveedorService.exportarProveedoresExcel(busqueda, tipo, estado, ciudad);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment", "reporte_proveedores.xlsx");
+
+        return ResponseEntity.ok().headers(headers).body(excelBytes);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> exportarProveedorDetallePDF(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails != null ? userDetails.getUsername() : "Usuario";
+        byte[] pdfBytes = proveedorService.exportarProveedorDetallePDF(id, username);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "ficha_proveedor_" + id + ".pdf");
+
+        return ResponseEntity.ok().headers(headers).body(pdfBytes);
+    }
+
+    @GetMapping("/{id}/excel")
+    public ResponseEntity<byte[]> exportarProveedorDetalleExcel(@PathVariable Long id) {
+        byte[] excelBytes = proveedorService.exportarProveedorDetalleExcel(id);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment", "ficha_proveedor_" + id + ".xlsx");
+
+        return ResponseEntity.ok().headers(headers).body(excelBytes);
     }
 }

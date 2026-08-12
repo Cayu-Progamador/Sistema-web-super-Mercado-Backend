@@ -1,6 +1,6 @@
 <template>
   <q-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
-    transition-show="slide-up" transition-hide="slide-down" class="new-product-dialog">
+    transition-show="slide-up" transition-hide="slide-down" class="new-product-dialog" persistent>
     <q-card class="np-card">
       <div class="accent-bar"></div>
 
@@ -44,22 +44,46 @@
                   type="textarea" rows="2" placeholder="Descripción breve del producto" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-select v-model="form.categoria" :options="categorias" label="Categoría *" stack-label outlined
-                  color="green-8" emit-value map-options class="q-mb-md field-green"
-                  @update:model-value="categoriaCambio" />
+                <div class="np-field-with-btn">
+                  <q-select v-model="form.categoria" :options="categoriasFiltradas" label="Categoría *" stack-label
+                    outlined color="green-8" emit-value map-options use-input input-debounce="200"
+                    class="np-field-el field-green" :loading="creandoCatalogo === 'categoria'"
+                    @filter="filtrarCategorias" @update:model-value="categoriaCambio" />
+                  <q-btn flat round dense class="np-add-btn" icon="edit" aria-label="Crear categoría"
+                    @click="abrirCrear('categoria')">
+                    <q-tooltip>Crear categoría nueva</q-tooltip>
+                  </q-btn>
+                </div>
               </div>
               <div class="col-12 col-md-6">
-                <q-select v-model="form.subcategoria" :options="subcategorias" label="Subcategoría *" stack-label
-                  outlined color="green-8" emit-value map-options :disable="!form.categoria" class="q-mb-md field-green"
-                  :error="!!errores.subcategoria" :error-message="errores.subcategoria" />
+                <div class="np-field-with-btn">
+                  <q-select v-model="form.subcategoria" :options="subcategoriasFiltradas" label="Subcategoría *"
+                    stack-label outlined color="green-8" emit-value map-options use-input input-debounce="200"
+                    :disable="!form.categoria" class="np-field-el field-green" :error="!!errores.subcategoria"
+                    :error-message="errores.subcategoria"
+                    :loading="cargandoSubcategorias || creandoCatalogo === 'subcategoria'"
+                    @filter="filtrarSubcategorias" />
+                  <q-btn flat round dense class="np-add-btn" icon="edit" aria-label="Crear subcategoría"
+                    @click="abrirCrear('subcategoria')">
+                    <q-tooltip>Crear subcategoría nueva</q-tooltip>
+                  </q-btn>
+                </div>
               </div>
               <div class="col-12 col-md-6 row items-end q-mb-md">
                 <q-toggle v-model="form.tieneMarca" color="green-8" />
                 <div class="q-ml-sm" style="font-weight: 700; color: #2E7D32;">¿El producto tiene marca?</div>
               </div>
               <div v-if="form.tieneMarca" class="col-12 col-md-6">
-                <q-select v-model="form.marca" :options="marcas" label="Marca" stack-label outlined
-                  color="green-8" emit-value map-options clearable class="q-mb-md field-green" />
+                <div class="np-field-with-btn">
+                  <q-select v-model="form.marca" :options="marcasFiltradas" label="Marca" stack-label outlined
+                    color="green-8" emit-value map-options clearable use-input input-debounce="200"
+                    class="np-field-el field-green" :loading="creandoCatalogo === 'marca'"
+                    @filter="filtrarMarcas" />
+                  <q-btn flat round dense class="np-add-btn" icon="edit" aria-label="Crear marca"
+                    @click="abrirCrear('marca')">
+                    <q-tooltip>Crear marca nueva</q-tooltip>
+                  </q-btn>
+                </div>
               </div>
               <div class="col-12 col-md-4">
                 <div class="np-img-zone" :class="{ 'drag-over': isDraggingImagen }" @click="triggerImagenInput"
@@ -73,7 +97,7 @@
                   </template>
                   <template v-else>
                     <q-img :src="previewImagen" fit="cover" style="height: 120px; width: 100%; border-radius: 8px;" />
-                    <div class="np-img-file">{{ form.imagen.name }}</div>
+                    <div class="np-img-file">{{ typeof form.imagen === 'object' ? form.imagen.name : 'Imagen actual' }}</div>
                     <button class="np-img-remove" @click.stop="quitarImagen">Quitar</button>
                   </template>
                 </div>
@@ -89,24 +113,6 @@
           <!-- PESTAÑA 2: CONFIGURACIÓN -->
           <q-tab-panel name="config">
             <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-8">
-                <div class="config-field-label">
-                  ¿Cuál es la unidad base?
-                  <q-icon name="help_outline" size="16px" class="config-field-help">
-                    <q-tooltip>Es la unidad mínima y única con la que se mide el producto (ej. Kilogramo, Litro,
-                      Unidad)</q-tooltip>
-                  </q-icon>
-                </div>
-                <q-select v-model="form.unidadBase" :options="unidades" label="Unidad base *" stack-label outlined
-                  color="green-8" emit-value map-options class="q-mb-md field-green" :error="!!errores.unidadBase"
-                  :error-message="errores.unidadBase" />
-              </div>
-              <div class="col-12">
-                <div class="config-note">
-                  <q-icon name="warning_amber" size="18px" class="q-mr-sm" style="color: #F57C00" />
-                  Estos datos se gestionan realmente en el módulo de Inventario/Almacén.
-                </div>
-              </div>
               <div class="col-6 col-md-3">
                 <q-toggle v-model="form.controlaLote" color="green-8" label="Controla lote" />
               </div>
@@ -119,6 +125,21 @@
           <!-- PESTAÑA 3: PRESENTACIONES -->
           <q-tab-panel name="presentaciones">
             <div class="section-title">Presentaciones de venta</div>
+
+            <div class="row q-col-gutter-md q-mb-md">
+              <div class="col-12 col-md-8">
+                <div class="config-field-label">
+                  ¿Cuál es la unidad base?
+                  <q-icon name="help_outline" size="16px" class="config-field-help">
+                    <q-tooltip>Es la unidad mínima y única con la que se mide el producto (ej. Kilogramo, Litro,
+                      Unidad)</q-tooltip>
+                  </q-icon>
+                </div>
+                <q-select v-model="form.unidadBase" :options="unidades" label="Unidad base *" stack-label outlined
+                  color="green-8" emit-value map-options class="q-mb-md field-green" :error="!!errores.unidadBase"
+                  :error-message="errores.unidadBase" @update:model-value="unidadBaseCambio" />
+              </div>
+            </div>
 
             <div class="row items-center q-gutter-md q-mb-md">
               <q-toggle v-model="form.tienePresentaciones" color="green-8" />
@@ -146,14 +167,38 @@
                   stack-label
                   class="field-green"
                   placeholder="0.00"
+                  min="0.01"
+                  step="0.01"
+                  @keydown="bloquearNoNumerico"
+                  @paste="sanearPegadoPrecio"
+                  @update:model-value="sanearPrecioUnidadBase"
                   :error="!!errores.precioUnidadBase"
                   :error-message="errores.precioUnidadBase"
+                />
+              </div>
+
+              <div class="pres-price-box">
+                <div class="row items-center q-gutter-sm">
+                  <q-toggle v-model="form.usaCodigoBase" color="green-8" dense />
+                  <div class="pres-price-label" style="margin-bottom: 0;">Este producto tiene código de barras</div>
+                </div>
+                <q-input
+                  v-if="form.usaCodigoBase"
+                  v-model="form.codigoBase"
+                  outlined
+                  color="green-8"
+                  stack-label
+                  class="field-green q-mt-sm"
+                  label="Código de barras"
+                  placeholder="Escanea o escribe el código"
+                  :error="!!errores.codigoBase"
+                  :error-message="errores.codigoBase"
                 />
               </div>
             </div>
 
             <!-- Tabla editable de presentaciones -->
-            <presentations-editable-table v-else :rows="form.presentaciones" :unidades="unidades"
+            <presentations-editable-table v-else :rows="form.presentaciones" :unidades="unidadesDelTipo"
               :errores="errores.presentaciones" :principal-id="principalId" @agregar="agregarPresentacion"
               @eliminar="eliminarPresentacion" @cambio="revisarPresentaciones" @principal-cambio="setPrincipal" />
           </q-tab-panel>
@@ -169,12 +214,24 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <!-- Crear categoría / subcategoría / marca reutilizando formularios de los módulos -->
+  <NewCategoryDialog v-model="dialogCategoria" :categorias="categoriasObjetos" @guardar="guardarNuevaCategoria" />
+  <NewSubcategoryDialog v-model="dialogSubcategoria" :categorias="categoriasObjetos"
+    :padre-preseleccionado="form.categoria" @guardar="guardarNuevaSubcategoria" />
+  <NewMarcaDialog v-model="dialogMarca" :marcas="marcasObjetos" @guardar="guardarNuevaMarca" />
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import PresentationsEditableTable from './PresentationsEditableTable.vue'
+import NewCategoryDialog from '../categoria/NewCategoryDialog.vue'
+import NewSubcategoryDialog from '../categoria/NewSubcategoryDialog.vue'
+import NewMarcaDialog from '../marca/NewMarcaDialog.vue'
+import { crearCategoria } from '../../api/categoria/categoria'
+import { crearSubcategoria } from '../../api/subcategoria/subcategoria'
+import { crearMarca } from '../../api/marca/marca'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -185,7 +242,7 @@ const props = defineProps({
   unidades: { type: Array, default: () => [] }
 })
 
-const emit = defineEmits(['update:modelValue', 'guardar'])
+const emit = defineEmits(['update:modelValue', 'guardar', 'categoria-cambio', 'categoria-creada', 'subcategoria-creada', 'marca-creada'])
 const $q = useQuasar()
 
 const esEdicion = computed(() => !!props.productoEditar)
@@ -204,7 +261,9 @@ const form = reactive({
   controlaLote: false,
   controlaVencimiento: false,
   tienePresentaciones: false,
-  presentaciones: []
+  presentaciones: [],
+  usaCodigoBase: false,
+  codigoBase: ''
 })
 
 const errores = reactive({
@@ -212,6 +271,7 @@ const errores = reactive({
   subcategoria: '',
   unidadBase: '',
   precioUnidadBase: '',
+  codigoBase: '',
   presentaciones: {}
 })
 
@@ -219,6 +279,7 @@ const imagenInput = ref(null)
 const isDraggingImagen = ref(false)
 const previewImagen = ref('')
 const errorImagen = ref('')
+const cargandoSubcategorias = ref(false)
 
 const FORMATOS_IMAGEN = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const MAX_IMG_MB = 2
@@ -272,8 +333,137 @@ function labelUnidadBase() {
   return u ? u.label : 'la unidad seleccionada'
 }
 
-function categoriaCambio() {
+const unidadesDelTipo = computed(() => {
+  if (!form.unidadBase) return props.unidades
+  const tipo = props.unidades.find((u) => u.value === form.unidadBase)?.tipo
+  if (!tipo) return props.unidades
+  return props.unidades.filter((u) => u.tipo === tipo)
+})
+
+function categoriaCambio(val) {
   form.subcategoria = null
+  errores.subcategoria = ''
+  emit('categoria-cambio', val)
+}
+
+const dialogCategoria = ref(false)
+const dialogSubcategoria = ref(false)
+const dialogMarca = ref(false)
+const creandoCatalogo = ref('')
+
+const categoriasObjetos = computed(() =>
+  props.categorias.map((c) => ({ id: c.value, nombre: c.label }))
+)
+
+const marcasObjetos = computed(() =>
+  props.marcas.map((m) => ({ id: m.value, nombre: m.label }))
+)
+
+function abrirCrear(tipo) {
+  if (tipo === 'categoria') {
+    dialogCategoria.value = true
+  } else if (tipo === 'subcategoria') {
+    if (!form.categoria) {
+      $q.notify({ type: 'warning', message: 'Primero selecciona o crea una categoría.' })
+      return
+    }
+    dialogSubcategoria.value = true
+  } else {
+    dialogMarca.value = true
+  }
+}
+
+function guardarNuevaCategoria(payload) {
+  crearCategoria({ nombre: payload.nombre, descripcion: payload.descripcion || '' })
+    .then((res) => {
+      const id = res.idCategoria
+      form.categoria = id
+      emit('categoria-creada', { id, nombre: payload.nombre })
+      categoriaCambio(id)
+      dialogCategoria.value = false
+      $q.notify({ type: 'positive', message: 'Categoría creada.' })
+    })
+    .catch((e) => {
+      $q.notify({ type: 'negative', message: e.response?.data?.message || 'No se pudo crear la categoría.' })
+    })
+}
+
+function guardarNuevaSubcategoria(payload) {
+  crearSubcategoria({ nombre: payload.nombre, descripcion: payload.descripcion || '', idCategoria: payload.categoriaId })
+    .then((res) => {
+      const id = res.idSubcategoria
+      form.subcategoria = id
+      errores.subcategoria = ''
+      emit('subcategoria-creada', { id, nombre: payload.nombre })
+      dialogSubcategoria.value = false
+      $q.notify({ type: 'positive', message: 'Subcategoría creada.' })
+    })
+    .catch((e) => {
+      $q.notify({ type: 'negative', message: e.response?.data?.message || 'No se pudo crear la subcategoría.' })
+    })
+}
+
+function guardarNuevaMarca(payload) {
+  crearMarca({ nombre: payload.nombre, descripcion: payload.descripcion || '' })
+    .then((res) => {
+      const id = res.idMarca
+      form.marca = id
+      emit('marca-creada', { id, nombre: payload.nombre })
+      dialogMarca.value = false
+      $q.notify({ type: 'positive', message: 'Marca creada.' })
+    })
+    .catch((e) => {
+      $q.notify({ type: 'negative', message: e.response?.data?.message || 'No se pudo crear la marca.' })
+    })
+}
+
+const categoriasFiltradas = ref([])
+const subcategoriasFiltradas = ref([])
+const marcasFiltradas = ref([])
+
+watch(
+  () => props.categorias,
+  (val) => { categoriasFiltradas.value = [...val] },
+  { immediate: true }
+)
+
+watch(
+  () => props.subcategorias,
+  (val) => { subcategoriasFiltradas.value = [...val] },
+  { immediate: true }
+)
+
+watch(
+  () => props.marcas,
+  (val) => { marcasFiltradas.value = [...val] },
+  { immediate: true }
+)
+
+function filtrarLista(texto, lista) {
+  const t = (texto || '').trim().toLowerCase()
+  if (!t) return [...lista]
+  return lista.filter((o) => String(o.label || '').toLowerCase().includes(t))
+}
+
+function filtrarCategorias(val, done) {
+  categoriasFiltradas.value = filtrarLista(val, props.categorias)
+  done()
+}
+
+function filtrarSubcategorias(val, done) {
+  subcategoriasFiltradas.value = filtrarLista(val, props.subcategorias)
+  done()
+}
+
+function filtrarMarcas(val, done) {
+  marcasFiltradas.value = filtrarLista(val, props.marcas)
+  done()
+}
+
+function unidadBaseCambio() {
+  form.presentaciones = []
+  principalId.value = null
+  revisarPresentaciones()
 }
 
 function agregarPresentacion() {
@@ -314,6 +504,8 @@ function revisarPresentaciones() {
     e.precio = ''
     if (!p.precio || Number(p.precio) <= 0) e.precio = 'Precio obligatorio'
     p.precioError = e.precio
+    e.codigo = ''
+    if (p.usaCodigo && !p.codigo?.trim()) e.codigo = 'Indica el código de barras'
     errs[p.tempId] = e
   })
   errores.presentaciones = errs
@@ -322,9 +514,12 @@ function revisarPresentaciones() {
 const formValido = computed(() => {
   if (errores.nombre || errores.subcategoria || errores.unidadBase || errores.precioUnidadBase) return false
   if (!form.nombre || !form.subcategoria || !form.unidadBase) return false
+  if (form.usaCodigoBase && !form.codigoBase?.trim()) return false
   if (!form.tienePresentaciones) return Number(form.precioUnidadBase) > 0
   if (!form.presentaciones.length) return false
-  return form.presentaciones.every((p) => p.nombre && Number(p.precio) > 0)
+  return form.presentaciones.every(
+    (p) => p.nombre && Number(p.precio) > 0 && !p.factorError && (!p.usaCodigo || p.codigo?.trim())
+  )
 })
 
 function resetForm() {
@@ -345,11 +540,14 @@ function resetForm() {
   form.tienePresentaciones = false
   form.precioUnidadBase = null
   form.presentaciones = []
+  form.usaCodigoBase = false
+  form.codigoBase = ''
   principalId.value = null
   errores.nombre = ''
   errores.subcategoria = ''
   errores.unidadBase = ''
   errores.precioUnidadBase = ''
+  errores.codigoBase = ''
   errores.presentaciones = {}
   tab.value = 'general'
 }
@@ -362,12 +560,54 @@ function precargar(producto) {
   form.tieneMarca = !!producto.idMarca
   form.marca = producto.idMarca ?? null
   form.unidadBase = producto.idUnidadBase ?? null
+  form.imagen = producto.imagen || null
+  previewImagen.value = producto.imagen ? urlImagen(producto.imagen) : ''
+  form.presentaciones = []
+  form.usaCodigoBase = false
+  form.codigoBase = ''
+  form.precioUnidadBase = null
+  errores.presentaciones = {}
+  errores.precioUnidadBase = ''
+  errores.codigoBase = ''
+  principalId.value = null
+
   const presentaciones = producto.presentaciones || []
   form.tienePresentaciones = presentaciones.length > 1
+  form.presentaciones = presentaciones.map((p, i) => {
+    const cod = (p.codigosBarra || [])[0]
+    return {
+      tempId: `e-${p.idPresentacion ?? i}`,
+      nombre: p.nombrePresentacion || '',
+      unidad: p.idUnidadMedida ?? form.unidadBase,
+      factor: p.factorConversion != null ? Number(p.factorConversion) : 1,
+      precio: p.precioVenta != null ? Number(p.precioVenta) : null,
+      usaCodigo: !!(cod && cod.codigo),
+      codigo: cod ? cod.codigo : '',
+      precioError: '',
+      factorError: ''
+    }
+  })
+  const principal = presentaciones.find((p) => p.esPrincipal)
+  if (principal) {
+    const idx = presentaciones.indexOf(principal)
+    if (form.presentaciones[idx]) principalId.value = form.presentaciones[idx].tempId
+  }
+
   if (!form.tienePresentaciones) {
-    form.precioUnidadBase = presentaciones.length ? presentaciones[0].precio : null
+    const p = presentaciones[0]
+    form.precioUnidadBase = p && p.precioVenta != null ? Number(p.precioVenta) : null
+    const cod = p ? (p.codigosBarra || [])[0] : null
+    form.usaCodigoBase = !!(cod && cod.codigo)
+    form.codigoBase = form.usaCodigoBase ? cod.codigo : ''
   }
   tab.value = 'general'
+}
+
+function urlImagen(ruta) {
+  if (!ruta) return ''
+  if (/^https?:\/\//i.test(ruta)) return ruta
+  if (ruta.startsWith('/')) return import.meta.env.VITE_API_URL + ruta
+  return import.meta.env.VITE_API_URL + '/uploads/' + ruta
 }
 
 function guardar() {
@@ -401,7 +641,9 @@ function guardar() {
         unidad: form.unidadBase,
         factor: 1,
         precio: Number(form.precioUnidadBase),
-        principal: true
+        principal: true,
+        usaCodigo: form.usaCodigoBase,
+        codigo: form.usaCodigoBase ? form.codigoBase : null
       }]
   }
   emit('guardar', payload)
@@ -424,7 +666,52 @@ watch(
   () => form.precioUnidadBase,
   (val) => {
     if (form.tienePresentaciones) return
-    errores.precioUnidadBase = !val || Number(val) <= 0 ? 'Indica el precio de venta.' : ''
+    errores.precioUnidadBase = !val || Number(val) <= 0 ? 'El precio debe ser mayor que 0.' : ''
+  }
+)
+
+function sanearPrecioUnidadBase(val) {
+  const n = Number(val)
+  if (val === '' || val === null || !isFinite(n) || n <= 0) {
+    form.precioUnidadBase = ''
+    errores.precioUnidadBase = 'El precio debe ser mayor que 0.'
+    return
+  }
+  form.precioUnidadBase = Math.round(n * 100) / 100
+  errores.precioUnidadBase = ''
+}
+
+function bloquearNoNumerico(e) {
+  const permitidas = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']
+  if (permitidas.includes(e.key)) return
+  if (e.key === '.') {
+    if (e.target.value.includes('.')) e.preventDefault()
+    return
+  }
+  if (!/^\d$/.test(e.key)) e.preventDefault()
+}
+
+function sanearPegadoPrecio(e) {
+  const texto = (e.clipboardData || window.clipboardData).getData('text')
+  if (!texto) return
+  const limpio = texto.replace(/[^\d.]/g, '')
+  if (limpio !== texto) {
+    e.preventDefault()
+  }
+}
+
+watch(
+  () => form.codigoBase,
+  (val) => {
+    if (form.tienePresentaciones || !form.usaCodigoBase) return
+    errores.codigoBase = !val?.trim() ? 'Indica el código de barras.' : ''
+  }
+)
+
+watch(
+  () => form.usaCodigoBase,
+  (val) => {
+    if (!val) errores.codigoBase = ''
   }
 )
 
@@ -444,10 +731,168 @@ watch(
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 14px;
+}
+
+.accent-bar {
+  height: 4px;
+  background: linear-gradient(90deg, #2E7D32, #66BB6A, #A5D6A7);
+}
+
+.dialog-header {
+  background: #E8F5E9 !important;
+}
+
+.modal-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1.5px solid #A5D6A7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1B5E20;
+}
+
+.modal-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7aaa4e;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-family: 'Nunito', sans-serif;
+}
+
+.close-btn {
+  color: #9dbf78 !important;
+  background: #f0f7e8 !important;
+  border-radius: 8px !important;
+}
+
+.close-btn:hover {
+  background: #ddecc5 !important;
+  color: #4a8c25 !important;
+}
+
+.section-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #2E7D32;
+  margin-bottom: 14px;
+}
+
+.dialog-actions {
+  border-top: 1px solid #E0E0E0;
+  background: #FAFBF7;
+}
+
+.dialog-actions .q-btn:first-child {
+  color: #2E7D32;
+  font-weight: 700;
+  border: 1px solid #A5D6A7;
+  border-radius: 8px;
+  min-height: 40px;
+}
+
+.dialog-actions .q-btn:first-child:hover {
+  background: #F1F8E9;
+}
+
+.dialog-actions .q-btn:last-child {
+  background: #2E7D32;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 8px;
+  min-height: 40px;
+  box-shadow: 0 2px 6px rgba(46, 125, 50, 0.3);
+}
+
+.dialog-actions .q-btn:last-child:hover {
+  background: #276B2B;
+}
+
+.field-green :deep(.q-field__control) {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1.5px solid #A5D6A7;
+}
+
+.field-green :deep(.q-field__control::before) {
+  border: none;
+}
+
+.field-green :deep(.q-field__control::after) {
+  border: none;
+}
+
+.field-green :deep(.q-field__control:hover) {
+  border-color: #81C784;
+}
+
+.field-green :deep(.q-field--focused .q-field__control) {
+  border-color: #2E7D32;
+}
+
+.field-green :deep(.q-field__native) {
+  color: #2E7D32;
+}
+
+.field-green :deep(.q-field__label) {
+  color: #388E3C;
+}
+
+.field-green :deep(.q-field__marginal) {
+  color: #2E7D32;
+}
+
+.field-green :deep(.q-field__control.q-field--error) {
+  border-color: #C62828;
 }
 
 .np-body {
   overflow-y: auto;
+}
+
+.np-field-with-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.np-field-el {
+  flex: 1;
+}
+
+.np-field-with-btn .q-field--float .q-field__label,
+.np-field-with-btn .q-field__label {
+  overflow: visible;
+}
+
+.np-add-btn {
+  margin-top: 4px;
+  color: #2E7D32;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+}
+
+.np-add-btn:hover {
+  background: #c8e6c9;
+}
+
+.q-toggle, .q-checkbox, .q-radio {
+  color: #2E7D32 !important;
+}
+
+.q-toggle :deep(.q-toggle__track), .q-checkbox :deep(.q-checkbox__bg), .q-radio :deep(.q-radio__bg) {
+  color: #2E7D32 !important;
 }
 
 @media (max-width: 1024px) {

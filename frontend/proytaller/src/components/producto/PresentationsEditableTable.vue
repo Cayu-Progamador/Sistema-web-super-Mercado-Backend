@@ -53,10 +53,14 @@
             outlined
             dense
             type="number"
-            min="0"
+            min="0.0001"
             step="0.0001"
             placeholder="1.0"
-            @input="$emit('cambio')"
+            :error="!!props.row.factorError"
+            :error-message="props.row.factorError"
+            @keydown="bloquearNoNumerico"
+            @paste="sanearPegadoPrecio"
+            @update:model-value="sanearFactor(props.row)"
           />
         </q-td>
       </template>
@@ -68,12 +72,14 @@
             outlined
             dense
             type="number"
-            min="0"
+            min="0.01"
             step="0.01"
             placeholder="Precio venta Bs"
             :error="!!props.row.precioError"
             :error-message="props.row.precioError"
-            @input="$emit('cambio')"
+            @keydown="bloquearNoNumerico"
+            @paste="sanearPegadoPrecio"
+            @update:model-value="sanearPrecio(props.row)"
           >
             <template v-slot:prepend>
               <q-icon name="payments" size="16px" />
@@ -97,6 +103,8 @@
               dense
               placeholder="Código de barras"
               style="min-width: 140px"
+              :error="!!(errores && errores[props.row.tempId] && errores[props.row.tempId].codigo)"
+              :error-message="errores && errores[props.row.tempId] && errores[props.row.tempId].codigo"
               @input="$emit('cambio')"
             />
           </div>
@@ -188,11 +196,15 @@
                 dense
                 stack-label
                 type="number"
-                min="0"
+                min="0.0001"
                 step="0.0001"
                 label="Factor conversión"
                 placeholder="1.0"
-                @input="$emit('cambio')"
+                :error="!!row.factorError"
+                :error-message="row.factorError"
+                @keydown="bloquearNoNumerico"
+                @paste="sanearPegadoPrecio"
+                @update:model-value="sanearFactor(row)"
               />
             </div>
             <div class="col-6">
@@ -202,13 +214,15 @@
                 dense
                 stack-label
                 type="number"
-                min="0"
+                min="0.01"
                 step="0.01"
                 label="Precio venta"
                 placeholder="Bs"
                 :error="!!row.precioError"
                 :error-message="row.precioError"
-                @input="$emit('cambio')"
+                @keydown="bloquearNoNumerico"
+                @paste="sanearPegadoPrecio"
+                @update:model-value="sanearPrecio(row)"
               >
                 <template v-slot:prepend>
                   <q-icon name="payments" size="16px" />
@@ -233,6 +247,8 @@
               stack-label
               placeholder="Código de barras"
               class="col"
+              :error="!!(errores && errores[row.tempId] && errores[row.tempId].codigo)"
+              :error-message="errores && errores[row.tempId] && errores[row.tempId].codigo"
               @input="$emit('cambio')"
             />
           </div>
@@ -303,6 +319,53 @@ const emit = defineEmits(['agregar', 'eliminar', 'cambio', 'principal-cambio'])
 
 function onPrincipalChange(tempId) {
   emit('principal-cambio', tempId)
+}
+
+function sanearPrecio(row) {
+  return (val) => {
+    const n = Number(val)
+    if (val === '' || val === null || !isFinite(n) || n <= 0) {
+      row.precio = ''
+      row.precioError = 'Debe ser mayor que 0'
+    } else {
+      row.precio = Math.round(n * 100) / 100
+      row.precioError = ''
+    }
+    emit('cambio')
+  }
+}
+
+function sanearFactor(row) {
+  return (val) => {
+    const n = Number(val)
+    if (val === '' || val === null || !isFinite(n) || n <= 0) {
+      row.factor = ''
+      row.factorError = 'Debe ser mayor que 0'
+    } else {
+      row.factor = Math.round(n * 10000) / 10000
+      row.factorError = ''
+    }
+    emit('cambio')
+  }
+}
+
+function bloquearNoNumerico(e) {
+  const permitidas = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End']
+  if (permitidas.includes(e.key)) return
+  if (e.key === '.') {
+    if (e.target.value.includes('.')) e.preventDefault()
+    return
+  }
+  if (!/^\d$/.test(e.key)) e.preventDefault()
+}
+
+function sanearPegadoPrecio(e) {
+  const texto = (e.clipboardData || window.clipboardData).getData('text')
+  if (!texto) return
+  const limpio = texto.replace(/[^\d.]/g, '')
+  if (limpio !== texto) {
+    e.preventDefault()
+  }
 }
 
 const codigoFuente = computed(() => {

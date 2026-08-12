@@ -38,6 +38,54 @@ export function actualizarProveedor(id, data) {
     })
 }
 
+export function activarProveedor(id) {
+    return request({
+        url: `/api/proveedores/${id}/activar`,
+        method: 'patch'
+    })
+}
+
+export function desactivarProveedor(id) {
+    return request({
+        url: `/api/proveedores/${id}/desactivar`,
+        method: 'patch'
+    })
+}
+
+export function exportarProveedoresPDF(params = {}) {
+    return request({
+        url: '/api/proveedores/exportar/pdf',
+        method: 'get',
+        params,
+        responseType: 'blob'
+    })
+}
+
+export function exportarProveedoresExcel(params = {}) {
+    return request({
+        url: '/api/proveedores/exportar/excel',
+        method: 'get',
+        params,
+        responseType: 'blob'
+    })
+}
+
+export function exportarProveedorDetallePDF(id) {
+    return request({
+        url: `/api/proveedores/${id}/pdf`,
+        method: 'get',
+        responseType: 'blob'
+    })
+}
+
+export function exportarProveedorDetalleExcel(id) {
+    return request({
+        url: `/api/proveedores/${id}/excel`,
+        method: 'get',
+        responseType: 'blob'
+    })
+}
+
 export function listarSexos() {
     return request({
         url: '/api/sexos',

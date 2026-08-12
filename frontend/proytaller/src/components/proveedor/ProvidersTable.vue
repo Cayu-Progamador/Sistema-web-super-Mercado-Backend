@@ -82,8 +82,24 @@
         <q-btn flat round dense icon="edit" size="md" @click="$emit('editar', props.row)" style="color: #F57C00">
           <q-tooltip class="bg-orange text-white">Editar proveedor</q-tooltip>
         </q-btn>
-        <q-btn flat round dense icon="file_download" size="md" @click="$emit('exportar', props.row)" style="color: #8BC34A">
+        <q-btn flat round dense icon="file_download" size="md" style="color: #8BC34A">
           <q-tooltip class="bg-positive text-white">Exportar</q-tooltip>
+          <q-menu anchor="top right" self="bottom right" :offset="[8, 4]">
+            <q-list dense style="min-width: 180px" padding>
+              <q-item clickable v-close-popup @click="$emit('exportar', props.row, 'pdf')">
+                <q-item-section avatar>
+                  <q-icon name="picture_as_pdf" color="red-7" />
+                </q-item-section>
+                <q-item-section>Exportar PDF</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="$emit('exportar', props.row, 'excel')">
+                <q-item-section avatar>
+                  <q-icon name="grid_on" color="green-8" />
+                </q-item-section>
+                <q-item-section>Exportar Excel</q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
         </q-btn>
         <q-btn
           flat

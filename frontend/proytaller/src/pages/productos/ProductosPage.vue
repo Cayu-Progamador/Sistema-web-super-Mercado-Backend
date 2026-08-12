@@ -16,14 +16,18 @@
         </div>
       </div>
 
+      <!-- Cards de resumen -->
+      <ProductKpiCards class="q-mb-sm" />
+
       <!-- Barra de herramientas -->
       <ProductsToolbar
         v-model:busqueda="busqueda"
         :filtros-visible="filtrosVisibles"
         @nuevo="nuevoProducto"
-        @importar="importar"
-        @exportar="exportar"
+        @exportar-excel="exportarExcel"
+        @exportar-pdf="exportarPdf"
         @actualizar="actualizar"
+        @toggle-filtros="filtrosVisibles = !filtrosVisibles"
       />
 
       <!-- Filtros colapsables -->
@@ -50,7 +54,6 @@
           :rows-number="totalFiltrado"
           @ver-detalle="verDetalle"
           @editar="editar"
-          @duplicar="duplicar"
           @cambiar-estado="cambiarEstado"
           @eliminar="eliminar"
           @pagina-cambio="onPaginaCambio"
@@ -73,29 +76,47 @@
         :marcas="marcasOpt"
         :unidades="unidadesOpt"
         @guardar="guardarNuevo"
+        @categoria-cambio="cargarSubcategoriasPorCategoria"
+        @categoria-creada="onCategoriaCreada"
+        @subcategoria-creada="onSubcategoriaCreada"
+        @marca-creada="onMarcaCreada"
+      />
+
+      <ConfirmarProductoDialog
+        v-model="dialogConfirmarEstado"
+        :producto="productoConfirmar"
+        :tipo="tipoConfirmar"
+        :cargando="cambiandoEstado"
+        @confirmar="confirmarEstado"
       />
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import ProductsToolbar from '../../components/producto/ProductsToolbar.vue'
+import ProductKpiCards from '../../components/producto/ProductKpiCards.vue'
 import ProductsFilters from '../../components/producto/ProductsFilters.vue'
 import ProductsTable from '../../components/producto/ProductsTable.vue'
 import ProductDetailDialog from '../../components/producto/ProductDetailDialog.vue'
 import NewProductDialog from '../../components/producto/NewProductDialog.vue'
+import ConfirmarProductoDialog from '../../components/producto/ConfirmarProductoDialog.vue'
 import {
   listarProductos,
   crearProducto,
   actualizarProducto,
   eliminarProducto,
-  actualizarEstadoProducto,
+  activarProducto,
+  desactivarProducto,
   listarCategorias,
   listarSubcategorias,
   listarMarcas,
-  listarUnidades
+  listarUnidades,
+  subirImagenProducto,
+  exportarProductosPDF,
+  exportarProductosExcel
 } from '../../api/productos/productos'
 
 const $q = useQuasar()
@@ -109,14 +130,21 @@ const filasPorPagina = ref(10)
 const busqueda = ref('')
 const filtrosVisibles = ref(false)
 
+let temporizadorBusqueda = null
+watch(busqueda, () => {
+  clearTimeout(temporizadorBusqueda)
+  temporizadorBusqueda = setTimeout(() => {
+    pagina.value = 0
+    cargarProductos()
+  }, 300)
+})
+
 const filtros = reactive({
   categoria: null,
   subcategoria: null,
   marca: null,
   estado: null,
-  unidadBase: null,
-  codigoBarra: null,
-  presentaciones: null
+  unidadBase: null
 })
 
 const categoriasOpt = ref([])
@@ -128,135 +156,89 @@ const drawerAbierto = ref(false)
 const productoSeleccionado = ref(null)
 const dialogAbierto = ref(false)
 const productoEditar = ref(null)
-
-const unidadesBase = [
-  { label: 'Kilogramo', value: 'kg' },
-  { label: 'Gramo', value: 'g' },
-  { label: 'Litro', value: 'l' },
-  { label: 'Mililitro', value: 'ml' },
-  { label: 'Unidad', value: 'uni' },
-  { label: 'Docena', value: 'doc' },
-  { label: 'Ramo', value: 'ramo' },
-  { label: 'Atado', value: 'atado' },
-  { label: 'Arroba', value: 'arroba' },
-  { label: 'Cuartilla', value: 'cuartilla' },
-  { label: 'Quintal', value: 'quintal' }
-]
-
-/* Datos de ejemplo para la tabla */
-const productosDemo = [
-  {
-    id: 1, codigo: 'P-0001', nombre: 'Coca-Cola', descripcion: 'Bebida gaseosa carbonatada',
-    categoria: 'Bebidas', subcategoria: 'Gaseosas', marca: 'Coca-Cola', unidadBase: 'Unidad',
-    nPresentaciones: 3, estado: 'Activo', imagen: null,
-    presentaciones: [
-      { id: 1, nombre: 'Botella 500 ml', unidad: 'Unidad', factor: 1, precio: 'Bs 6', principal: true },
-      { id: 2, nombre: 'Pack x6', unidad: 'Pack', factor: 6, precio: 'Bs 33', principal: false },
-      { id: 3, nombre: 'Fardo x12', unidad: 'Fardo', factor: 12, precio: 'Bs 62', principal: false }
-    ]
-  },
-  {
-    id: 2, codigo: 'P-0002', nombre: 'Arroz', descripcion: 'Arroz de grano largo',
-    categoria: 'Despensa', subcategoria: 'Granos', marca: '', unidadBase: 'Kilogramo',
-    nPresentaciones: 3, estado: 'Activo', imagen: null,
-    presentaciones: [
-      { id: 1, nombre: 'Bolsa 1 kg', unidad: 'Bolsa', factor: 1, precio: 'Bs 9', principal: true },
-      { id: 2, nombre: 'Bolsa 5 kg', unidad: 'Bolsa', factor: 5, precio: 'Bs 42', principal: false },
-      { id: 3, nombre: 'Quintal', unidad: 'Quintal', factor: 46, precio: 'Bs 400', principal: false }
-    ]
-  },
-  {
-    id: 3, codigo: 'P-0003', nombre: 'Leche PIL', descripcion: 'Leche entera envasada',
-    categoria: 'Lácteos', subcategoria: 'Leches', marca: 'PIL', unidadBase: 'Litro',
-    nPresentaciones: 2, estado: 'Activo', imagen: null,
-    presentaciones: [
-      { id: 1, nombre: '1 Litro', unidad: 'Litro', factor: 1, precio: 'Bs 9', principal: true },
-      { id: 2, nombre: '500 ml', unidad: 'Mililitro', factor: 0.5, precio: 'Bs 5', principal: false }
-    ]
-  },
-  { id: 4, codigo: 'P-0004', nombre: 'Tomate', descripcion: 'Tomate riñón', categoria: 'Verduras', subcategoria: 'Frutas y verduras', marca: '', unidadBase: 'Kilogramo', nPresentaciones: 0, estado: 'Activo', imagen: null, presentaciones: [] },
-  { id: 5, codigo: 'P-0005', nombre: 'Carne de Res', descripcion: 'Carne cortada', categoria: 'Carnes', subcategoria: 'Res', marca: '', unidadBase: 'Kilogramo', nPresentaciones: 0, estado: 'Activo', imagen: null, presentaciones: [] },
-  { id: 6, codigo: 'P-0006', nombre: 'Papa', descripcion: 'Papa imilla', categoria: 'Verduras', sub: 'Tubérculos', marca: '', unidad: 'Kilogramo', nPresentaciones: 0, estado: 'Activo', imagen: null, presentaciones: [] },
-  { id: 7, codigo: 'P-0007', nombre: 'Azúcar', descripcion: 'Azúcar blanca 1 kg', categoria: 'Despensa', subcategoria: 'Dulces', marca: '', unidadBase: 'Kilogramo', nPresentaciones: 1, estado: 'Activo', imagen: null, presentaciones: [{ id: 1, nombre: '1 kg', unidad: 'Bolsa', factor: 1, precio: 'Bs 8', principal: true }] },
-  { id: 8, codigo: 'P-0008', nombre: 'Aceite', descripcion: 'Aceite vegetal 1 litro', categoria: 'Despensa', subcategoria: 'Aceites', marca: '', unidadBase: 'Litro', nPresentaciones: 1, estado: 'Inactivo', imagen: null, presentaciones: [{ id: 1, nombre: 'Bolsa', unidad: 'Litro', factor: 1, precio: 'Bs 27', principal: true }] }
-]
-
-/* Datos demo para selects */
-const demoCategorias = [
-  { label: 'Bebidas', value: 1 },
-  { label: 'Despensa', value: 2 },
-  { label: 'Lácteos', value: 3 },
-  { label: 'Verduras', value: 4 },
-  { label: 'Carnes', value: 5 }
-]
-
-const demoSubcategorias = [
-  { label: 'Gaseosas', value: 1 },
-  { label: 'Granos', value: 2 },
-  { label: 'Leches', value: 3 },
-  { label: 'Tubérculos', value: 4 }
-]
-
-const demoMarcas = [
-  { label: 'Coca-Cola', value: 1 },
-  { label: 'PIL', value: 2 },
-  { label: 'San Simón', value: 3 }
-]
-
-const demoUnidades = [
-  { label: 'Kilogramo', value: 'kg' },
-  { label: 'Gramo', value: 'g' },
-  { label: 'Litro', value: 'l' },
-  { label: 'Mililitro', value: 'ml' },
-  { label: 'Unidad', value: 'uni' },
-  { label: 'Docena', value: 'doc' },
-  { label: 'Ramo', value: 'ramo' },
-  { label: 'Atado', value: 'atado' }
-]
+const dialogConfirmarEstado = ref(false)
+const productoConfirmar = ref(null)
+const tipoConfirmar = ref('desactivar')
+const cambiandoEstado = ref(false)
 
 function cargarCatalogos() {
-  categoriasOpt.value = demoCategorias
-  subcategoriasOpt.value = demoSubcategorias
-  marcasOpt.value = demoMarcas
-  unidadesOpt.value = demoUnidades
+  Promise.all([
+    listarCategorias(),
+    listarSubcategorias(),
+    listarMarcas(),
+    listarUnidades()
+  ])
+    .then(([cats, subs, marcas, unidades]) => {
+      categoriasOpt.value = cats.map((c) => ({ label: c.nombre, value: c.idCategoria }))
+      subcategoriasOpt.value = subs.map((s) => ({ label: s.nombre, value: s.idSubcategoria }))
+      marcasOpt.value = marcas.map((m) => ({ label: m.nombre, value: m.idMarca }))
+      unidadesOpt.value = unidades.map((u) => ({
+        label: u.nombre,
+        value: u.idUnidadMedida,
+        tipo: u.nombreTipoUnidad
+      }))
+    })
+    .catch(() => {
+      $q.notify({ type: 'negative', message: 'No se pudieron cargar los catálogos.' })
+    })
 }
 
 function cargarProductos() {
   cargando.value = true
-  // Simulación de carga de datos con filtros
-  setTimeout(() => {
-    let lista = [...productosDemo]
-    if (busqueda.value?.trim()) {
-      const q = busqueda.value.toLowerCase()
-      lista = lista.filter(
-        (p) =>
-          p.nombre.toLowerCase().includes(q) ||
-          p.codigo.toLowerCase().includes(q) ||
-          (p.marca || '').toLowerCase().includes(q)
-      )
-    }
-    if (filtros.estado) {
-      lista = lista.filter((p) => p.estado.toLowerCase() === filtros.estado)
-    }
-    if (filtros.presentaciones === 'si') {
-      lista = lista.filter((p) => p.nPresentaciones > 0)
-    } else if (filtros.presentaciones === 'no') {
-      lista = lista.filter((p) => p.nPresentaciones === 0)
-    }
-    productos.value = lista
-    totalFiltrado.value = lista.length
-    cargando.value = false
-  }, 200)
+  const params = {
+    page: pagina.value,
+    size: filasPorPagina.value,
+    busqueda: busqueda.value?.trim() || undefined,
+    estado: filtros.estado === 'activo' ? true : filtros.estado === 'inactivo' ? false : undefined,
+    idCategoria: filtros.categoria || undefined,
+    idSubcategoria: filtros.subcategoria || undefined,
+    idMarca: filtros.marca || undefined,
+    idUnidadBase: filtros.unidadBase || undefined
+  }
+  listarProductos(params)
+    .then((data) => {
+      productos.value = (data.content || []).map(mapearProducto)
+      totalFiltrado.value = data.totalElements || 0
+    })
+    .catch(() => {
+      $q.notify({ type: 'negative', message: 'No se pudieron cargar los productos.' })
+    })
+    .finally(() => {
+      cargando.value = false
+    })
+}
+
+function mapearProducto(p) {
+  return {
+    id: p.idProducto,
+    codigo: p.codigoInterno,
+    nombre: p.nombre,
+    descripcion: p.descripcion,
+    categoria: p.nombreCategoria,
+    subcategoria: p.nombreSubcategoria,
+    marca: p.nombreMarca,
+    unidadBase: p.nombreUnidadBase,
+    nPresentaciones: (p.presentaciones || []).length,
+    presentaciones: p.presentaciones || [],
+    estado: p.estado ? 'Activo' : 'Inactivo',
+    imagen: p.imagen,
+    idCategoria: p.idCategoria,
+    idSubcategoria: p.idSubcategoria,
+    idMarca: p.idMarca,
+    idUnidadBase: p.idUnidadBase
+  }
 }
 
 function onPaginaCambio({ page, rowsPerPage }) {
   pagina.value = page - 1
   filasPorPagina.value = rowsPerPage
+  cargarProductos()
 }
 
 function nuevoProducto() {
   productoEditar.value = null
   dialogAbierto.value = true
+  subcategoriasOpt.value = []
 }
 
 function verDetalle(p) {
@@ -269,17 +251,72 @@ function editar(p) {
   productoSeleccionado.value = null
   productoEditar.value = p
   dialogAbierto.value = true
+  cargarSubcategoriasPorCategoria(p.idCategoria)
 }
 
-function duplicar(p) {
-  productoEditar.value = null
-  dialogAbierto.value = true
-  $q.notify({ type: 'info', message: 'Duplicando producto: ' + p.nombre })
+function cargarSubcategoriasPorCategoria(idCategoria) {
+  if (!idCategoria) {
+    subcategoriasOpt.value = []
+    return
+  }
+  listarSubcategorias({ idCategoria })
+    .then((subs) => {
+      subcategoriasOpt.value = subs.map((s) => ({ label: s.nombre, value: s.idSubcategoria }))
+    })
+    .catch(() => {
+      subcategoriasOpt.value = []
+      $q.notify({ type: 'negative', message: 'No se pudieron cargar las subcategorías.' })
+    })
+}
+
+function onCategoriaCreada({ id, nombre }) {
+  if (!categoriasOpt.value.some((c) => c.value === id)) {
+    categoriasOpt.value.push({ label: nombre, value: id })
+  }
+}
+
+function onSubcategoriaCreada({ id, nombre }) {
+  if (!subcategoriasOpt.value.some((s) => s.value === id)) {
+    subcategoriasOpt.value.push({ label: nombre, value: id })
+  }
+}
+
+function onMarcaCreada({ id, nombre }) {
+  if (!marcasOpt.value.some((m) => m.value === id)) {
+    marcasOpt.value.push({ label: nombre, value: id })
+  }
 }
 
 function cambiarEstado(p) {
-  p.estado = p.estado === 'Activo' ? 'Inactivo' : 'Activo'
-  cambiarEstadoFn(p)
+  productoConfirmar.value = p
+  tipoConfirmar.value = p.estado === 'Activo' ? 'desactivar' : 'activar'
+  dialogConfirmarEstado.value = true
+}
+
+async function confirmarEstado() {
+  const producto = productoConfirmar.value
+  if (!producto) return
+  const esActivar = tipoConfirmar.value === 'activar'
+  cambiandoEstado.value = true
+  try {
+    if (esActivar) {
+      await activarProducto(producto.id)
+    } else {
+      await desactivarProducto(producto.id)
+    }
+    producto.estado = esActivar ? 'Activo' : 'Inactivo'
+    dialogConfirmarEstado.value = false
+    $q.notify({
+      type: producto.estado === 'Activo' ? 'positive' : 'warning',
+      message: `Producto ${producto.estado === 'Activo' ? 'activado' : 'desactivado'}.`,
+      position: 'top'
+    })
+    cargarProductos()
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e.response?.data?.message || 'Error al cambiar el estado del producto.', position: 'top' })
+  } finally {
+    cambiandoEstado.value = false
+  }
 }
 
 function eliminar(p) {
@@ -287,12 +324,44 @@ function eliminar(p) {
   eliminarFn(p)
 }
 
-function importar() {
-  $q.notify({ type: 'info', message: 'Importación de productos en desarrollo.' })
+function exportarExcel() {
+  $q.notify({ type: 'info', message: 'Descargando Excel...' })
+  exportarProductosExcel(paramsExportar())
+    .then((blob) => descargarBlob(blob, 'reporte_productos.xlsx'))
+    .catch((error) => {
+      console.error('Error exportar Excel:', error)
+      $q.notify({ type: 'negative', message: error?.message || 'Error al exportar Excel.' })
+    })
 }
 
-function exportar() {
-  $q.notify({ type: 'info', message: 'Exportación a Excel en desarrollo.' })
+function exportarPdf() {
+  $q.notify({ type: 'info', message: 'Descargando PDF...' })
+  exportarProductosPDF(paramsExportar())
+    .then((blob) => descargarBlob(blob, 'reporte_productos.pdf'))
+    .catch((error) => {
+      console.error('Error exportar PDF:', error)
+      $q.notify({ type: 'negative', message: error?.message || 'Error al exportar PDF.' })
+    })
+}
+
+function paramsExportar() {
+  return {
+    busqueda: busqueda.value?.trim() || undefined,
+    estado: filtros.estado === 'activo' ? true : filtros.estado === 'inactivo' ? false : undefined,
+    idCategoria: filtros.categoria || undefined,
+    idSubcategoria: filtros.subcategoria || undefined,
+    idMarca: filtros.marca || undefined,
+    idUnidadBase: filtros.unidadBase || undefined
+  }
+}
+
+function descargarBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function actualizar() {
@@ -306,8 +375,6 @@ function limpiarFiltros() {
   filtros.marca = null
   filtros.estado = null
   filtros.unidadBase = null
-  filtros.codigoBarra = null
-  filtros.presentaciones = null
   busqueda.value = ''
   pagina.value = 0
   cargarProductos()
@@ -319,31 +386,68 @@ function buscar() {
 }
 
 function guardarNuevo(payload) {
-  dialogAbierto.value = false
-  // Aquí se conectaría con la API real
-  if (payload.id) {
-    $q.notify({ type: 'positive', message: `Producto ${payload.nombre} actualizado correctamente.` })
-  } else {
-    payload.codigoInterno = generarCodigoInterno()
-    $q.notify({ type: 'positive', message: `Producto ${payload.nombre} registrado correctamente.` })
-  }
-  cargarProductos()
-}
+  const subirImagen = (() => {
+    if (!payload.imagen || typeof payload.imagen !== 'object') {
+      return Promise.resolve(typeof payload.imagen === 'string' ? payload.imagen : null)
+    }
+    return subirImagenProducto(payload.imagen)
+      .then((res) => res.url || null)
+      .catch(() => {
+        $q.notify({ type: 'warning', message: 'No se pudo subir la nueva imagen, se conservará la actual.' })
+        return typeof payload.imagen === 'string' ? payload.imagen : null
+      })
+  })()
 
-function generarCodigoInterno() {
-  const nums = productosDemo
-    .map((p) => parseInt(String(p.codigo || '').replace(/^P-/, ''), 10))
-    .filter((n) => !isNaN(n))
-  const next = (nums.length ? Math.max(...nums) : 0) + 1
-  return `P-${String(next).padStart(4, '0')}`
+  subirImagen
+    .then((imagenUrl) => {
+      const body = {
+        nombre: payload.nombre,
+        descripcion: payload.descripcion,
+        idSubcategoria: payload.subcategoria,
+        idMarca: payload.tieneMarca ? (payload.marca || null) : null,
+        idUnidadBase: payload.unidadBase,
+        controlaLote: !!payload.controlaLote,
+        controlaVencimiento: !!payload.controlaVencimiento,
+        imagen: imagenUrl,
+        presentaciones: (payload.presentaciones || []).map((p) => ({
+          nombrePresentacion: p.nombre,
+          idUnidadMedida: p.unidad,
+          factorConversion: Number(p.factor) || 1,
+          precioVenta: Number(p.precio),
+          esPrincipal: !!p.principal,
+          usaCodigo: !!p.usaCodigo,
+          codigo: p.usaCodigo ? p.codigo : null
+        }))
+      }
+
+      const peticion = payload.id
+        ? actualizarProducto(payload.id, body)
+        : crearProducto(body)
+
+      return peticion
+    })
+    .then(() => {
+      $q.notify({
+        type: 'positive',
+        message: payload.id
+          ? `Producto ${payload.nombre} actualizado correctamente.`
+          : `Producto ${payload.nombre} registrado correctamente.`
+      })
+    })
+    .catch((error) => {
+      $q.notify({
+        type: 'negative',
+        message: error.response?.data?.message || 'Error al guardar el producto.'
+      })
+    })
+    .finally(() => {
+      dialogAbierto.value = false
+      cargarProductos()
+    })
 }
 
 function onFiltrosChange(nuevosFiltros) {
   Object.assign(filtros, nuevosFiltros)
-}
-
-function cambiarEstadoFn(p) {
-  $q.notify({ type: 'info', message: `Estado de ${p.nombre} actualizado.` })
 }
 
 function eliminarFn(p) {

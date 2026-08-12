@@ -16,12 +16,6 @@
       <div class="col-12 col-md-4 col-lg-2">
         <q-select v-model="model.unidadBase" :options="unidades" label="Unidad base" outlined dense clearable color="primary" emit-value map-options />
       </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <q-select v-model="model.codigoBarra" :options="opcionesSiNo" label="Código de barras" outlined dense clearable color="primary" emit-value map-options />
-      </div>
-      <div class="col-12 col-md-4 col-lg-2">
-        <q-select v-model="model.presentaciones" :options="opcionesSiNo" label="Con presentaciones" outlined dense clearable color="primary" emit-value map-options />
-      </div>
     </q-card-section>
 
     <q-card-section class="q-pt-none q-px-sm q-pb-sm">
@@ -50,22 +44,26 @@ const estados = [
   { label: 'Activo', value: 'activo' },
   { label: 'Inactivo', value: 'inactivo' }
 ]
-const opcionesSiNo = [
-  { label: 'Sí', value: 'si' },
-  { label: 'No', value: 'no' }
-]
 
 const model = reactive({
   categoria: null,
   subcategoria: null,
   marca: null,
   estado: null,
-  unidadBase: null,
-  codigoBarra: null,
-  presentaciones: null
+  unidadBase: null
 })
 
 watch(model, (val) => emit('filtro', { ...val }), { deep: true, immediate: true })
+
+watch(
+  () => props.modelo,
+  (val) => {
+    if (val) {
+      Object.assign(model, val)
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

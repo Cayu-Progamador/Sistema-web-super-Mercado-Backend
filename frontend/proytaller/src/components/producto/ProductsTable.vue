@@ -8,6 +8,7 @@
     row-key="id"
     class="prod-table"
     flat
+    :grid="gridProp"
     :loading="loading"
     :visible-columns="visibleColumns"
     @request="onRequest"
@@ -20,7 +21,8 @@
     <template v-slot:body-cell-imagen="props">
       <q-td :props="props">
         <q-avatar size="44px" rounded class="prod-imagen" :style="sinImagen(props.row)">
-          <q-img v-if="props.row.imagen" :src="props.row.imagen" fit="cover" class="full-height full-width" />
+          <q-img v-if="props.row.imagen && !props.row.imagenRota" :src="urlImagen(props.row.imagen)" fit="contain" class="full-height full-width"
+            @error="marcarImagenRota(props.row)" />
           <q-icon v-else name="inventory_2" size="22px" />
         </q-avatar>
       </q-td>
@@ -110,25 +112,100 @@
           <q-tooltip class="bg-positive text-white">Editar producto</q-tooltip>
         </q-btn>
 
-        <q-btn flat round dense icon="content_copy" size="md" @click="$emit('duplicar', props.row)" style="color: #F57C00">
-          <q-tooltip class="bg-orange text-white">Duplicar producto</q-tooltip>
-        </q-btn>
-
-        <q-btn
-          flat
-          round
-          dense
-          :icon="props.row.estado === 'Activo' ? 'toggle_off' : 'toggle_on'"
+<q-btn
+          v-if="props.row.estado === 'Activo'"
+          flat round dense
+          class="prod-accion-estado"
+          icon="block"
+          color="red"
           @click="$emit('cambiar-estado', props.row)"
-          style="color: #5B6675"
         >
-          <q-tooltip class="bg-grey-7 text-white">{{ props.row.estado === 'Activo' ? 'Desactivar' : 'Activar' }}</q-tooltip>
+          <q-tooltip class="bg-grey-7 text-white">Desactivar</q-tooltip>
         </q-btn>
-
-        <q-btn flat round dense icon="delete_outline" size="md" @click="$emit('eliminar', props.row)" style="color: #E53935">
-          <q-tooltip class="bg-negative text-white">Eliminar producto</q-tooltip>
+        <q-btn
+          v-else
+          flat round dense
+          class="prod-accion-estado"
+          icon="check"
+          color="green"
+          @click="$emit('cambiar-estado', props.row)"
+        >
+          <q-tooltip class="bg-grey-7 text-white">Activar</q-tooltip>
         </q-btn>
       </q-td>
+    </template>
+
+    <template v-slot:item="props">
+      <div class="q-table__grid-item col-xs-12 col-sm-6 col-lg-4">
+      <q-card class="prod-mobile-card">
+        <div class="prod-mob-head">
+          <q-avatar size="46px" rounded class="prod-imagen" :style="sinImagen(props.row)">
+            <q-img v-if="props.row.imagen && !props.row.imagenRota" :src="urlImagen(props.row.imagen)" fit="contain" class="full-height full-width" @error="marcarImagenRota(props.row)" />
+            <q-icon v-else name="inventory_2" size="22px" />
+          </q-avatar>
+          <div class="prod-mob-titulos">
+            <div class="prod-nombre">{{ props.row.nombre }}</div>
+            <div class="prod-mob-codigo">
+              <q-icon name="qr_code" size="12px" />
+              {{ props.row.codigo || '—' }}
+            </div>
+          </div>
+          <q-chip
+            :class="props.row.estado === 'Activo' ? 'chip-estado-activo' : 'chip-estado-inactivo'"
+            :label="props.row.estado"
+            size="11px"
+            dense
+          />
+        </div>
+
+        <q-separator />
+
+        <div class="prod-mob-cuerpo">
+          <div class="prod-mob-tags">
+            <div v-if="props.row.categoria" class="prod-mob-tag">
+              <q-icon name="category" size="12px" /> {{ props.row.categoria }}
+            </div>
+            <div v-if="props.row.subcategoria" class="prod-mob-tag">
+              <q-icon name="folder" size="12px" /> {{ props.row.subcategoria }}
+            </div>
+            <div v-if="props.row.marca" class="prod-mob-tag">
+              <q-icon name="factory" size="12px" /> {{ props.row.marca }}
+            </div>
+            <div v-if="props.row.unidadBase" class="prod-mob-tag">
+              <q-icon name="straighten" size="12px" /> {{ props.row.unidadBase }}
+            </div>
+          </div>
+          <div class="prod-mob-pres">
+            <template v-if="props.row.nPresentaciones > 0">
+              <q-badge color="green-7" class="prod-badge">
+                <q-icon name="layers" size="13px" class="q-mr-xs" />
+                {{ props.row.nPresentaciones }} {{ props.row.nPresentaciones === 1 ? 'presentación' : 'presentaciones' }}
+              </q-badge>
+            </template>
+            <q-badge v-else color="grey-6" outline class="prod-badge">
+              <q-icon name="check" size="13px" class="q-mr-xs" />
+              Solo unidad base
+            </q-badge>
+          </div>
+        </div>
+<q-separator />
+
+        <div class="prod-mob-acciones row no-wrap items-center">
+          <q-btn flat round dense icon="visibility" @click="$emit('ver-detalle', props.row)">
+            <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
+          </q-btn>
+          <q-btn flat round dense icon="edit_outline" @click="$emit('editar', props.row)">
+            <q-tooltip class="bg-positive text-white">Editar producto</q-tooltip>
+          </q-btn>
+          <q-btn v-if="props.row.estado === 'Activo'" flat round dense icon="block" color="red" @click="$emit('cambiar-estado', props.row)">
+            <q-tooltip class="bg-grey-7 text-white">Desactivar</q-tooltip>
+          </q-btn>
+          <q-btn v-else flat round dense icon="check" color="green" @click="$emit('cambiar-estado', props.row)">
+            <q-tooltip class="bg-grey-7 text-white">Activar</q-tooltip>
+          </q-btn>
+        </div>
+      </q-card>
+      </div>
     </template>
 
     <template v-slot:no-data>
@@ -142,6 +219,11 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
+
+const gridProp = computed(() => $q.screen.lt.md)
 
 const props = defineProps({
   rows: { type: Array, default: () => [] },
@@ -152,7 +234,6 @@ const props = defineProps({
 const emit = defineEmits([
   'ver-detalle',
   'editar',
-  'duplicar',
   'cambiar-estado',
   'eliminar',
   'importar',
@@ -187,7 +268,7 @@ const columns = computed(() => [
   { name: 'unidadBase', label: 'Unidad base', field: 'unidadBase', align: 'left' },
   { name: 'presentaciones', label: 'Presentaciones', field: 'nPresentaciones', align: 'center' },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'center', sortable: true },
-  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'right' }
+  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'center' }
 ])
 
 const visibleColumns = [
@@ -204,9 +285,20 @@ const visibleColumns = [
 ]
 
 function sinImagen(row) {
-  return row.imagen
-    ? {}
-    : { background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2E7D32' }
+  return row.imagenRota || !row.imagen
+    ? { background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', color: '#2E7D32' }
+    : {}
+}
+
+function marcarImagenRota(row) {
+  row.imagenRota = true
+}
+
+function urlImagen(ruta) {
+  if (!ruta) return ''
+  if (ruta.startsWith('http')) return ruta
+  if (ruta.startsWith('/')) return import.meta.env.VITE_API_URL + ruta
+  return import.meta.env.VITE_API_URL + '/uploads/' + ruta
 }
 </script>
 
@@ -245,6 +337,14 @@ function sinImagen(row) {
 .prod-table :deep(.q-pagination .q-btn--active) {
   background: #2E7D32 !important;
   color: #ffffff !important;
+}
+@media (min-width: 1024px) {
+  .prod-table,
+  .prod-table :deep(.q-table__container),
+  .prod-table :deep(.q-table__middle),
+  .prod-table :deep(.q-table) {
+    overflow-x: hidden !important;
+  }
 }
 .prod-imagen {
   background: #f1f8e9;
@@ -295,6 +395,63 @@ function sinImagen(row) {
 }
 .prod-acciones {
   white-space: nowrap;
+}
+.prod-mobile-card {
+  border: 1px solid #dce9d6;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.06);
+}
+.prod-mob-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+.prod-mob-titulos {
+  min-width: 0;
+  flex: 1;
+}
+.prod-mob-codigo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #66a35f;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.prod-mob-cuerpo {
+  padding: 12px 14px;
+}
+.prod-mob-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.prod-mob-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #55924F;
+  background: #f1f8e9;
+  border: 1px solid #d7e8d0;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.prod-mob-pres {
+  margin-top: 10px;
+}
+.prod-mob-acciones {
+  padding: 10px 14px;
+  gap: 4px;
+}
+.prod-accion-estado:hover {
+  background: #E8F5E9 !important;
 }
 .chip-estado-activo {
   background: #E7F6E9 !important;

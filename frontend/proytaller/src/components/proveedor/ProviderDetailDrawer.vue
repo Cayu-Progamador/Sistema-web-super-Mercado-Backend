@@ -3,133 +3,147 @@
     :model-value="modelValue"
     side="right"
     overlay
-    :width="420"
+    :width="440"
     class="pv-drawer"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <q-scroll-area class="fit pv-scroll">
       <div v-if="proveedor" class="pv-drawer-body">
-        <div class="pv-header">
-          <q-btn flat round dense icon="close" size="sm" @click="$emit('update:modelValue', false)" class="pv-close" />
-          <q-avatar :color="proveedor.color" text-color="white" size="64px" font-size="24px" class="pv-logo">
-            {{ initials(proveedor.nombre) }}
-          </q-avatar>
-          <div class="pv-header-nombre">{{ proveedor.nombre }}</div>
-          <div class="pv-header-doc">
-            {{ proveedor.documento.tipo }}: <strong>{{ proveedor.documento.numero }}</strong>
-          </div>
-          <q-chip
-            :color="proveedor.tipo === 'Empresa' ? 'blue-9' : 'purple-10'"
-            text-color="white"
-            dense
-            class="pv-tipo-chip"
-          >
-            <q-icon :name="proveedor.tipo === 'Empresa' ? 'apartment' : 'person'" size="14px" />
-            {{ proveedor.tipo }}
-          </q-chip>
-        </div>
-
-        <q-separator class="pv-sep" />
-
-        <div class="pv-seccion">
-          <div class="pv-seccion-titulo">Contacto</div>
-          <div class="pv-contact-row"><q-icon name="person" size="15px" /><span>{{ proveedor.contacto.nombre }}</span></div>
-
-          <template v-if="proveedor.contactos && proveedor.contactos.length">
-            <div v-for="(c, i) in proveedor.contactos" :key="i" class="pv-contacto-bloque">
-              <div v-if="c.telefono" class="pv-contact-row"><q-icon name="phone" size="15px" /><span>{{ c.telefono }}</span></div>
-              <div v-if="c.correo" class="pv-contact-row"><q-icon name="email" size="15px" /><span>{{ c.correo }}</span></div>
+        <!-- Cabecera -->
+        <div class="pv-hero">
+          <div class="pv-hero-blur"></div>
+          <q-btn flat round dense icon="close" size="sm" class="pv-close" @click="$emit('update:modelValue', false)" />
+          <div class="pv-hero-top">
+            <q-avatar :color="proveedor.color" text-color="white" size="72px" font-size="26px" class="pv-logo">
+              {{ initials(proveedor.nombre) }}
+            </q-avatar>
+            <div class="pv-hero-chips">
+              <q-chip
+                :color="proveedor.tipo === 'Empresa' ? 'blue-8' : 'purple-9'"
+                text-color="white"
+                dense
+                class="pv-tipo-chip"
+              >
+                <q-icon :name="proveedor.tipo === 'Empresa' ? 'apartment' : 'person'" size="13px" />
+                {{ proveedor.tipo }}
+              </q-chip>
+              <q-chip
+                :color="proveedor.estado === 'Activo' ? 'green-7' : 'grey-6'"
+                text-color="white"
+                dense
+                class="pv-estado-chip"
+              >
+                <q-icon :name="proveedor.estado === 'Activo' ? 'check_circle' : 'block'" size="13px" />
+                {{ proveedor.estado }}
+              </q-chip>
             </div>
-          </template>
-          <template v-else>
-            <div v-if="proveedor.contacto.telefono" class="pv-contact-row"><q-icon name="phone" size="15px" /><span>{{ proveedor.contacto.telefono }}</span></div>
-            <div v-if="proveedor.contacto.correo" class="pv-contact-row"><q-icon name="email" size="15px" /><span>{{ proveedor.contacto.correo }}</span></div>
-          </template>
-
-          <div class="pv-contact-row"><q-icon name="place" size="15px" /><span>{{ proveedor.ciudad }}{{ proveedor.zona ? ' · ' + proveedor.zona : '' }}</span></div>
+          </div>
+          <div class="pv-hero-nombre">{{ proveedor.nombre }}</div>
+          <div class="pv-hero-doc">
+            <q-icon :name="proveedor.tipo === 'Empresa' ? 'badge' : 'credit_card'" size="13px" />
+            {{ proveedor.documento.tipo }} · <strong>{{ proveedor.documento.numero || '—' }}</strong>
+          </div>
         </div>
 
-        <div class="pv-calif-row">
-          <q-rating :model-value="proveedor.calificacion" readonly size="16px" color="amber-7" icon="star" />
-          <span class="pv-calif-num">{{ proveedor.calificacion.toFixed(1) }} / 5</span>
-          <q-chip :color="proveedor.estado === 'Activo' ? 'green-7' : 'grey-6'" text-color="white" dense size="12px" class="pv-estado-chip">
-            {{ proveedor.estado }}
-          </q-chip>
+        <!-- Información general -->
+        <div class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="info" size="15px" /> Información general</div>
+          <div class="pv-grid">
+            <div class="pv-grid-item">
+              <div class="pv-grid-label">Tipo de proveedor</div>
+              <div class="pv-grid-val">{{ proveedor.tipo }}</div>
+            </div>
+            <div class="pv-grid-item">
+              <div class="pv-grid-label">Categoría</div>
+              <div class="pv-grid-val">{{ proveedor.categoria }}</div>
+            </div>
+            <div class="pv-grid-item">
+              <div class="pv-grid-label">Documento</div>
+              <div class="pv-grid-val">{{ proveedor.documento.tipo }} {{ proveedor.documento.numero || '—' }}</div>
+            </div>
+            <div class="pv-grid-item">
+              <div class="pv-grid-label">Ciudad / Zona</div>
+              <div class="pv-grid-val">{{ proveedor.ciudad || '—' }}{{ proveedor.zona ? ' · ' + proveedor.zona : '' }}</div>
+            </div>
+          </div>
         </div>
 
-        <q-separator class="pv-sep" />
+        <!-- Contacto -->
+        <div v-if="tieneContacto" class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="contact_phone" size="15px" /> Contacto</div>
+          <div class="pv-contact-list">
+            <div v-if="proveedor.contacto.nombre" class="pv-contact-row">
+              <span class="pv-contact-ic" style="background:#e8f0fe;color:#1967d2;"><q-icon name="person" size="16px" /></span>
+              <div>
+                <div class="pv-contact-label">Persona de contacto</div>
+                <div class="pv-contact-val">{{ proveedor.contacto.nombre }}</div>
+              </div>
+            </div>
 
-        <!-- Condiciones comerciales: Empresa -->
-        <div v-if="proveedor.tipo === 'Empresa'" class="pv-seccion">
-          <div class="pv-seccion-titulo">Condiciones comerciales</div>
+            <template v-if="proveedor.contactos && proveedor.contactos.length">
+              <div v-for="(c, i) in proveedor.contactos" :key="i" class="pv-contacto-bloque">
+                <div v-if="c.telefono" class="pv-contact-row">
+                  <span class="pv-contact-ic" style="background:#e6f7e9;color:#2E7D32;"><q-icon name="phone" size="16px" /></span>
+                  <div>
+                    <div class="pv-contact-label">Teléfono</div>
+                    <div class="pv-contact-val">{{ c.telefono }}</div>
+                  </div>
+                </div>
+                <div v-if="c.correo" class="pv-contact-row">
+                  <span class="pv-contact-ic" style="background:#fef3e2;color:#d97b1a;"><q-icon name="email" size="16px" /></span>
+                  <div>
+                    <div class="pv-contact-label">Correo</div>
+                    <div class="pv-contact-val">{{ c.correo }}</div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div v-if="proveedor.contacto.telefono" class="pv-contact-row">
+                <span class="pv-contact-ic" style="background:#e6f7e9;color:#2E7D32;"><q-icon name="phone" size="16px" /></span>
+                <div>
+                  <div class="pv-contact-label">Teléfono</div>
+                  <div class="pv-contact-val">{{ proveedor.contacto.telefono }}</div>
+                </div>
+              </div>
+              <div v-if="proveedor.contacto.correo" class="pv-contact-row">
+                <span class="pv-contact-ic" style="background:#fef3e2;color:#d97b1a;"><q-icon name="email" size="16px" /></span>
+                <div>
+                  <div class="pv-contact-label">Correo</div>
+                  <div class="pv-contact-val">{{ proveedor.contacto.correo }}</div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Condiciones comerciales -->
+        <div v-if="tieneCondiciones" class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="payments" size="15px" /> Condiciones comerciales</div>
           <div class="pv-cond-grid">
-            <div class="pv-cond-item">
-              <q-icon name="payments" size="18px" color="primary" />
+            <div v-for="cond in condicionesLista" :key="cond.label" class="pv-cond-item">
+              <span class="pv-contact-ic" style="background:#f1f8e9;color:#2E7D32;"><q-icon :name="cond.icon" size="16px" /></span>
               <div>
-                <div class="pv-cond-label">Forma de pago</div>
-                <div class="pv-cond-val">{{ proveedor.condiciones.formaPago }}</div>
-              </div>
-            </div>
-            <div class="pv-cond-item">
-              <q-icon name="account_balance_wallet" size="18px" color="primary" />
-              <div>
-                <div class="pv-cond-label">Moneda</div>
-                <div class="pv-cond-val">{{ proveedor.condiciones.moneda }}</div>
-              </div>
-            </div>
-            <div class="pv-cond-item">
-              <q-icon name="local_shipping" size="18px" color="primary" />
-              <div>
-                <div class="pv-cond-label">Días de entrega</div>
-                <div class="pv-cond-val">{{ proveedor.condiciones.diasEntrega }}</div>
+                <div class="pv-contact-label">{{ cond.label }}</div>
+                <div class="pv-contact-val">{{ cond.valor }}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Condiciones comerciales: Persona -->
-        <div v-else class="pv-seccion">
-          <div class="pv-seccion-titulo">Condiciones comerciales</div>
-          <div class="pv-cond-grid">
-            <div class="pv-cond-item">
-              <q-icon name="attach_money" size="18px" color="primary" />
-              <div>
-                <div class="pv-cond-label">Forma de pago</div>
-                <div class="pv-cond-val">{{ proveedor.condiciones.formaPago }}</div>
-              </div>
-            </div>
-            <div class="pv-cond-item">
-              <q-icon name="schedule" size="18px" color="primary" />
-              <div>
-                <div class="pv-cond-label">Frecuencia de entrega</div>
-                <div class="pv-cond-val">{{ proveedor.condiciones.frecuenciaEntrega }}</div>
-              </div>
-            </div>
-            <div class="pv-cond-item">
-              <q-icon name="agriculture" size="18px" color="primary" />
-              <div>
-                <div class="pv-cond-label">Zona de procedencia</div>
-                <div class="pv-cond-val">{{ proveedor.zona }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <q-separator class="pv-sep" />
-
-        <div class="pv-seccion">
-          <div class="pv-seccion-titulo">Productos que provee</div>
+        <!-- Productos que provee -->
+        <div v-if="proveedor.productos && proveedor.productos.length" class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="inventory_2" size="15px" /> Productos que provee</div>
           <div class="pv-prod-chips">
-            <q-chip v-for="prod in proveedor.productos" :key="prod" dense size="12px" color="primary" text-color="white" class="pv-prod-chip">
+            <q-chip v-for="prod in proveedor.productos" :key="prod" dense size="12px" class="pv-prod-chip" icon="check_circle">
               {{ prod }}
             </q-chip>
           </div>
         </div>
 
-        <q-separator class="pv-sep" />
-
-        <div class="pv-seccion">
-          <div class="pv-seccion-titulo">Historial de compras</div>
+        <!-- Compras -->
+        <div class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="shopping_cart" size="15px" /> Compras</div>
           <div class="pv-mini-kpis">
             <div class="pv-mini">
               <div class="pv-mini-num">{{ proveedor.comprasMes }}</div>
@@ -140,9 +154,17 @@
               <div class="pv-mini-label">Total comprado</div>
             </div>
           </div>
+        </div>
+
+        <!-- Historial -->
+        <div v-if="proveedor.historial && proveedor.historial.length" class="pv-card">
+          <div class="pv-seccion-titulo"><q-icon name="history" size="15px" /> Historial de compras</div>
           <div class="pv-hist-list">
             <div v-for="(c, i) in proveedor.historial" :key="i" class="pv-hist-row">
-              <div>
+              <div class="pv-hist-ic">
+                <q-icon name="receipt_long" size="16px" />
+              </div>
+              <div class="pv-hist-meta">
                 <div class="pv-hist-fecha">{{ c.fecha }}</div>
                 <div class="pv-hist-det">{{ c.producto }} · {{ c.orden }}</div>
               </div>
@@ -151,49 +173,9 @@
           </div>
         </div>
 
-        <q-separator class="pv-sep" />
-
-        <div class="pv-seccion">
-          <div class="pv-seccion-titulo">Documentos</div>
-          <div v-if="proveedor.tipo === 'Empresa'">
-            <div class="pv-doc-row">
-              <q-icon name="description" size="18px" color="blue-8" />
-              <div class="pv-doc-meta">
-                <div class="pv-doc-nombre">NIT</div>
-                <div class="pv-doc-tam">{{ proveedor.documento.numero }}</div>
-              </div>
-              <q-btn flat round dense icon="download" color="primary" @click="$emit('descargar-doc', 'nit')">
-                <q-tooltip>Descargar NIT</q-tooltip>
-              </q-btn>
-            </div>
-            <div class="pv-doc-row">
-              <q-icon name="gavel" size="18px" color="blue-8" />
-              <div class="pv-doc-meta">
-                <div class="pv-doc-nombre">Contrato</div>
-                <div class="pv-doc-tam">{{ proveedor.documento.contrato }}</div>
-              </div>
-              <q-btn flat round dense icon="download" color="primary" @click="$emit('descargar-doc', 'contrato')">
-                <q-tooltip>Descargar contrato</q-tooltip>
-              </q-btn>
-            </div>
-          </div>
-          <div v-else>
-            <div class="pv-doc-row">
-              <q-icon name="badge" size="18px" color="purple-9" />
-              <div class="pv-doc-meta">
-                <div class="pv-doc-nombre">Cédula de Identidad</div>
-                <div class="pv-doc-tam">{{ proveedor.documento.numero }}</div>
-              </div>
-              <q-btn flat round dense icon="download" color="purple-9" @click="$emit('descargar-doc', 'ci')">
-                <q-tooltip>Descargar CI</q-tooltip>
-              </q-btn>
-            </div>
-          </div>
-        </div>
-
+        <!-- Acciones -->
         <div class="pv-footer-actions">
-          <q-btn outline color="primary" label="Editar proveedor" icon="edit" @click="$emit('editar', proveedor)" />
-          <q-btn flat color="primary" label="Historial completo" icon="history" @click="$emit('historial', proveedor)" />
+          <q-btn class="pv-btn-editar" no-caps label="Editar proveedor" icon="edit" @click="$emit('editar', proveedor)" />
         </div>
       </div>
     </q-scroll-area>
@@ -201,7 +183,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   modelValue: { type: Boolean, default: false },
   proveedor: { type: Object, default: null }
 })
@@ -209,220 +193,326 @@ defineProps({
 defineEmits(['update:modelValue', 'editar', 'historial', 'descargar-doc'])
 
 function initials(nombre) {
-  return nombre
+  return (nombre || '')
     .split(' ')
     .filter((p) => p.length > 0)
     .slice(0, 2)
     .map((p) => p[0].toUpperCase())
     .join('')
 }
+
+const tieneContacto = computed(() => {
+  const c = props.proveedor || {}
+  const contacto = c.contacto || {}
+  const contactos = c.contactos || []
+  return Boolean(contacto.nombre || contacto.telefono || contacto.correo) || contactos.some((x) => x.telefono || x.correo)
+})
+
+const tieneCondiciones = computed(() => {
+  const cond = (props.proveedor && props.proveedor.condiciones) || {}
+  return Object.values(cond).some((v) => v !== undefined && v !== null && v !== '')
+})
+
+const condicionesLista = computed(() => {
+  const esEmpresa = props.proveedor && props.proveedor.tipo === 'Empresa'
+  const cond = (props.proveedor && props.proveedor.condiciones) || {}
+  const defs = esEmpresa
+    ? [
+        { label: 'Forma de pago', icon: 'payments', key: 'formaPago' },
+        { label: 'Moneda', icon: 'account_balance_wallet', key: 'moneda' },
+        { label: 'Días de entrega', icon: 'local_shipping', key: 'diasEntrega' }
+      ]
+    : [
+        { label: 'Forma de pago', icon: 'attach_money', key: 'formaPago' },
+        { label: 'Frecuencia de entrega', icon: 'schedule', key: 'frecuenciaEntrega' },
+        { label: 'Zona de procedencia', icon: 'agriculture', key: 'zona' }
+      ]
+  return defs
+    .map((d) => ({ ...d, valor: cond[d.key] }))
+    .filter((d) => d.valor !== undefined && d.valor !== null && d.valor !== '')
+})
 </script>
 
 <style scoped>
 .pv-drawer {
-  background: #f5f7fa;
+  background: #f4f7f4;
 }
-
+.pv-scroll {
+  background: #f4f7f4;
+}
 .pv-drawer-body {
-  padding: 16px;
+  padding: 0 16px 20px;
 }
 
-.pv-header {
-  text-align: center;
-  padding-top: 8px;
+/* Hero */
+.pv-hero {
   position: relative;
+  margin: 0 -16px 14px;
+  padding: 22px 20px 18px;
+  background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 55%, #43A047 100%);
+  color: #ffffff;
+  overflow: hidden;
 }
-
+.pv-hero-blur {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -80px;
+  top: -90px;
+  background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
 .pv-close {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 10px;
+  right: 10px;
+  color: rgba(255,255,255,0.85) !important;
+  background: rgba(255,255,255,0.14) !important;
+  z-index: 2;
 }
-
+.pv-close:hover {
+  background: rgba(255,255,255,0.28) !important;
+}
+.pv-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+}
 .pv-logo {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 700;
-  margin: 0 auto;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  border: 2px solid rgba(255,255,255,0.35);
 }
-
-.pv-header-nombre {
+.pv-hero-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 8px;
+}
+.pv-tipo-chip,
+.pv-estado-chip {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  border-radius: 999px !important;
+}
+.pv-hero-nombre {
+  text-align: center;
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 800;
-  font-size: 18px;
-  color: #16231c;
-  margin-top: 10px;
+  font-size: 20px;
+  margin-top: 12px;
+  line-height: 1.25;
 }
-
-.pv-header-doc {
-  font-size: 12px;
-  color: #6b7a72;
+.pv-hero-doc {
+  text-align: center;
   font-family: 'Nunito', sans-serif;
-  margin-top: 2px;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.9);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 
-.pv-tipo-chip {
-  margin-top: 8px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
+/* Cards */
+.pv-card {
+  background: #ffffff;
+  border: 1px solid #e0ebe1;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(27,94,32,0.05);
 }
-
-.pv-sep {
-  margin: 16px 0;
-  color: #e6ebf1;
-}
-
 .pv-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #7a8a80;
-  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+  color: #2E7D32;
+  margin-bottom: 12px;
 }
 
+.pv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pv-grid-item {
+  background: #f7faf6;
+  border: 1px solid #e4eee5;
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+.pv-grid-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #7f9a82;
+  font-family: 'Nunito', sans-serif;
+}
+.pv-grid-val {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: #1B5E20;
+  margin-top: 2px;
+}
+
+/* Contacto */
+.pv-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .pv-contact-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px;
-  color: #33443a;
-  padding: 3px 0;
+  gap: 10px;
 }
-
-.pv-contact-row .q-icon {
-  color: #8a9a90;
-}
-
-.pv-contacto-bloque {
-  padding: 6px 10px;
-  margin: 4px 0;
-  background: #F1F8E9;
-  border: 1px solid #e4edd8;
+.pv-contact-ic {
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
-}
-
-.pv-contacto-bloque + .pv-contacto-bloque {
-  margin-top: 6px;
-}
-
-.pv-calif-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  justify-content: center;
+  flex-shrink: 0;
 }
-
-.pv-calif-num {
-  font-family: 'DM Sans', 'Nunito', sans-serif;
+.pv-contact-label {
+  font-size: 10.5px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #8a9a90;
+  font-family: 'Nunito', sans-serif;
+}
+.pv-contact-val {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
   font-size: 13px;
-  color: #33443a;
+  color: #16231c;
+}
+.pv-contacto-bloque {
+  background: #f7faf6;
+  border: 1px solid #e4eee5;
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pv-contacto-bloque + .pv-contacto-bloque {
+  margin-top: 2px;
 }
 
-.pv-estado-chip {
-  margin-left: auto;
-}
-
+/* Condiciones */
 .pv-cond-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
-
 .pv-cond-item {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.pv-cond-label {
-  font-size: 11px;
-  color: #7a8a80;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.pv-cond-val {
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  color: #16231c;
-}
-
+/* Productos */
 .pv-prod-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
-
 .pv-prod-chip {
   font-family: 'Nunito', sans-serif;
   font-weight: 700;
+  background: #E7F6E9 !important;
+  color: #2E7D32 !important;
 }
 
+/* Mini KPI compras */
 .pv-mini-kpis {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
 }
-
 .pv-mini {
   flex: 1;
-  background: #ffffff;
-  border: 1px solid #e6ebf1;
+  background: #f7faf6;
+  border: 1px solid #e4eee5;
   border-radius: 12px;
-  padding: 10px;
+  padding: 12px 10px;
   text-align: center;
 }
-
 .pv-mini-num {
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 800;
-  font-size: 16px;
+  font-size: 18px;
   color: #2E7D32;
 }
-
 .pv-mini-label {
   font-size: 10.5px;
   color: #7a8a80;
   font-family: 'Nunito', sans-serif;
   font-weight: 700;
+  margin-top: 2px;
 }
 
+/* Historial */
 .pv-hist-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
-
 .pv-hist-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #ffffff;
+  gap: 10px;
+  background: #f7faf6;
   border: 1px solid #eef2f0;
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 9px 12px;
 }
-
+.pv-hist-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #E7F6E9;
+  color: #2E7D32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pv-hist-meta {
+  flex: 1;
+  min-width: 0;
+}
 .pv-hist-fecha {
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 12.5px;
   color: #33443a;
 }
-
 .pv-hist-det {
   font-size: 11px;
   color: #8a9a90;
   font-family: 'Nunito', sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
 .pv-hist-monto {
   font-family: 'DM Sans', 'Nunito', sans-serif;
   font-weight: 800;
@@ -430,42 +520,20 @@ function initials(nombre) {
   color: #2E7D32;
 }
 
-.pv-doc-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #ffffff;
-  border: 1px solid #eef2f0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-}
-
-.pv-doc-meta {
-  flex: 1;
-}
-
-.pv-doc-nombre {
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 12.5px;
-  color: #33443a;
-}
-
-.pv-doc-tam {
-  font-size: 11px;
-  color: #8a9a90;
-  font-family: 'Nunito', sans-serif;
-}
-
+/* Acciones */
 .pv-footer-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-top: 4px;
 }
-
-.pv-footer-actions .q-btn {
+.pv-btn-editar {
   width: 100%;
+  background: #2E7D32 !important;
+  color: #ffffff !important;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  border-radius: 10px !important;
+  padding: 10px !important;
 }
 </style>

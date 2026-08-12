@@ -114,6 +114,15 @@
 
     <!-- Diálogo nuevo proveedor -->
     <NewProviderDialog v-model="dialogAbierto" :proveedor-editar="proveedorEditar" @guardar="guardarNuevo" />
+
+    <!-- Diálogo confirmar estado -->
+    <ConfirmarProveedorDialog
+      v-model="dialogConfirmarEstado"
+      :proveedor="proveedorConfirmar"
+      :tipo="tipoConfirmar"
+      :cargando="cambiandoEstado"
+      @confirmar="confirmarEstado"
+      />
     </div>
   </q-page>
 </template>
@@ -126,7 +135,8 @@ import ProviderTypeTabs from '../../components/proveedor/ProviderTypeTabs.vue'
 import ProvidersTable from '../../components/proveedor/ProvidersTable.vue'
 import ProviderDetailDrawer from '../../components/proveedor/ProviderDetailDrawer.vue'
 import NewProviderDialog from '../../components/proveedor/NewProviderDialog.vue'
-import { listarProveedores, crearProveedor, actualizarProveedor, obtenerEstadisticas, listarCiudades, obtenerProveedor } from '../../api/proveedor/proveedor'
+import ConfirmarProveedorDialog from '../../components/proveedor/ConfirmarProveedorDialog.vue'
+import { listarProveedores, crearProveedor, actualizarProveedor, activarProveedor, desactivarProveedor, obtenerEstadisticas, listarCiudades, obtenerProveedor, exportarProveedoresPDF, exportarProveedoresExcel, exportarProveedorDetallePDF, exportarProveedorDetalleExcel } from '../../api/proveedor/proveedor'
 
 const $q = useQuasar()
 const proveedores = ref([])
@@ -154,6 +164,11 @@ const drawerAbierto = ref(false)
 const proveedorSeleccionado = ref(null)
 const dialogAbierto = ref(false)
 const proveedorEditar = ref(null)
+
+const dialogConfirmarEstado = ref(false)
+const proveedorConfirmar = ref(null)
+const tipoConfirmar = ref('activar')
+const cambiandoEstado = ref(false)
 
 const ciudades = ref([])
 
@@ -304,13 +319,46 @@ function historial(p) {
   mostrar('history', 'Historial completo en desarrollo para: ' + p.nombre)
 }
 
-function exportarProveedor(p) {
-  mostrar('file_download', 'Exportación de datos en desarrollo para: ' + p.nombre)
+function exportarProveedor(p, formato) {
+  const id = p && p.id
+  if (!id) return
+  $q.notify({ type: 'info', message: `Descargando ${formato === 'pdf' ? 'PDF' : 'Excel'}...` })
+  const promesa = formato === 'pdf'
+    ? exportarProveedorDetallePDF(id)
+    : exportarProveedorDetalleExcel(id)
+  promesa
+    .then((blob) => descargarBlob(blob, `ficha_proveedor_${id}.${formato === 'pdf' ? 'pdf' : 'xlsx'}`))
+    .catch((error) => {
+      console.error('Error exportar proveedor:', error)
+      $q.notify({ type: 'negative', message: error?.message || 'Error al exportar el proveedor.' })
+    })
 }
 
 function cambiarEstado(p) {
-  p.estado = p.estado === 'Activo' ? 'Inactivo' : 'Activo'
-  mostrar('toggle_on', `${p.nombre} ahora está ${p.estado}`)
+  proveedorConfirmar.value = p
+  tipoConfirmar.value = p.estado === 'Activo' ? 'desactivar' : 'activar'
+  dialogConfirmarEstado.value = true
+}
+
+async function confirmarEstado() {
+  const id = proveedorConfirmar.value?.id
+  if (!id) return
+  cambiandoEstado.value = true
+  try {
+    if (tipoConfirmar.value === 'activar') {
+      await activarProveedor(id)
+    } else {
+      await desactivarProveedor(id)
+    }
+    $q.notify({ type: 'success', message: `Proveedor ${proveedorConfirmar.value.nombre} ${tipoConfirmar.value === 'activar' ? 'activado' : 'desactivado'} correctamente.` })
+    dialogConfirmarEstado.value = false
+    cargarProveedores()
+    cargarEstadisticas()
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error?.message || `Error al ${tipoConfirmar.value === 'activar' ? 'activar' : 'desactivar'} el proveedor.` })
+  } finally {
+    cambiandoEstado.value = false
+  }
 }
 
 function eliminar(p) {
@@ -348,11 +396,41 @@ function mostrar(icono, texto) {
 }
 
 function exportarPdf() {
-  mostrar('picture_as_pdf', 'Exportación a PDF en desarrollo.')
+  $q.notify({ type: 'info', message: 'Descargando PDF...' })
+  exportarProveedoresPDF(paramsExportar())
+    .then((blob) => descargarBlob(blob, 'reporte_proveedores.pdf'))
+    .catch((error) => {
+      console.error('Error exportar PDF:', error)
+      $q.notify({ type: 'negative', message: error?.message || 'Error al exportar PDF.' })
+    })
 }
 
 function exportarExcel() {
-  mostrar('grid_on', 'Exportación a Excel en desarrollo.')
+  $q.notify({ type: 'info', message: 'Descargando Excel...' })
+  exportarProveedoresExcel(paramsExportar())
+    .then((blob) => descargarBlob(blob, 'reporte_proveedores.xlsx'))
+    .catch((error) => {
+      console.error('Error exportar Excel:', error)
+      $q.notify({ type: 'negative', message: error?.message || 'Error al exportar Excel.' })
+    })
+}
+
+function paramsExportar() {
+  const params = {}
+  if (busqueda.value?.trim()) params.busqueda = busqueda.value.trim()
+  if (filtroTipo.value !== 'todos') params.tipo = filtroTipo.value
+  if (filtros.estado) params.estado = filtros.estado === 'Activo'
+  if (filtros.ciudad) params.ciudad = filtros.ciudad
+  return params
+}
+
+function descargarBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function actualizar() {

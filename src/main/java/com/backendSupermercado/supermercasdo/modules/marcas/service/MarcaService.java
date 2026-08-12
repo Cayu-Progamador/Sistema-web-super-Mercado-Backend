@@ -1,7 +1,6 @@
 package com.backendSupermercado.supermercasdo.modules.marcas.service;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -2,8 +2,8 @@
   <div class="prod-toolbar prod-toolbar-grid">
     <div class="prod-toolbar-actions">
       <q-btn class="prod-btn prod-btn-primario" label="Nuevo Producto" icon="add" no-caps @click="$emit('nuevo')" />
-      <q-btn class="prod-btn prod-btn-importar" label="Importar" icon="cloud_upload" no-caps @click="$emit('importar')" />
-      <q-btn class="prod-btn prod-btn-exportar" label="Exportar" icon="download" no-caps @click="$emit('exportar')" />
+      <q-btn class="prod-btn prod-btn-exportar" label="Excel" icon="table_chart" no-caps @click="$emit('exportar-excel')" />
+      <q-btn class="prod-btn prod-btn-exportar" label="PDF" icon="picture_as_pdf" no-caps @click="$emit('exportar-pdf')" />
       <q-btn class="prod-btn prod-btn-icono" icon="refresh" @click="$emit('actualizar')">
         <q-tooltip class="bg-primary text-white">Recargar</q-tooltip>
       </q-btn>
@@ -39,7 +39,7 @@ defineProps({
   filtrosVisibles: { type: Boolean, default: false }
 })
 
-defineEmits(['nuevo', 'importar', 'exportar', 'actualizar', 'update:busqueda'])
+defineEmits(['nuevo', 'exportar-excel', 'exportar-pdf', 'actualizar', 'update:busqueda', 'toggle-filtros'])
 </script>
 
 <style scoped>
@@ -65,11 +65,6 @@ defineEmits(['nuevo', 'importar', 'exportar', 'actualizar', 'update:busqueda'])
   color: #ffffff !important;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(46, 125, 50, 0.3);
-}
-.prod-btn-importar {
-  background: #388E3C !important;
-  color: #ffffff !important;
-  font-weight: 600;
 }
 .prod-btn-exportar {
   background: #ffffff;
@@ -97,8 +92,16 @@ defineEmits(['nuevo', 'importar', 'exportar', 'actualizar', 'update:busqueda'])
   background: #ffffff;
   min-height: 40px;
   border: 1.5px solid #c8e6c9;
+  box-shadow: none;
 }
-.prod-search :deep(.q-field__control::before) {
+.prod-search :deep(.q-field__control::before),
+.prod-search :deep(.q-field__control::after) {
   display: none;
+}
+.prod-search:hover :deep(.q-field__control) {
+  border-color: #a5d6a7;
+}
+.prod-search :deep(.q-field--focused .q-field__control) {
+  border-color: #81c784;
 }
 </style>

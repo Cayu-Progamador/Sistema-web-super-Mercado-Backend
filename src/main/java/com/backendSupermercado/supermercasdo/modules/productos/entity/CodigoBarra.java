@@ -29,7 +29,7 @@ public class CodigoBarra {
     @Column(name = "id_codigo_barra")
     private Long idCodigoBarra;
 
-    @Column(name = "codigo", nullable = false, length = 50, unique = true)
+    @Column(name = "codigo", nullable = false, length = 50)
     private String codigo;
 
     @Builder.Default

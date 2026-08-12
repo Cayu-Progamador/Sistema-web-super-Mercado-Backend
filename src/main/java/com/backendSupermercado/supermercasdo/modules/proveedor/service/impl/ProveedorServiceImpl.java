@@ -37,6 +37,7 @@ import com.backendSupermercado.supermercasdo.modules.proveedor.repository.Empres
 import com.backendSupermercado.supermercasdo.modules.proveedor.repository.ProveedorRepository;
 import com.backendSupermercado.supermercasdo.modules.proveedor.service.ProveedorService;
 import com.backendSupermercado.supermercasdo.shared.specification.ProveedorSpecification;
+import com.backendSupermercado.supermercasdo.shared.util.ReporteProveedorUtil;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -134,6 +135,65 @@ public class ProveedorServiceImpl implements ProveedorService {
 
         proveedorRepository.save(proveedor);
         return toResponseDto(proveedor);
+    }
+
+    @Override
+    @Transactional
+    public ProveedorResponseDto activarProveedor(Long id) {
+        Proveedor proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor con id " + id + " no encontrado"));
+        proveedor.setEstado(true);
+        proveedorRepository.save(proveedor);
+        return toResponseDto(proveedor);
+    }
+
+    @Override
+    @Transactional
+    public ProveedorResponseDto desactivarProveedor(Long id) {
+        Proveedor proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor con id " + id + " no encontrado"));
+        proveedor.setEstado(false);
+        proveedorRepository.save(proveedor);
+        return toResponseDto(proveedor);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProveedorListadoDto> exportarProveedores(String busqueda, String tipo, Boolean estado, Long idCiudad) {
+        Specification<Proveedor> spec = Specification
+                .where(ProveedorSpecification.busquedaGeneral(busqueda))
+                .and(ProveedorSpecification.tipoEqual(tipo))
+                .and(ProveedorSpecification.estadoEqual(estado))
+                .and(ProveedorSpecification.ciudadEqual(idCiudad));
+
+        return proveedorRepository.findAll(spec)
+                .stream()
+                .map(this::toListadoDto)
+                .toList();
+    }
+
+    @Override
+    public byte[] exportarProveedoresPDF(String busqueda, String tipo, Boolean estado, Long idCiudad, String username) {
+        List<ProveedorListadoDto> data = exportarProveedores(busqueda, tipo, estado, idCiudad);
+        return ReporteProveedorUtil.generarPdf(data, username);
+    }
+
+    @Override
+    public byte[] exportarProveedoresExcel(String busqueda, String tipo, Boolean estado, Long idCiudad) {
+        List<ProveedorListadoDto> data = exportarProveedores(busqueda, tipo, estado, idCiudad);
+        return ReporteProveedorUtil.generarExcel(data);
+    }
+
+    @Override
+    public byte[] exportarProveedorDetallePDF(Long id, String username) {
+        ProveedorResponseDto detalle = obtenerProveedorPorId(id);
+        return ReporteProveedorUtil.generarPdfDetalle(detalle, username);
+    }
+
+    @Override
+    public byte[] exportarProveedorDetalleExcel(Long id) {
+        ProveedorResponseDto detalle = obtenerProveedorPorId(id);
+        return ReporteProveedorUtil.generarExcelDetalle(detalle);
     }
 
     private void actualizarProveedorEmpresa(Proveedor proveedor, ProveedorRequestDto.EmpresaRequestDto dto) {

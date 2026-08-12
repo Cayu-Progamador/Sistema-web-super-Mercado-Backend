@@ -219,7 +219,7 @@ function mapperSubcategoria(s) {
     descripcion: s.descripcion || '',
     estado: s.estado ? 'activo' : 'inactivo',
     idCategoria: s.idCategoria,
-    productos: []
+    productos: new Array(Number(s.cantidadProductos) || 0)
   }
 }
 
