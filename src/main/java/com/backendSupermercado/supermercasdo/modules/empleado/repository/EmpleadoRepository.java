@@ -15,6 +15,8 @@ import com.backendSupermercado.supermercasdo.modules.empleado.entity.Empleado;
 
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long>, JpaSpecificationExecutor<Empleado> {
 
+    List<Empleado> findByEstadoTrueOrderByPersonaNombresAsc();
+
     long countByEstado(Boolean estado);
     @Query("""
         SELECT new com.backendSupermercado.supermercasdo.modules.empleado.dto.EmpleadoSelectDto(

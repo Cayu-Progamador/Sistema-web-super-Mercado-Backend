@@ -20,7 +20,7 @@ public class JwtUtil {
     private String secret;
 
     // 1 HORA
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private static final long EXPIRATION_TIME = 1000L * 60 * 60*2;
 
     // 🔑 CLAVE SEGURA
     private Key getSigningKey() {

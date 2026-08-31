@@ -87,7 +87,7 @@
                 </q-input>
               </div>
               <div class="field-group">
-                <label class="field-lbl">Sexo</label>
+                <label class="field-lbl">Género</label>
                 <q-input v-model="perfil.sexo" outlined dense class="field-input" bg-color="white" readonly>
                   <template #prepend>
                     <q-icon name="wc" class="input-icon" />

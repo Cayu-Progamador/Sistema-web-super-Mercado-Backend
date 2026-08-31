@@ -1,0 +1,32 @@
+<template>
+  <q-dialog v-model="visible" persistent>
+    <q-card class="alm-confirm-card">
+      <div class="alm-confirm-accent" :class="{ activar: esActivar }"></div>
+      <q-card-section class="alm-confirm-header row items-center no-wrap" :class="{ activar: esActivar }">
+        <div class="alm-confirm-icon" :class="{ activar: esActivar }"><q-icon :name="esActivar ? 'warehouse' : 'domain_disabled'" size="22px" /></div>
+        <div class="col q-ml-md"><div class="alm-confirm-title">{{ esActivar ? 'Activar Almacén' : 'Desactivar Almacén' }}</div><div class="alm-confirm-sub">{{ esActivar ? 'Esta acción habilitará el almacén' : 'Esta acción deshabilitará el almacén' }}</div></div>
+        <q-btn flat round dense icon="close" class="alm-close-btn" @click="cerrar" />
+      </q-card-section>
+      <q-card-section class="q-pa-lg">
+        <div class="alm-confirm-almacen"><div class="alm-avatar">{{ iniciales }}</div><div><strong>{{ almacen?.nombre }}</strong><span>{{ almacen?.codigo }}</span></div></div>
+        <div class="alm-confirm-mensaje" :class="{ activar: esActivar }"><q-icon :name="esActivar ? 'info' : 'warning_amber'" size="18px" /><div><strong>¿Está seguro de {{ esActivar ? 'activar' : 'desactivar' }} este almacén?</strong><p>{{ esActivar ? 'El almacén volverá a estar disponible para nuevas operaciones.' : 'El almacén dejará de estar disponible para nuevas operaciones, pero conservará todo su historial.' }}</p></div></div>
+        <div class="alm-confirm-check-row" :class="{ activar: esActivar }" @click="confirmado = !confirmado">
+          <div class="alm-confirm-check" :class="[{ marcado: confirmado }, { activar: esActivar }]">
+            <q-icon v-if="confirmado" name="check" size="12px" color="white" />
+          </div>
+          <span>Entiendo que el almacén se {{ esActivar ? 'activará' : 'desactivará' }}</span>
+        </div>
+      </q-card-section>
+      <q-card-actions class="alm-confirm-footer"><q-btn class="alm-btn-cancelar" outline no-caps icon="close" color="grey-7" label="Cancelar" @click="cerrar" /><q-btn class="alm-btn-accion" unelevated no-caps :disable="!confirmado" :color="esActivar ? 'light-green-7' : 'orange-8'" :icon="esActivar ? 'check_circle' : 'block'" :label="esActivar ? 'Activar Almacén' : 'Desactivar Almacén'" @click="confirmar" /></q-card-actions>
+    </q-card>
+  </q-dialog>
+</template>
+<script setup>
+import { computed, ref, watch } from 'vue'
+const props=defineProps({modelValue:Boolean,almacen:{type:Object,default:null}});const emit=defineEmits(['update:modelValue','confirmar']);const confirmado=ref(false);const visible=computed({get:()=>props.modelValue,set:v=>emit('update:modelValue',v)});const esActivar=computed(()=>props.almacen?.estado==='INACTIVO');const iniciales=computed(()=>props.almacen?.nombre?.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()||'A');watch(()=>props.modelValue,abierto=>{if(abierto)confirmado.value=false});function cerrar(){confirmado.value=false;visible.value=false}function confirmar(){if(!confirmado.value)return;emit('confirmar');confirmado.value=false}
+</script>
+<style scoped>
+.alm-confirm-card{width:94vw;max-width:430px;border:1px solid #e4edd8;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 20px 60px rgba(42,92,26,.15);font-family:'Nunito',sans-serif}.alm-confirm-accent{height:3px;background:linear-gradient(90deg,#82bd43,#64992b,#d97b1a)}.alm-confirm-accent.activar{background:linear-gradient(90deg,#82bd43,#4a8c25,#64992b)}.alm-confirm-header{padding:16px 20px 14px;background:#fff8f0;border-bottom:1px solid #f5dbb8}.alm-confirm-header:has(.alm-confirm-icon.activar){background:#f0f7e8;border-bottom-color:#c8e0a0}.alm-confirm-icon{width:44px;height:44px;flex:none;border:1.5px solid #f5c97a;border-radius:12px;display:grid;place-items:center;background:#fef3e2;color:#d97b1a}.alm-confirm-icon.activar{border-color:#82bd43;background:#eaf4d8;color:#4a8c25}.alm-confirm-title{font-size:15px;font-weight:900;color:#2a5c1a}.alm-confirm-sub{margin-top:2px;font-size:11px;font-weight:600;color:#9dbf78}.alm-close-btn{border-radius:8px!important;color:#7aaa4e!important;background:#f0f7e8!important}.alm-close-btn:hover{background:#ddecc5!important;color:#4a8c25!important}.alm-confirm-almacen{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f7f9f4;border:1px solid #e4edd8;border-radius:12px}.alm-avatar{width:42px;height:42px;flex:none;border:2px solid #c8e0a0;border-radius:50%;display:grid;place-items:center;background:#eaf4d8;color:#2a5c1a;font-size:15px;font-weight:900}.alm-confirm-almacen strong,.alm-confirm-almacen span{display:block}.alm-confirm-almacen strong{color:#2a5c1a;font-size:14px;font-weight:800}.alm-confirm-almacen span{margin-top:2px;font-size:11px;color:#84957e}.alm-confirm-mensaje{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:11px 13px;background:#fff8f0;border:1px solid #f5c97a;border-radius:10px;color:#a05c10}.alm-confirm-mensaje.activar{background:#f0f7e8;border-color:#c8e0a0;color:#4a8c25}.alm-confirm-mensaje strong{font-size:12.5px;font-weight:800}.alm-confirm-mensaje p{font-size:12px;font-weight:600;line-height:1.6;margin:4px 0 0}.alm-confirm-footer{display:flex;gap:10px;padding:14px 20px 18px;border-top:1px solid #e4edd8}.alm-btn-cancelar{flex:1;min-height:42px;border-radius:9px}.alm-btn-accion{flex:2;min-height:42px;border-radius:9px;font-weight:800;box-shadow:0 4px 14px rgba(74,140,37,.22)}
+.alm-confirm-check-row{display:flex;align-items:center;gap:9px;margin-top:14px;padding:10px 12px;border:1px solid #f5c97a;border-radius:9px;background:#fef3e2;color:#a05c10;font-size:12px;font-weight:700;cursor:pointer;user-select:none}.alm-confirm-check-row.activar{border-color:#c8e0a0;background:#f0f7e8;color:#4a8c25}.alm-confirm-check{width:18px;height:18px;flex:none;display:grid;place-items:center;border:2px solid #d97b1a;border-radius:5px;background:#fff}.alm-confirm-check.activar{border-color:#82bd43}.alm-confirm-check.marcado{border-color:#d97b1a;background:#d97b1a}.alm-confirm-check.marcado.activar{border-color:#82bd43;background:#82bd43}.alm-btn-accion.q-btn--disable{opacity:.5!important;box-shadow:none!important}
+@media(max-width:480px){.alm-confirm-card{width:calc(100vw - 24px);border-radius:16px}.alm-confirm-header{padding:14px}.alm-confirm-footer{padding:12px 14px 16px;flex-direction:column-reverse}.alm-btn-cancelar,.alm-btn-accion{width:100%;flex:none}.alm-confirm-title{font-size:14px}}
+</style>

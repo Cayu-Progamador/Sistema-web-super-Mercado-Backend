@@ -56,7 +56,7 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
-              <div class="field-lbl">Sexo <span class="required">*</span></div>
+              <div class="field-lbl">Género <span class="required">*</span></div>
               <q-select
                 v-model="form.idSexo"
                 :options="sexos"
@@ -64,7 +64,7 @@
                 option-value="idSexo"
                 emit-value map-options
                 outlined dense
-                placeholder="Seleccionar sexo"
+                placeholder="Seleccionar género"
                 class="field-input"
                 :rules="[requiredField]"
                 :loading="cargandoOpciones"

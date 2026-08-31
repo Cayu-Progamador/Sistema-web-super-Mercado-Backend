@@ -84,7 +84,7 @@
             <div class="data-item">
               <div class="data-icon">⚥</div>
               <div class="data-content">
-                <div class="data-label">Sexo</div>
+                <div class="data-label">Género</div>
                 <div class="data-value">{{ empleadoDetalle?.sexo || '—' }}</div>
               </div>
             </div>

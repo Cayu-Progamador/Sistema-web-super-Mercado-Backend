@@ -131,6 +131,27 @@
           </q-item-section>
           <q-item-section class="sidebar-label">Proveedores</q-item-section>
         </q-item>
+
+        <q-item clickable v-ripple to="/pedidos" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="shopping_cart" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Pedidos</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/recepcion-mercaderia" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="inventory" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Recepción Mercadería</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/devoluciones" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="assignment_return" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Devoluciones</q-item-section>
+        </q-item>
       </q-expansion-item>
 
       <q-expansion-item
@@ -175,6 +196,52 @@
         </q-item>
       </q-expansion-item>
 
+      <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
+
+      <div v-show="!isMini" class="sidebar-section-label">Inventario</div>
+
+      <q-expansion-item
+        v-model="expandidoAlmacen"
+        expand-separator
+        class="sidebar-item sidebar-expansion"
+        :class="{ 'sidebar-expansion-activo': expandidoAlmacen }"
+      >
+        <template v-slot:header>
+          <q-item-section avatar>
+            <q-icon name="warehouse" class="sidebar-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Gestión Almacén</q-item-section>
+        </template>
+
+        <q-item clickable v-ripple to="/almacenes" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="inventory" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Almacén</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/ubicaciones-almacen" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="shelves" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Ubicaciones</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/transferencias-almacen" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="swap_horiz" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Transferencias</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/movimientos-almacen" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="sync_alt" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Movimientos</q-item-section>
+        </q-item>
+      </q-expansion-item>
+
     </q-list>
   </q-scroll-area>
 </template>
@@ -194,6 +261,7 @@ defineProps({
 const expandido = ref(false)
 const expandidoProveedor = ref(false)
 const expandidoProducto = ref(false)
+const expandidoAlmacen = ref(false)
 
 const store = useAuthStore()
 const tieneAcceso = computed(() => store.controlaAsistencia)

@@ -16,10 +16,16 @@ import AsistenciaAdmin from '../pages/asistencia/AsistenciaAdmin.vue'
 import PermisoPersonal from '../pages/permiso_personal/EmployeePermissionsView.vue'
 import PermisoAdmin from '../pages/permiso_personal/AdminPermissionsView.vue'
 import Proveedores from '../pages/proveedor/ProveedorPage.vue'
+import Pedidos from '../pages/pedido/PedidoPage.vue'
+import Recepcion from '../pages/recepcion/RecepcionPage.vue'
+import Devoluciones from '../pages/devoluciones/DevolucionesPagina.vue'
 import Productos from '../pages/productos/ProductosPage.vue'
 import Categorias from '../pages/categorias/CategoriesPage.vue'
 import UnidadMedida from '../pages/unidadMedida/UnidadMedidaPage.vue'
 import Marca from '../pages/marca/MarcaPage.vue'
+import Almacen from '../pages/almacen/AlmacenPage.vue'
+import Ubicaciones from '../pages/ubicaciones/UbicacionesPage.vue'
+import Transferencias from '../pages/transferencias/TransferenciasPage.vue'
 const routes = [
   {
     path: '/login',
@@ -100,6 +106,21 @@ const routes = [
         component: Proveedores
       },
       {
+        path: 'pedidos',
+        name: 'pedidos',
+        component: Pedidos
+      },
+      {
+        path: 'recepcion-mercaderia',
+        name: 'recepcion-mercaderia',
+        component: Recepcion
+      },
+      {
+        path: 'devoluciones',
+        name: 'devoluciones',
+        component: Devoluciones
+      },
+      {
         path: 'productos',
         name: 'productos',
         component: Productos
@@ -118,6 +139,21 @@ const routes = [
         path: 'marcas',
         name: 'marcas',
         component: Marca
+      },
+      {
+        path: 'almacenes',
+        name: 'almacenes',
+        component: Almacen
+      },
+      {
+        path: 'ubicaciones-almacen',
+        name: 'ubicaciones-almacen',
+        component: Ubicaciones
+      },
+      {
+        path: 'transferencias-almacen',
+        name: 'transferencias-almacen',
+        component: Transferencias
       }
 
     ]

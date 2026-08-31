@@ -1,0 +1,123 @@
+.rppc-panel {
+  background: #f8fbfa;
+  border: 1px solid #d9eee9;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.rppc-title-avatar,
+.rppc-item-avatar {
+  border-radius: 10px;
+}
+
+.rppc-avatar-faltantes {
+  background: #e0f2ee;
+  color: #006051;
+}
+
+.rppc-avatar-devueltos {
+  background: #fff0df;
+  color: #d97b1a;
+}
+
+.rppc-card,
+.rppc-empty {
+  border: 1px solid #bce9e2;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 96, 81, 0.06);
+}
+
+.rppc-card {
+  height: 100%;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.rppc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 96, 81, 0.12);
+}
+
+.rppc-chip {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rppc-chip-faltante {
+  background: #fff0df;
+  color: #b65d05;
+}
+
+.rppc-chip-proceso {
+  background: #fff0df;
+  color: #b65d05;
+}
+
+.rppc-chip-completada {
+  background: #e0f2ee;
+  color: #006051;
+}
+
+.rppc-chip-cancelada {
+  background: #eef1f3;
+  color: #5b6675;
+}
+
+.rppc-metric {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  color: #455a64;
+}
+
+.rppc-metric-warning {
+  background: #fff6eb;
+  color: #b65d05;
+}
+
+.rppc-metric-value {
+  color: #006051;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.rppc-metric-warning .rppc-metric-value {
+  color: #d97b1a;
+}
+
+.rppc-products {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.rppc-product-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  align-items: center;
+  color: #37474f;
+  font-size: 13px;
+}
+
+.rppc-product-row + .rppc-product-row {
+  border-top: 1px solid #e1e8e6;
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+.rppc-motivo {
+  grid-column: 1 / -1;
+  color: #b65d05;
+  font-size: 11px;
+}
+
+.rppc-action {
+  font-weight: 700;
+}
+
+@media (max-width: 599px) {
+  .rppc-panel {
+    padding: 14px;
+  }
+}

@@ -224,7 +224,7 @@
                   <q-input v-model="form.persona.fechaNacimiento" label="Fecha de nacimiento *" stack-label outlined color="green-8" type="date" :rules="[v => !!v || 'Requerido']" placeholder="DD / MM / AAAA" class="q-mb-md field-green" />
                 </div>
                 <div class="col-12 col-md-4">
-                  <q-select v-model="form.persona.sexo" :options="sexos" label="Sexo *" stack-label outlined color="green-8" emit-value map-options class="q-mb-md field-green" :rules="[v => !!v || 'Requerido']">
+                  <q-select v-model="form.persona.sexo" :options="sexos" label="Género *" stack-label outlined color="green-8" emit-value map-options class="q-mb-md field-green" :rules="[v => !!v || 'Requerido']">
                   <template v-slot:prepend><q-icon name="wc" size="20px" /></template>
                 </q-select>
                 </div>
