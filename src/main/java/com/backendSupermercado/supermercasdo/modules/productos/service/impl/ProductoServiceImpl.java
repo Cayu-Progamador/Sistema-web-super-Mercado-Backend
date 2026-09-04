@@ -31,6 +31,8 @@ import com.backendSupermercado.supermercasdo.modules.productos.entity.Producto;
 import com.backendSupermercado.supermercasdo.modules.productos.repository.CodigoBarraRepository;
 import com.backendSupermercado.supermercasdo.modules.productos.repository.ProductoRepository;
 import com.backendSupermercado.supermercasdo.modules.productos.service.ProductoService;
+import com.backendSupermercado.supermercasdo.modules.inventario.entity.ConfiguracionStock;
+import com.backendSupermercado.supermercasdo.modules.inventario.repository.ConfiguracionStockRepository;
 import com.backendSupermercado.supermercasdo.modules.unidad_medida.entity.UnidadMedida;
 import com.backendSupermercado.supermercasdo.modules.unidad_medida.repository.UnidadMedidaRepository;
 import com.backendSupermercado.supermercasdo.shared.util.ReporteProductoUtil;
@@ -49,6 +51,7 @@ public class ProductoServiceImpl implements ProductoService {
     private final UnidadMedidaRepository unidadMedidaRepository;
     private final CodigoBarraRepository codigoBarraRepository;
     private final ProductoMapper productoMapper;
+    private final ConfiguracionStockRepository configuracionStockRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -90,7 +93,9 @@ public class ProductoServiceImpl implements ProductoService {
         producto.setPresentaciones(mapearPresentaciones(dto.getPresentaciones(), producto));
 
         try {
-            return productoMapper.toResponseDto(productoRepository.save(producto));
+            Producto guardado = productoRepository.save(producto);
+            guardarConfiguracionStock(guardado, dto);
+            return productoMapper.toResponseDto(guardado);
         } catch (DataIntegrityViolationException ex) {
             throw new ResourceConflictException(
                     "No se pudo guardar el producto. Verifica que el código interno y los códigos de barras sean únicos.");
@@ -265,6 +270,7 @@ public class ProductoServiceImpl implements ProductoService {
         producto.setMarca(marca);
         producto.setUnidadBase(unidadMedidaRepository.getReferenceById(dto.getIdUnidadBase()));
         producto.setFechaActualizacion(LocalDateTime.now());
+        guardarConfiguracionStock(producto, dto);
 
         List<PresentacionProducto> nuevasPresentaciones =
                 mapearPresentaciones(dto.getPresentaciones(), producto, id);
@@ -279,6 +285,23 @@ public class ProductoServiceImpl implements ProductoService {
             throw new ResourceConflictException(
                     "No se pudo guardar el producto. Verifica que el código interno y los códigos de barras sean únicos.");
         }
+    }
+
+    private void guardarConfiguracionStock(Producto producto, ProductoRequestDto dto) {
+        if (dto.getStockMinimo() == null || dto.getStockMinimo().signum() < 0) {
+            throw new ResourceConflictException("El stock mínimo es obligatorio y no puede ser negativo");
+        }
+        if (dto.getStockMaximo() != null && dto.getStockMaximo().compareTo(dto.getStockMinimo()) < 0) {
+            throw new ResourceConflictException("El stock máximo debe ser mayor o igual al stock mínimo");
+        }
+        ConfiguracionStock config = configuracionStockRepository.findByProductoIdProducto(producto.getIdProducto())
+                .orElseGet(ConfiguracionStock::new);
+        config.setProducto(producto);
+        config.setStockMinimo(dto.getStockMinimo());
+        config.setStockMaximo(dto.getStockMaximo());
+        config.setActivo(true);
+        configuracionStockRepository.save(config);
+        producto.setConfiguracionStock(config);
     }
 
     @Override

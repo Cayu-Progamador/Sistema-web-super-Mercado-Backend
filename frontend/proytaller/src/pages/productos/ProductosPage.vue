@@ -218,6 +218,10 @@ function mapearProducto(p) {
     subcategoria: p.nombreSubcategoria,
     marca: p.nombreMarca,
     unidadBase: p.nombreUnidadBase,
+    controlaLote: Boolean(p.controlaLote),
+    controlaVencimiento: Boolean(p.controlaVencimiento),
+    stockMinimo: p.stockMinimo ?? null,
+    stockMaximo: p.stockMaximo ?? null,
     nPresentaciones: (p.presentaciones || []).length,
     presentaciones: p.presentaciones || [],
     estado: p.estado ? 'Activo' : 'Inactivo',
@@ -408,6 +412,10 @@ function guardarNuevo(payload) {
         idUnidadBase: payload.unidadBase,
         controlaLote: !!payload.controlaLote,
         controlaVencimiento: !!payload.controlaVencimiento,
+        stockMinimo: Number(payload.stockMinimo),
+        stockMaximo: payload.stockMaximo === null || payload.stockMaximo === ''
+          ? null
+          : Number(payload.stockMaximo),
         imagen: imagenUrl,
         presentaciones: (payload.presentaciones || []).map((p) => ({
           nombrePresentacion: p.nombre,

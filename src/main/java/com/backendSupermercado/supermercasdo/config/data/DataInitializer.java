@@ -181,8 +181,17 @@ public class DataInitializer implements CommandLineRunner {
                         .descripcion("Salida por venta al cliente").naturaleza(NaturalezaMovimiento.S).build(),
                 TipoMovimientoAlmacen.builder().nombre("SALIDA_DEVOLUCION")
                         .descripcion("Salida por devolución al proveedor").naturaleza(NaturalezaMovimiento.S).build(),
+                TipoMovimientoAlmacen.builder().nombre("SALIDA_TRANSFERENCIA")
+                        .descripcion("Salida por transferencia entre ubicaciones")
+                        .naturaleza(NaturalezaMovimiento.S).build(),
+                TipoMovimientoAlmacen.builder().nombre("ENTRADA_TRANSFERENCIA")
+                        .descripcion("Entrada por transferencia entre ubicaciones")
+                        .naturaleza(NaturalezaMovimiento.E).build(),
                 TipoMovimientoAlmacen.builder().nombre("AJUSTE_INVENTARIO")
                         .descripcion("Ajuste por inventario físico").naturaleza(NaturalezaMovimiento.E).build());
+        tipos = new java.util.ArrayList<>(tipos);
+        tipos.add(TipoMovimientoAlmacen.builder().nombre("SALIDA_AJUSTE_INVENTARIO")
+                .descripcion("Salida por ajuste de inventario").naturaleza(NaturalezaMovimiento.S).build());
         tipos.forEach(tipo -> {
             if (!tipoMovimientoAlmacenRepository.existsByNombreIgnoreCase(tipo.getNombre())) {
                 tipoMovimientoAlmacenRepository.save(tipo);

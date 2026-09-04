@@ -244,7 +244,9 @@ public class DevolucionProveedorServiceImpl implements DevolucionProveedorServic
             throw new ResourceConflictException("Stock insuficiente en " + origen.getUbicacion().getNombre()
                     + ". Disponible: " + existencia.getCantidad().stripTrailingZeros().toPlainString());
         }
-        existencia.setCantidad(existencia.getCantidad().subtract(origen.getCantidad()));
+        BigDecimal saldoAnterior = existencia.getCantidad();
+        BigDecimal saldoResultante = saldoAnterior.subtract(origen.getCantidad());
+        existencia.setCantidad(saldoResultante);
 
         movimiento.getDetalles().add(DetalleMovimientoAlmacen.builder()
                 .movimiento(movimiento)
@@ -253,6 +255,8 @@ public class DevolucionProveedorServiceImpl implements DevolucionProveedorServic
                 .ubicacion(origen.getUbicacion())
                 .detalleRecepcion(recepcion)
                 .cantidad(origen.getCantidad())
+                .saldoAnterior(saldoAnterior)
+                .saldoResultante(saldoResultante)
                 .observacion("Devolución al proveedor")
                 .build());
     }

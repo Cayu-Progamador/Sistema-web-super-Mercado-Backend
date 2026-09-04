@@ -24,6 +24,8 @@ import Categorias from '../pages/categorias/CategoriesPage.vue'
 import UnidadMedida from '../pages/unidadMedida/UnidadMedidaPage.vue'
 import Marca from '../pages/marca/MarcaPage.vue'
 import Almacen from '../pages/almacen/AlmacenPage.vue'
+import Inventario from '../pages/inventario/InventarioPage.vue'
+import InventarioFisico from '../pages/inventario_fisico/InventarioFisicoPage.vue'
 import Ubicaciones from '../pages/ubicaciones/UbicacionesPage.vue'
 import Transferencias from '../pages/transferencias/TransferenciasPage.vue'
 const routes = [
@@ -146,6 +148,16 @@ const routes = [
         component: Almacen
       },
       {
+        path: 'inventario',
+        name: 'inventario',
+        component: Inventario
+      },
+      {
+        path: 'inventario-fisico',
+        name: 'inventario-fisico',
+        component: InventarioFisico
+      },
+      {
         path: 'ubicaciones-almacen',
         name: 'ubicaciones-almacen',
         component: Ubicaciones
@@ -154,7 +166,7 @@ const routes = [
         path: 'transferencias-almacen',
         name: 'transferencias-almacen',
         component: Transferencias
-      }
+      },
 
     ]
   },

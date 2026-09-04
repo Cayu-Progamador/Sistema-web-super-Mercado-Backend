@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.backendSupermercado.supermercasdo.modules.lotes.entity.Lote;
 
-public interface LoteRepository extends JpaRepository<Lote, Long> {
+public interface LoteRepository extends JpaRepository<Lote, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Lote> {
 
     Optional<Lote> findByProducto_IdProductoAndCodigoLote(Long idProducto, String codigoLote);
 

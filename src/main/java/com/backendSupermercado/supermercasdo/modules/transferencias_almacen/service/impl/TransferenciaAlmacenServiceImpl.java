@@ -3,6 +3,7 @@ package com.backendSupermercado.supermercasdo.modules.transferencias_almacen.ser
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,11 @@ import com.backendSupermercado.supermercasdo.modules.ubicacion_almacen.repositor
 import com.backendSupermercado.supermercasdo.modules.productos.repository.ProductoRepository;
 import com.backendSupermercado.supermercasdo.modules.lotes.repository.LoteRepository;
 import com.backendSupermercado.supermercasdo.modules.inventario.repository.ExistenciaRepository;
+import com.backendSupermercado.supermercasdo.modules.movimiento_almacen.entity.DetalleMovimientoAlmacen;
+import com.backendSupermercado.supermercasdo.modules.movimiento_almacen.entity.MovimientoAlmacen;
+import com.backendSupermercado.supermercasdo.modules.movimiento_almacen.entity.TipoMovimientoAlmacen;
+import com.backendSupermercado.supermercasdo.modules.movimiento_almacen.repository.MovimientoAlmacenRepository;
+import com.backendSupermercado.supermercasdo.modules.movimiento_almacen.repository.TipoMovimientoAlmacenRepository;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.productos.entity.Producto;
 import com.backendSupermercado.supermercasdo.modules.lotes.entity.Lote;
@@ -43,6 +49,8 @@ public class TransferenciaAlmacenServiceImpl implements TransferenciaAlmacenServ
     private final LoteRepository loteRepository;
     private final ExistenciaRepository existenciaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final MovimientoAlmacenRepository movimientoAlmacenRepository;
+    private final TipoMovimientoAlmacenRepository tipoMovimientoAlmacenRepository;
 
     @Override
     @Transactional
@@ -178,24 +186,96 @@ public class TransferenciaAlmacenServiceImpl implements TransferenciaAlmacenServ
         if (transferencia.getUbicacionOrigen() == null || transferencia.getUbicacionDestino() == null) {
             throw new IllegalStateException("La transferencia no tiene origen y destino completos");
         }
+
+        TipoMovimientoAlmacen tipoSalida = buscarTipoMovimiento("SALIDA_TRANSFERENCIA");
+        TipoMovimientoAlmacen tipoEntrada = buscarTipoMovimiento("ENTRADA_TRANSFERENCIA");
+        MovimientoAlmacen movimientoSalida = crearMovimientoTransferencia(transferencia, tipoSalida);
+        MovimientoAlmacen movimientoEntrada = crearMovimientoTransferencia(transferencia, tipoEntrada);
+
         for (DetalleTransferencia detalle : transferencia.getDetalles()) {
             if (detalle.getCantidad() == null || detalle.getCantidad().signum() <= 0) {
                 throw new IllegalArgumentException("La cantidad de cada detalle debe ser mayor que cero");
             }
+
             Long loteId = detalle.getLote() == null ? null : detalle.getLote().getIdLote();
             var origen = existenciaRepository.buscarParaActualizar(detalle.getProducto().getIdProducto(), transferencia.getUbicacionOrigen().getIdUbicacion(), loteId)
                     .orElseThrow(() -> new IllegalArgumentException("No existe stock de " + detalle.getProducto().getNombre() + " en el origen"));
+
             if (origen.getCantidad().compareTo(detalle.getCantidad()) < 0) {
                 throw new IllegalArgumentException("Stock insuficiente de " + detalle.getProducto().getNombre());
             }
+
             var destino = existenciaRepository.buscarParaActualizar(detalle.getProducto().getIdProducto(), transferencia.getUbicacionDestino().getIdUbicacion(), loteId)
                     .orElseGet(() -> existenciaRepository.save(com.backendSupermercado.supermercasdo.modules.inventario.entity.Existencia.builder()
                             .producto(detalle.getProducto()).ubicacion(transferencia.getUbicacionDestino()).lote(detalle.getLote()).cantidad(BigDecimal.ZERO).build()));
-            origen.setCantidad(origen.getCantidad().subtract(detalle.getCantidad()));
-            destino.setCantidad(destino.getCantidad().add(detalle.getCantidad()));
+
+            BigDecimal saldoAnteriorOrigen = origen.getCantidad();
+            BigDecimal saldoResultanteOrigen = saldoAnteriorOrigen.subtract(detalle.getCantidad());
+            BigDecimal saldoAnteriorDestino = destino.getCantidad();
+            BigDecimal saldoResultanteDestino = saldoAnteriorDestino.add(detalle.getCantidad());
+
+            origen.setCantidad(saldoResultanteOrigen);
+            destino.setCantidad(saldoResultanteDestino);
             existenciaRepository.save(origen);
             existenciaRepository.save(destino);
+
+            movimientoSalida.getDetalles().add(crearDetalleMovimiento(
+                    movimientoSalida,
+                    detalle,
+                    transferencia.getUbicacionOrigen(),
+                    saldoAnteriorOrigen,
+                    saldoResultanteOrigen,
+                    "Transferencia a " + transferencia.getUbicacionDestino().getNombre()));
+
+            movimientoEntrada.getDetalles().add(crearDetalleMovimiento(
+                    movimientoEntrada,
+                    detalle,
+                    transferencia.getUbicacionDestino(),
+                    saldoAnteriorDestino,
+                    saldoResultanteDestino,
+                    "Transferencia desde " + transferencia.getUbicacionOrigen().getNombre()));
         }
+
+        movimientoAlmacenRepository.save(movimientoSalida);
+        movimientoAlmacenRepository.save(movimientoEntrada);
+    }
+
+    private TipoMovimientoAlmacen buscarTipoMovimiento(String nombre) {
+        return tipoMovimientoAlmacenRepository.findByNombreIgnoreCase(nombre)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Tipo de movimiento no encontrado: " + nombre));
+    }
+
+    private MovimientoAlmacen crearMovimientoTransferencia(
+            TransferenciaAlmacen transferencia,
+            TipoMovimientoAlmacen tipoMovimiento) {
+        return MovimientoAlmacen.builder()
+                .tipoMovimiento(tipoMovimiento)
+                .usuario(transferencia.getUsuario())
+                .fechaMovimiento(LocalDateTime.now())
+                .referencia(transferencia.getCodigo())
+                .observacion(transferencia.getObservacion())
+                .detalles(new ArrayList<>())
+                .build();
+    }
+
+    private DetalleMovimientoAlmacen crearDetalleMovimiento(
+            MovimientoAlmacen movimiento,
+            DetalleTransferencia transferencia,
+            UbicacionAlmacen ubicacion,
+            BigDecimal saldoAnterior,
+            BigDecimal saldoResultante,
+            String observacion) {
+        return DetalleMovimientoAlmacen.builder()
+                .movimiento(movimiento)
+                .producto(transferencia.getProducto())
+                .lote(transferencia.getLote())
+                .ubicacion(ubicacion)
+                .cantidad(transferencia.getCantidad())
+                .saldoAnterior(saldoAnterior)
+                .saldoResultante(saldoResultante)
+                .observacion(observacion)
+                .build();
     }
 
     @Override

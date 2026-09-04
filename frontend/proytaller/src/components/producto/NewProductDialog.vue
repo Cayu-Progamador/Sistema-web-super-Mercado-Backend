@@ -112,6 +112,19 @@
 
           <!-- PESTAÑA 2: CONFIGURACIÓN -->
           <q-tab-panel name="config">
+            <div class="section-title q-mb-md">Configuración de inventario</div>
+            <div class="row q-col-gutter-md q-mb-lg">
+              <div class="col-12 col-md-6">
+                <q-input v-model.number="form.stockMinimo" outlined type="number" min="0" step="1"
+                  label="Stock mínimo *" hint="Obligatorio. Activa la alerta cuando el stock llegue a este nivel."
+                  persistent-hint color="green-8" :rules="reglasStockMinimo" lazy-rules :error="!!errores.stockMinimo" :error-message="errores.stockMinimo" />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input v-model.number="form.stockMaximo" outlined type="number" min="0" step="1"
+                  label="Stock máximo" hint="Opcional. Define el límite recomendado de existencias."
+                  persistent-hint color="green-8" :rules="reglasStockMaximo" lazy-rules :error="!!errores.stockMaximo" :error-message="errores.stockMaximo" />
+              </div>
+            </div>
             <div class="row q-col-gutter-md">
               <div class="col-6 col-md-3">
                 <q-toggle v-model="form.controlaLote" color="green-8" label="Controla lote" />
@@ -245,6 +258,15 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'guardar', 'categoria-cambio', 'categoria-creada', 'subcategoria-creada', 'marca-creada'])
 const $q = useQuasar()
 
+const reglasStockMinimo = [
+  (v) => v !== null && v !== '' || 'El stock mínimo es obligatorio.',
+  (v) => Number.isInteger(Number(v)) && Number(v) >= 0 || 'Ingresa un número entero igual o mayor que 0.'
+]
+const reglasStockMaximo = [
+  (v) => v === null || v === '' || (Number.isInteger(Number(v)) && Number(v) >= 0) || 'Ingresa un número entero igual o mayor que 0.',
+  (v) => v === null || v === '' || Number(v) >= Number(form.stockMinimo) || 'Debe ser mayor o igual al stock mínimo.'
+]
+
 const esEdicion = computed(() => !!props.productoEditar)
 const tab = ref('general')
 let seq = 0
@@ -260,6 +282,8 @@ const form = reactive({
   unidadBase: null,
   controlaLote: false,
   controlaVencimiento: false,
+  stockMinimo: null,
+  stockMaximo: null,
   tienePresentaciones: false,
   presentaciones: [],
   usaCodigoBase: false,
@@ -271,6 +295,8 @@ const errores = reactive({
   subcategoria: '',
   unidadBase: '',
   precioUnidadBase: '',
+  stockMinimo: '',
+  stockMaximo: '',
   codigoBase: '',
   presentaciones: {}
 })
@@ -512,8 +538,10 @@ function revisarPresentaciones() {
 }
 
 const formValido = computed(() => {
-  if (errores.nombre || errores.subcategoria || errores.unidadBase || errores.precioUnidadBase) return false
+  if (errores.nombre || errores.subcategoria || errores.unidadBase || errores.precioUnidadBase || errores.stockMinimo || errores.stockMaximo) return false
   if (!form.nombre || !form.subcategoria || !form.unidadBase) return false
+  if (form.stockMinimo === null || form.stockMinimo === '' || Number(form.stockMinimo) < 0) return false
+  if (form.stockMaximo !== null && form.stockMaximo !== '' && (Number(form.stockMaximo) < 0 || Number(form.stockMaximo) < Number(form.stockMinimo))) return false
   if (form.usaCodigoBase && !form.codigoBase?.trim()) return false
   if (!form.tienePresentaciones) return Number(form.precioUnidadBase) > 0
   if (!form.presentaciones.length) return false
@@ -537,6 +565,8 @@ function resetForm() {
   form.unidadBase = null
   form.controlaLote = false
   form.controlaVencimiento = false
+  form.stockMinimo = null
+  form.stockMaximo = null
   form.tienePresentaciones = false
   form.precioUnidadBase = null
   form.presentaciones = []
@@ -547,6 +577,8 @@ function resetForm() {
   errores.subcategoria = ''
   errores.unidadBase = ''
   errores.precioUnidadBase = ''
+  errores.stockMinimo = ''
+  errores.stockMaximo = ''
   errores.codigoBase = ''
   errores.presentaciones = {}
   tab.value = 'general'
@@ -560,6 +592,8 @@ function precargar(producto) {
   form.tieneMarca = !!producto.idMarca
   form.marca = producto.idMarca ?? null
   form.unidadBase = producto.idUnidadBase ?? null
+  form.stockMinimo = producto.stockMinimo ?? null
+  form.stockMaximo = producto.stockMaximo ?? null
   form.imagen = producto.imagen || null
   previewImagen.value = producto.imagen ? urlImagen(producto.imagen) : ''
   form.presentaciones = []
@@ -568,6 +602,8 @@ function precargar(producto) {
   form.precioUnidadBase = null
   errores.presentaciones = {}
   errores.precioUnidadBase = ''
+  errores.stockMinimo = ''
+  errores.stockMaximo = ''
   errores.codigoBase = ''
   principalId.value = null
 
@@ -624,6 +660,8 @@ function guardar() {
     unidadBase: form.unidadBase,
     controlaLote: form.controlaLote,
     controlaVencimiento: form.controlaVencimiento,
+    stockMinimo: Number(form.stockMinimo),
+    stockMaximo: form.stockMaximo === null || form.stockMaximo === '' ? null : Number(form.stockMaximo),
     presenta: form.tienePresentaciones,
     precioUnidadBase: Number(form.precioUnidadBase) || null,
     presentaciones: form.tienePresentaciones

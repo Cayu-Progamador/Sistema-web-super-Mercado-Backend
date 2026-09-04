@@ -2,6 +2,7 @@ package com.backendSupermercado.supermercasdo.modules.productos.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +16,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class ProductoResponseDto {
+
+    private BigDecimal stockMinimo;
+    private BigDecimal stockMaximo;
 
     private Long idProducto;
     private String codigoInterno;

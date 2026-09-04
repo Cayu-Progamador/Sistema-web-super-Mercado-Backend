@@ -45,6 +45,10 @@ public class ProductoMapper {
                         ? producto.getUnidadBase().getNombre() : null)
                 .abreviaturaUnidadBase(producto.getUnidadBase() != null
                         ? producto.getUnidadBase().getAbreviatura() : null)
+                .stockMinimo(producto.getConfiguracionStock() != null
+                        ? producto.getConfiguracionStock().getStockMinimo() : null)
+                .stockMaximo(producto.getConfiguracionStock() != null
+                        ? producto.getConfiguracionStock().getStockMaximo() : null)
                 .build();
 
         if (producto.getPresentaciones() != null) {

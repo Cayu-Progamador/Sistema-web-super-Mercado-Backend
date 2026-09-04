@@ -419,7 +419,9 @@ public class RecepcionServiceImpl implements RecepcionService {
                             .cantidad(BigDecimal.ZERO)
                             .build()));
         }
-        existencia.setCantidad(existencia.getCantidad().add(cantidad));
+        BigDecimal saldoAnterior = existencia.getCantidad();
+        BigDecimal saldoResultante = saldoAnterior.add(cantidad);
+        existencia.setCantidad(saldoResultante);
 
         DetalleMovimientoAlmacen detalleMovimiento = DetalleMovimientoAlmacen.builder()
                 .movimiento(movimiento)
@@ -428,6 +430,8 @@ public class RecepcionServiceImpl implements RecepcionService {
                 .ubicacion(ubicacion)
                 .detalleRecepcion(detalleRecepcion)
                 .cantidad(cantidad)
+                .saldoAnterior(saldoAnterior)
+                .saldoResultante(saldoResultante)
                 .build();
         movimiento.getDetalles().add(detalleMovimiento);
     }

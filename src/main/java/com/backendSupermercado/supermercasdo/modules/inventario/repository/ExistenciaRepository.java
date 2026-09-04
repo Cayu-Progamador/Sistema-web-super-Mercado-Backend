@@ -8,13 +8,37 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.Param;
 
 import com.backendSupermercado.supermercasdo.modules.inventario.entity.Existencia;
 
 import jakarta.persistence.LockModeType;
 
-public interface ExistenciaRepository extends JpaRepository<Existencia, Long> {
+public interface ExistenciaRepository extends JpaRepository<Existencia, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<Existencia> {
+
+    @Override
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "lote", "ubicacion", "ubicacion.almacen"})
+    Page<Existencia> findAll(Specification<Existencia> specification, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT e.lote.idLote) FROM Existencia e "
+            + "WHERE e.cantidad > 0 AND e.lote.fechaVencimiento < :fecha")
+    long contarLotesVencidos(@Param("fecha") java.time.LocalDate fecha);
+
+    @Query("SELECT COUNT(DISTINCT e.lote.idLote) FROM Existencia e "
+            + "WHERE e.cantidad > 0 AND e.lote.fechaVencimiento = :fecha")
+    long contarLotesQueVencenEn(@Param("fecha") java.time.LocalDate fecha);
+
+    @Query("SELECT COUNT(DISTINCT e.lote.idLote) FROM Existencia e "
+            + "WHERE e.cantidad > 0 AND e.lote.fechaVencimiento BETWEEN :desde AND :hasta")
+    long contarLotesPorVencer(
+            @Param("desde") java.time.LocalDate desde,
+            @Param("hasta") java.time.LocalDate hasta);
+    @Query("SELECT COALESCE(SUM(e.cantidad), 0) FROM Existencia e WHERE e.lote.idLote = :idLote")
+    BigDecimal sumarCantidadPorLote(@Param("idLote") Long idLote);
+    Optional<Existencia> findFirstByLote_IdLote(Long idLote);
 
     boolean existsByUbicacion_Almacen_IdAlmacenAndCantidadGreaterThan(Long idAlmacen, BigDecimal cantidad);
     List<Existencia> findByUbicacion_IdUbicacionIn(List<Long> idsUbicacion);
@@ -45,4 +69,20 @@ public interface ExistenciaRepository extends JpaRepository<Existencia, Long> {
 
     List<Existencia> findAllByProducto_IdProductoAndLoteIsNullAndCantidadGreaterThan(
             Long idProducto, BigDecimal cantidad);
+
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "ubicacion", "ubicacion.almacen", "lote"})
+    List<Existencia> findByCantidadGreaterThan(BigDecimal cantidad);
+
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "ubicacion", "ubicacion.almacen", "lote"})
+    List<Existencia> findByUbicacion_Almacen_IdAlmacenAndCantidadGreaterThan(Long idAlmacen, BigDecimal cantidad);
+
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "ubicacion", "ubicacion.almacen", "lote"})
+    List<Existencia> findByUbicacion_IdUbicacionAndCantidadGreaterThan(Long idUbicacion, BigDecimal cantidad);
+
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "ubicacion", "ubicacion.almacen", "lote"})
+    List<Existencia> findByProducto_Subcategoria_Categoria_IdCategoriaAndCantidadGreaterThan(
+            Long idCategoria, BigDecimal cantidad);
+
+    @EntityGraph(attributePaths = {"producto", "producto.unidadBase", "ubicacion", "ubicacion.almacen", "lote"})
+    List<Existencia> findByProducto_IdProductoInAndCantidadGreaterThan(List<Long> idsProductos, BigDecimal cantidad);
 }

@@ -214,6 +214,28 @@
         <div>No se encontraron productos con los filtros aplicados.</div>
       </div>
     </template>
+
+    <template v-slot:pagination="scope">
+      <div class="prod-pagination row items-center q-gutter-xs">
+        <q-btn flat round dense icon="first_page" color="green-8"
+          :disable="scope.isFirstPage" @click="scope.firstPage">
+          <q-tooltip>Primera página</q-tooltip>
+        </q-btn>
+        <q-btn flat round dense icon="chevron_left" color="green-8"
+          :disable="scope.isFirstPage" @click="scope.prevPage">
+          <q-tooltip>Página anterior</q-tooltip>
+        </q-btn>
+        <span class="prod-pagination-label">Página {{ scope.pagination.page }}</span>
+        <q-btn flat round dense icon="chevron_right" color="green-8"
+          :disable="scope.isLastPage" @click="scope.nextPage">
+          <q-tooltip>Página siguiente</q-tooltip>
+        </q-btn>
+        <q-btn flat round dense icon="last_page" color="green-8"
+          :disable="scope.isLastPage" @click="scope.lastPage">
+          <q-tooltip>Última página</q-tooltip>
+        </q-btn>
+      </div>
+    </template>
   </q-table>
 </template>
 
@@ -338,13 +360,11 @@ function urlImagen(ruta) {
   background: #2E7D32 !important;
   color: #ffffff !important;
 }
-@media (min-width: 1024px) {
-  .prod-table,
-  .prod-table :deep(.q-table__container),
-  .prod-table :deep(.q-table__middle),
-  .prod-table :deep(.q-table) {
-    overflow-x: hidden !important;
-  }
+.prod-table :deep(.q-table__middle) {
+  overflow-x: auto !important;
+}
+.prod-table :deep(.q-table) {
+  min-width: 1120px;
 }
 .prod-imagen {
   background: #f1f8e9;
@@ -395,6 +415,13 @@ function urlImagen(ruta) {
 }
 .prod-acciones {
   white-space: nowrap;
+}
+.prod-pagination-label {
+  min-width: 90px;
+  text-align: center;
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 800;
 }
 .prod-mobile-card {
   border: 1px solid #dce9d6;

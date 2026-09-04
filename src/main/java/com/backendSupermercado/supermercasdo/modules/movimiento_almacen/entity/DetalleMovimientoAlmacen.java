@@ -59,6 +59,12 @@ public class DetalleMovimientoAlmacen {
     @Column(name = "cantidad", nullable = false, precision = 12, scale = 3)
     private BigDecimal cantidad;
 
+    @Column(name = "saldo_anterior", precision = 12, scale = 3)
+    private BigDecimal saldoAnterior;
+
+    @Column(name = "saldo_resultante", precision = 12, scale = 3)
+    private BigDecimal saldoResultante;
+
     @Column(name = "observacion", length = 255)
     private String observacion;
 

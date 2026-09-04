@@ -18,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -88,5 +89,8 @@ public class Producto {
             orphanRemoval = true
     )
     private List<PresentacionProducto> presentaciones;
+
+    @OneToOne(mappedBy = "producto", fetch = FetchType.LAZY)
+    private com.backendSupermercado.supermercasdo.modules.inventario.entity.ConfiguracionStock configuracionStock;
 
 }
