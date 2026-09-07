@@ -165,6 +165,13 @@
           <q-item-section class="sidebar-label">Productos</q-item-section>
         </q-item>
 
+        <q-item clickable v-ripple to="/clientes" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar>
+            <q-icon name="people" class="sidebar-icon sidebar-sub-icon" />
+          </q-item-section>
+          <q-item-section class="sidebar-label">Clientes</q-item-section>
+        </q-item>
+
         <q-item clickable v-ripple to="/categorias" class="sidebar-sub-item" active-class="sidebar-item-active">
           <q-item-section avatar>
             <q-icon name="category" class="sidebar-icon sidebar-sub-icon" />

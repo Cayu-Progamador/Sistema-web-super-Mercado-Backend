@@ -29,6 +29,7 @@ import InventarioFisico from '../pages/inventario_fisico/InventarioFisicoPage.vu
 import Ubicaciones from '../pages/ubicaciones/UbicacionesPage.vue'
 import Transferencias from '../pages/transferencias/TransferenciasPage.vue'
 import AjustesInventario from '../pages/ajustes_inventario/AjustesInventarioPage.vue'
+import Clientes from '../pages/cliente/ClientesPage.vue'
 const routes = [
   {
     path: '/login',
@@ -107,6 +108,11 @@ const routes = [
         path: 'proveedores',
         name: 'proveedores',
         component: Proveedores
+      },
+      {
+        path: 'clientes',
+        name: 'clientes',
+        component: Clientes
       },
       {
         path: 'pedidos',
