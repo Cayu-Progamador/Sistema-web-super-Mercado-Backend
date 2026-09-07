@@ -19,6 +19,8 @@ public class ProductoResponseDto {
 
     private BigDecimal stockMinimo;
     private BigDecimal stockMaximo;
+    private Boolean tieneStock;
+    private Boolean tieneMovimientos;
 
     private Long idProducto;
     private String codigoInterno;

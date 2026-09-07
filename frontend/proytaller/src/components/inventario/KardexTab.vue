@@ -103,8 +103,8 @@
       >
         <template #body-cell-salida="propsTabla">
           <q-td :props="propsTabla">
-            <span :class="esCantidadNumerica(propsTabla.value) ? 'salida-valor' : ''">
-              {{ formatearCantidad(propsTabla.value) }}
+            <span :class="esCantidadNumerica(propsTabla.row.salida) ? 'salida-valor' : ''">
+              {{ formatearCantidad(propsTabla.row.salida) }}
             </span>
           </q-td>
         </template>
@@ -192,6 +192,17 @@ async function cargar({ pagination: pagina = pagination.value } = {}) {
       fechaHasta: aplicado.value.fechaHasta || undefined
     })
 
+    console.log('[Kardex] Respuesta completa del backend:', response)
+    console.table((response?.content || []).map(movimiento => ({
+      id: movimiento.id,
+      producto: movimiento.producto,
+      operacion: movimiento.operacion,
+      entrada: movimiento.entrada,
+      salida: movimiento.salida,
+      saldo: movimiento.saldo,
+      unidad: movimiento.unidad,
+      documento: movimiento.documento
+    })))
     movimientos.value = response?.content || []
     pagination.value = {
       ...pagina,

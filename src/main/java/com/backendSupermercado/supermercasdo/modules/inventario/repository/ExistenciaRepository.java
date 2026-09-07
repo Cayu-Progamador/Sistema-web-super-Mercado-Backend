@@ -40,6 +40,10 @@ public interface ExistenciaRepository extends JpaRepository<Existencia, Long>, o
     BigDecimal sumarCantidadPorLote(@Param("idLote") Long idLote);
     Optional<Existencia> findFirstByLote_IdLote(Long idLote);
 
+    boolean existsByProducto_IdProductoAndCantidadGreaterThan(Long idProducto, BigDecimal cantidad);
+
+    boolean existsByProducto_IdProducto(Long idProducto);
+
     boolean existsByUbicacion_Almacen_IdAlmacenAndCantidadGreaterThan(Long idAlmacen, BigDecimal cantidad);
     List<Existencia> findByUbicacion_IdUbicacionIn(List<Long> idsUbicacion);
 

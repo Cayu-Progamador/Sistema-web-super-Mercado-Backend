@@ -281,26 +281,30 @@ public class RecepcionServiceImpl implements RecepcionService {
             }
 
             Long idDetalleRecepcion = detalle.getIdDetalleRecepcion();
+            Producto producto = detalle.getDetallePedido().getProducto();
+            Lote lote = detalle.getLote();
+            BigDecimal factor = factorConversion(producto, detalle.getUnidadMedida());
+            BigDecimal sumaDistribucionBase = sumaDistribucion.multiply(factor);
+            BigDecimal aceptadoBase = aceptado.multiply(factor);
             BigDecimal ya = yaDistribuido.getOrDefault(idDetalleRecepcion, BigDecimal.ZERO);
-            BigDecimal disponible = aceptado.subtract(ya);
-            if (sumaDistribucion.compareTo(disponible) > 0) {
+            BigDecimal disponible = aceptadoBase.subtract(ya);
+            if (sumaDistribucionBase.compareTo(disponible) > 0) {
                 throw new IllegalArgumentException("La distribución del producto " + nombreProductoDe(detalle)
                         + " excede la cantidad disponible ("
                         + disponible.stripTrailingZeros().toPlainString() + ")");
             }
 
-            Producto producto = detalle.getDetallePedido().getProducto();
-            Lote lote = detalle.getLote();
             for (DistribucionRequestDto distDto : item.getDistribuciones()) {
                 BigDecimal cantidad = distDto.getCantidad();
                 if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) continue;
                 UbicacionAlmacen ubicacion = ubicacionAlmacenRepository.findById(distDto.getIdUbicacion())
                         .orElseThrow(() -> new EntityNotFoundException(
                                 "Ubicación de almacén no encontrada con id: " + distDto.getIdUbicacion()));
-                agregarDistribucionExistencia(producto, lote, ubicacion, detalle, cantidad, movimiento);
+                agregarDistribucionExistencia(producto, lote, ubicacion, detalle,
+                        cantidad.multiply(factor), movimiento);
             }
 
-            yaDistribuido.put(idDetalleRecepcion, ya.add(sumaDistribucion));
+            yaDistribuido.put(idDetalleRecepcion, ya.add(sumaDistribucionBase));
         }
 
         if (!movimiento.getDetalles().isEmpty()) {
@@ -372,10 +376,27 @@ public class RecepcionServiceImpl implements RecepcionService {
         BigDecimal total = BigDecimal.ZERO;
         if (recepcion.getDetalles() != null) {
             for (DetalleRecepcion det : recepcion.getDetalles()) {
-                total = total.add(det.getCantidadRecibida().subtract(rechazadoDeDetalle(det)));
+                BigDecimal cantidad = det.getCantidadRecibida().subtract(rechazadoDeDetalle(det));
+                total = total.add(cantidad.multiply(factorConversion(
+                        det.getDetallePedido().getProducto(), det.getUnidadMedida())));
             }
         }
         return total;
+    }
+
+    private BigDecimal factorConversion(Producto producto,
+            com.backendSupermercado.supermercasdo.modules.unidad_medida.entity.UnidadMedida unidad) {
+        if (producto == null || unidad == null || producto.getPresentaciones() == null) {
+            return BigDecimal.ONE;
+        }
+        return producto.getPresentaciones().stream()
+                .filter(p -> p.getUnidadMedida() != null
+                        && p.getUnidadMedida().getIdUnidadMedida().equals(unidad.getIdUnidadMedida()))
+                .map(p -> p.getFactorConversion())
+                .filter(Objects::nonNull)
+                .filter(factor -> factor.signum() > 0)
+                .findFirst()
+                .orElse(BigDecimal.ONE);
     }
 
     private String nombreProductoDe(DetalleRecepcion detalle) {

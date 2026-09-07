@@ -222,6 +222,8 @@ function mapearProducto(p) {
     controlaVencimiento: Boolean(p.controlaVencimiento),
     stockMinimo: p.stockMinimo ?? null,
     stockMaximo: p.stockMaximo ?? null,
+    tieneStock: Boolean(p.tieneStock),
+    tieneMovimientos: Boolean(p.tieneMovimientos),
     nPresentaciones: (p.presentaciones || []).length,
     presentaciones: p.presentaciones || [],
     estado: p.estado ? 'Activo' : 'Inactivo',

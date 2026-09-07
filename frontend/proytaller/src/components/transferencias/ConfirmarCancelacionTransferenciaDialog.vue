@@ -26,11 +26,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
-const emit = defineEmits([...useDialogPluginComponent.emits, 'confirmar'])
-const { onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+defineEmits([...useDialogPluginComponent.emits])
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
 const confirmado = ref(false)
 function cerrar() { confirmado.value = false; onDialogCancel() }
-function confirmar() { if (!confirmado.value) return; emit('confirmar'); onDialogOK() }
+function confirmar() { if (!confirmado.value) return; onDialogOK() }
 </script>
 <style scoped>
 .cancel-dialog {

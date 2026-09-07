@@ -28,6 +28,7 @@ import Inventario from '../pages/inventario/InventarioPage.vue'
 import InventarioFisico from '../pages/inventario_fisico/InventarioFisicoPage.vue'
 import Ubicaciones from '../pages/ubicaciones/UbicacionesPage.vue'
 import Transferencias from '../pages/transferencias/TransferenciasPage.vue'
+import AjustesInventario from '../pages/ajustes_inventario/AjustesInventarioPage.vue'
 const routes = [
   {
     path: '/login',
@@ -166,6 +167,11 @@ const routes = [
         path: 'transferencias-almacen',
         name: 'transferencias-almacen',
         component: Transferencias
+      },
+      {
+        path: 'ajustes-inventario',
+        name: 'ajustes-inventario',
+        component: AjustesInventario
       },
 
     ]

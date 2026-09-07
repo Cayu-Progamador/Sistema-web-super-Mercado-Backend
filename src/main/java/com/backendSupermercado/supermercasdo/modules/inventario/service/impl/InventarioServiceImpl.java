@@ -18,6 +18,12 @@ import com.backendSupermercado.supermercasdo.modules.inventario.repository.Exist
 import com.backendSupermercado.supermercasdo.modules.inventario.service.InventarioService;
 import com.backendSupermercado.supermercasdo.modules.inventario.service.ReporteInventarioPdfService;
 import com.backendSupermercado.supermercasdo.modules.inventario.repository.ConfiguracionStockRepository;
+import com.backendSupermercado.supermercasdo.modules.recepcion.repository.DetalleRecepcionRepository;
+import com.backendSupermercado.supermercasdo.modules.recepcion.entity.DetalleRecepcion;
+import com.backendSupermercado.supermercasdo.modules.ajustes_inventario.entity.DetalleAjusteInventario;
+import com.backendSupermercado.supermercasdo.modules.ajustes_inventario.enums.EstadoAjusteInventario;
+import com.backendSupermercado.supermercasdo.modules.ajustes_inventario.repository.DetalleAjusteInventarioRepository;
+import com.backendSupermercado.supermercasdo.modules.productos.entity.Producto;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,8 @@ public class InventarioServiceImpl implements InventarioService {
     private final ExistenciaRepository existenciaRepository;
     private final ConfiguracionStockRepository configuracionRepository;
     private final ReporteInventarioPdfService reportePdfService;
+    private final DetalleRecepcionRepository detalleRecepcionRepository;
+    private final DetalleAjusteInventarioRepository detalleAjusteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -134,11 +142,32 @@ public class InventarioServiceImpl implements InventarioService {
         var u = e.getUbicacion();
         var l = e.getLote();
         var p = e.getProducto();
+        BigDecimal costo = e.getLote() == null
+                ? detalleRecepcionRepository.findFirstByDetallePedido_Producto_IdProductoOrderByRecepcion_FechaRecepcionDesc(p.getIdProducto()).map(d -> costoBase(d, p)).orElse(null)
+                : detalleRecepcionRepository.findFirstByLote_IdLoteOrderByRecepcion_FechaRecepcionDesc(e.getLote().getIdLote()).map(d -> costoBase(d, p)).orElse(null);
+        if (costo == null || costo.signum() <= 0) {
+            costo = e.getLote() == null
+                    ? detalleAjusteRepository.findFirstByProducto_IdProductoAndAjuste_EstadoOrderByAjuste_FechaAplicacionDesc(
+                            p.getIdProducto(), EstadoAjusteInventario.APLICADO)
+                            .map(DetalleAjusteInventario::getCostoUnitario).orElse(null)
+                    : detalleAjusteRepository.findFirstByProducto_IdProductoAndLote_IdLoteAndAjuste_EstadoOrderByAjuste_FechaAplicacionDesc(
+                            p.getIdProducto(), e.getLote().getIdLote(), EstadoAjusteInventario.APLICADO)
+                            .map(DetalleAjusteInventario::getCostoUnitario).orElse(null);
+        }
         return new ExistenciaResponseDto(e.getIdExistencia(), p.getIdProducto(), p.getCodigoInterno(), p.getNombre(),
                 u.getIdUbicacion(), u.getCodigo(), u.getNombre(), u.getAlmacen().getNombre(),
                 l == null ? null : l.getIdLote(), l == null ? null : l.getCodigoLote(),
                 l == null ? null : l.getFechaVencimiento(), e.getCantidad(), min, max,
-                p.getUnidadBase().getNombre(), estado, e.getLote() == null ? java.util.List.of() : java.util.List.of(new LoteExistenciaDto(l.getIdLote(), l.getCodigoLote(), e.getCantidad(), u.getAlmacen().getNombre(), u.getCodigo(), l.getFechaVencimiento())));
+                p.getUnidadBase().getNombre(), estado, e.getLote() == null ? java.util.List.of() : java.util.List.of(new LoteExistenciaDto(l.getIdLote(), l.getCodigoLote(), e.getCantidad(), u.getAlmacen().getNombre(), u.getCodigo(), l.getFechaVencimiento())), costo);
+    }
+
+    private BigDecimal costoBase(DetalleRecepcion detalle, Producto producto) {
+        BigDecimal factor = producto.getPresentaciones() == null ? null : producto.getPresentaciones().stream()
+                .filter(p -> p.getUnidadMedida() != null && detalle.getUnidadMedida() != null
+                        && p.getUnidadMedida().getIdUnidadMedida().equals(detalle.getUnidadMedida().getIdUnidadMedida()))
+                .map(p -> p.getFactorConversion()).filter(java.util.Objects::nonNull)
+                .findFirst().orElse(BigDecimal.ONE);
+        return detalle.getPrecioUnitario().divide(factor, 4, java.math.RoundingMode.HALF_UP);
     }
 
     private String calcularEstado(BigDecimal cantidad, BigDecimal min, BigDecimal max) {

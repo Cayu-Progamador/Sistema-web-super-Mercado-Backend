@@ -67,12 +67,13 @@ public class TransferenciaAlmacenServiceImpl implements TransferenciaAlmacenServ
         EstadoTransferencia estado = estadoRepository.findByNombreIgnoreCase(estadoNombre).orElseThrow(() -> new EntityNotFoundException("Estado de transferencia no encontrado: " + estadoNombre));
         TransferenciaAlmacen transferencia = TransferenciaAlmacen.builder().codigo("TRF-" + String.format("%05d", repository.count() + 1)).ubicacionOrigen(origen).ubicacionDestino(destino).estadoTransferencia(estado).usuario(usuario).fechaTransferencia(LocalDateTime.now()).observacion(request.observacion()).build();
         if (request.detalles() != null) for (CrearTransferenciaRequest.DetalleRequest item : request.detalles()) {
-            if (item.idProducto() == null || item.cantidad() == null) { if (!borrador) throw new IllegalArgumentException("Producto y cantidad son obligatorios"); else continue; }
-            if (item.cantidad().signum() <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
+            if (item.idProducto() == null || (item.cantidad() == null && item.cantidadPresentacion() == null)) { if (!borrador) throw new IllegalArgumentException("Producto y cantidad son obligatorios"); else continue; }
+            if (item.cantidad() != null && item.cantidad().signum() <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
             Producto producto = productoRepository.findById(item.idProducto()).orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+            BigDecimal cantidadBase = convertirCantidadBase(producto, item);
             Lote lote = item.idLote() == null ? null : loteRepository.findById(item.idLote()).orElseThrow(() -> new EntityNotFoundException("Lote no encontrado"));
-            if (!borrador) { var existencia = existenciaRepository.buscarParaActualizar(producto.getIdProducto(), origen.getIdUbicacion(), item.idLote()).orElseThrow(() -> new IllegalArgumentException("No existe stock para el producto en el origen")); if (existencia.getCantidad().compareTo(item.cantidad()) < 0) throw new IllegalArgumentException("Stock insuficiente para " + producto.getNombre()); }
-            transferencia.getDetalles().add(DetalleTransferencia.builder().transferencia(transferencia).producto(producto).lote(lote).cantidad(item.cantidad()).build());
+            if (!borrador) { var existencia = existenciaRepository.buscarParaActualizar(producto.getIdProducto(), origen.getIdUbicacion(), item.idLote()).orElseThrow(() -> new IllegalArgumentException("No existe stock para el producto en el origen")); if (existencia.getCantidad().compareTo(cantidadBase) < 0) throw new IllegalArgumentException("Stock insuficiente para " + producto.getNombre()); }
+            transferencia.getDetalles().add(DetalleTransferencia.builder().transferencia(transferencia).producto(producto).lote(lote).cantidad(cantidadBase).build());
         }
         return toDto(repository.save(transferencia));
     }
@@ -101,18 +102,19 @@ public class TransferenciaAlmacenServiceImpl implements TransferenciaAlmacenServ
         if (request.detalles() != null) {
             for (CrearTransferenciaRequest.DetalleRequest item : request.detalles()) {
                 if (item.idProducto() == null && item.cantidad() == null) continue;
-                if (item.idProducto() == null || item.cantidad() == null) {
+                if (item.idProducto() == null || (item.cantidad() == null && item.cantidadPresentacion() == null)) {
                     throw new IllegalArgumentException("Producto y cantidad deben completarse");
                 }
-                if (item.cantidad().signum() <= 0) {
+                if (item.cantidad() != null && item.cantidad().signum() <= 0) {
                     throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
                 }
                 Producto producto = productoRepository.findById(item.idProducto())
                         .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+                BigDecimal cantidadBase = convertirCantidadBase(producto, item);
                 Lote lote = item.idLote() == null ? null : loteRepository.findById(item.idLote())
                         .orElseThrow(() -> new EntityNotFoundException("Lote no encontrado"));
                 transferencia.getDetalles().add(DetalleTransferencia.builder().transferencia(transferencia)
-                        .producto(producto).lote(lote).cantidad(item.cantidad()).build());
+                        .producto(producto).lote(lote).cantidad(cantidadBase).build());
             }
         }
         return toDto(repository.save(transferencia));
@@ -172,6 +174,30 @@ public class TransferenciaAlmacenServiceImpl implements TransferenciaAlmacenServ
                 throw new IllegalArgumentException("Stock insuficiente de " + d.getProducto().getNombre());
             }
         }
+    }
+
+    private BigDecimal convertirCantidadBase(Producto producto, CrearTransferenciaRequest.DetalleRequest item) {
+        if (item.idPresentacion() == null && item.cantidadPresentacion() == null) {
+            return item.cantidad();
+        }
+        if (item.idPresentacion() == null || item.cantidadPresentacion() == null
+                || item.cantidadPresentacion().signum() <= 0) {
+            throw new IllegalArgumentException("La presentación y su cantidad deben ser válidas");
+        }
+        if (producto.getPresentaciones() == null || producto.getPresentaciones().isEmpty()) {
+            throw new IllegalArgumentException("El producto no tiene presentaciones configuradas");
+        }
+        var presentacion = producto.getPresentaciones().stream()
+                .filter(p -> java.util.Objects.equals(p.getIdPresentacion(), item.idPresentacion()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("La presentación no pertenece al producto"));
+        if (!Boolean.TRUE.equals(presentacion.getEstado())
+                || presentacion.getFactorConversion() == null
+                || presentacion.getFactorConversion().signum() <= 0) {
+            throw new IllegalArgumentException("La presentación no tiene un factor de conversión válido");
+        }
+        return item.cantidadPresentacion().multiply(presentacion.getFactorConversion())
+                .setScale(6, java.math.RoundingMode.HALF_UP).stripTrailingZeros();
     }
 
     @Override

@@ -149,8 +149,18 @@
                   </q-icon>
                 </div>
                 <q-select v-model="form.unidadBase" :options="unidades" label="Unidad base *" stack-label outlined
-                  color="green-8" emit-value map-options class="q-mb-md field-green" :error="!!errores.unidadBase"
-                  :error-message="errores.unidadBase" @update:model-value="unidadBaseCambio" />
+                  color="green-8" emit-value map-options class="q-mb-md field-green"
+                  :disable="esEdicion && (productoEditar?.tieneStock || productoEditar?.tieneMovimientos)"
+                  :error="!!errores.unidadBase" :error-message="errores.unidadBase"
+                  @update:model-value="unidadBaseCambio">
+                  <q-tooltip v-if="esEdicion && (productoEditar?.tieneStock || productoEditar?.tieneMovimientos)">
+                    La unidad base no se puede cambiar después de registrar el producto.
+                    Modifica las presentaciones y sus factores de conversión.
+                  </q-tooltip>
+                </q-select>
+                <div v-if="esEdicion && (productoEditar?.tieneStock || productoEditar?.tieneMovimientos)" class="text-caption text-orange-9 q-mb-md">
+                  La unidad base está protegida para conservar la consistencia del stock y del kardex.
+                </div>
               </div>
             </div>
 

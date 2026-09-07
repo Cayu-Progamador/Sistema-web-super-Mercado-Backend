@@ -21,7 +21,7 @@
 import { ref } from 'vue'; 
 import { useDialogPluginComponent } from 'quasar'
 defineEmits([...useDialogPluginComponent.emits]); 
-const {  onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent(); 
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent(); 
 const confirmado = ref(false); 
 function confirmar() { if (confirmado.value) onDialogOK() }
 </script>

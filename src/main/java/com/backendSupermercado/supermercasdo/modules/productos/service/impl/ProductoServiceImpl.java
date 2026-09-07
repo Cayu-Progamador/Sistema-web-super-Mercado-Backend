@@ -1,5 +1,6 @@
 package com.backendSupermercado.supermercasdo.modules.productos.service.impl;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,7 +33,9 @@ import com.backendSupermercado.supermercasdo.modules.productos.repository.Codigo
 import com.backendSupermercado.supermercasdo.modules.productos.repository.ProductoRepository;
 import com.backendSupermercado.supermercasdo.modules.productos.service.ProductoService;
 import com.backendSupermercado.supermercasdo.modules.inventario.entity.ConfiguracionStock;
+import com.backendSupermercado.supermercasdo.modules.inventario.repository.ExistenciaRepository;
 import com.backendSupermercado.supermercasdo.modules.inventario.repository.ConfiguracionStockRepository;
+import com.backendSupermercado.supermercasdo.modules.kardex.repository.DetalleMovimientoInventarioRepository;
 import com.backendSupermercado.supermercasdo.modules.unidad_medida.entity.UnidadMedida;
 import com.backendSupermercado.supermercasdo.modules.unidad_medida.repository.UnidadMedidaRepository;
 import com.backendSupermercado.supermercasdo.shared.util.ReporteProductoUtil;
@@ -52,6 +55,8 @@ public class ProductoServiceImpl implements ProductoService {
     private final CodigoBarraRepository codigoBarraRepository;
     private final ProductoMapper productoMapper;
     private final ConfiguracionStockRepository configuracionStockRepository;
+    private final ExistenciaRepository existenciaRepository;
+    private final DetalleMovimientoInventarioRepository detalleMovimientoInventarioRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -95,7 +100,7 @@ public class ProductoServiceImpl implements ProductoService {
         try {
             Producto guardado = productoRepository.save(producto);
             guardarConfiguracionStock(guardado, dto);
-            return productoMapper.toResponseDto(guardado);
+            return mapearConEstadoInventario(guardado);
         } catch (DataIntegrityViolationException ex) {
             throw new ResourceConflictException(
                     "No se pudo guardar el producto. Verifica que el código interno y los códigos de barras sean únicos.");
@@ -123,7 +128,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         return productoRepository.filtrar(patron, estado, idCategoria, idSubcategoria,
                 idMarca, idUnidadBase, tienePresentaciones, codigo, pageable)
-                .map(productoMapper::toResponseDto);
+                .map(this::mapearConEstadoInventario);
     }
 
     @Override
@@ -145,7 +150,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         return productoRepository.filtrar(patron, estado, idCategoria, idSubcategoria,
                 idMarca, idUnidadBase, null, codigo, Pageable.unpaged())
-                .map(productoMapper::toResponseDto)
+                .map(this::mapearConEstadoInventario)
                 .stream()
                 .toList();
     }
@@ -203,12 +208,13 @@ public class ProductoServiceImpl implements ProductoService {
         return marca;
     }
 
-    private void validarUnidadBase(Long idUnidadBase) {
+    private UnidadMedida validarUnidadBase(Long idUnidadBase) {
         UnidadMedida unidad = unidadMedidaRepository.findById(idUnidadBase)
                 .orElseThrow(() -> new EntityNotFoundException("Unidad de medida no encontrada"));
         if (!unidad.getEstado()) {
             throw new ResourceConflictException("No se puede usar una unidad de medida desactivada");
         }
+        return unidad;
     }
 
     private void validarNombreDuplicado(String nombre, Long idMarca, Long idSubcategoria) {
@@ -258,7 +264,8 @@ public class ProductoServiceImpl implements ProductoService {
 
         validarSubcategoria(dto.getIdSubcategoria());
         Marca marca = validarMarca(dto.getIdMarca());
-        validarUnidadBase(dto.getIdUnidadBase());
+        UnidadMedida nuevaUnidadBase = validarUnidadBase(dto.getIdUnidadBase());
+        validarCambioUnidadBase(producto, nuevaUnidadBase);
         validarNombreDuplicadoEnEdicion(nombre, dto.getIdMarca(), dto.getIdSubcategoria(), id);
 
         producto.setNombre(nombre);
@@ -268,7 +275,7 @@ public class ProductoServiceImpl implements ProductoService {
         producto.setImagen(trimDescripcion(dto.getImagen()));
         producto.setSubcategoria(subcategoriaRepository.getReferenceById(dto.getIdSubcategoria()));
         producto.setMarca(marca);
-        producto.setUnidadBase(unidadMedidaRepository.getReferenceById(dto.getIdUnidadBase()));
+        producto.setUnidadBase(nuevaUnidadBase);
         producto.setFechaActualizacion(LocalDateTime.now());
         guardarConfiguracionStock(producto, dto);
 
@@ -280,11 +287,41 @@ public class ProductoServiceImpl implements ProductoService {
         producto.getPresentaciones().addAll(nuevasPresentaciones);
 
         try {
-            return productoMapper.toResponseDto(productoRepository.save(producto));
+            return mapearConEstadoInventario(productoRepository.save(producto));
         } catch (DataIntegrityViolationException ex) {
             throw new ResourceConflictException(
                     "No se pudo guardar el producto. Verifica que el código interno y los códigos de barras sean únicos.");
         }
+    }
+
+    private void validarCambioUnidadBase(Producto producto, UnidadMedida nuevaUnidadBase) {
+        Long unidadActualId = producto.getUnidadBase() == null
+                ? null
+                : producto.getUnidadBase().getIdUnidadMedida();
+
+        if (unidadActualId != null && unidadActualId.equals(nuevaUnidadBase.getIdUnidadMedida())) {
+            return;
+        }
+
+        boolean tieneStock = existenciaRepository.existsByProducto_IdProductoAndCantidadGreaterThan(
+                producto.getIdProducto(), BigDecimal.ZERO);
+        boolean tieneMovimientos = detalleMovimientoInventarioRepository
+                .existsByProducto_IdProducto(producto.getIdProducto());
+
+        if (tieneStock || tieneMovimientos) {
+            throw new ResourceConflictException(
+                    "No se puede cambiar la unidad base de un producto que tiene stock o movimientos registrados. "
+                            + "Modifica sus presentaciones y factores de conversiÃ³n.");
+        }
+    }
+
+    private ProductoResponseDto mapearConEstadoInventario(Producto producto) {
+        ProductoResponseDto dto = productoMapper.toResponseDto(producto);
+        dto.setTieneStock(existenciaRepository.existsByProducto_IdProductoAndCantidadGreaterThan(
+                producto.getIdProducto(), BigDecimal.ZERO));
+        dto.setTieneMovimientos(
+                detalleMovimientoInventarioRepository.existsByProducto_IdProducto(producto.getIdProducto()));
+        return dto;
     }
 
     private void guardarConfiguracionStock(Producto producto, ProductoRequestDto dto) {
@@ -321,7 +358,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
         producto.setEstado(nuevoEstado);
         producto.setFechaActualizacion(LocalDateTime.now());
-        return productoMapper.toResponseDto(productoRepository.save(producto));
+        return mapearConEstadoInventario(productoRepository.save(producto));
     }
 
     private void validarNombreDuplicadoEnEdicion(String nombre, Long idMarca, Long idSubcategoria, Long id) {

@@ -10,6 +10,10 @@ import com.backendSupermercado.supermercasdo.modules.recepcion.entity.DetalleRec
 
 public interface DetalleRecepcionRepository extends JpaRepository<DetalleRecepcion, Long> {
 
+    java.util.Optional<DetalleRecepcion> findFirstByLote_IdLoteOrderByRecepcion_FechaRecepcionDesc(Long idLote);
+
+    java.util.Optional<DetalleRecepcion> findFirstByDetallePedido_Producto_IdProductoOrderByRecepcion_FechaRecepcionDesc(Long idProducto);
+
     @Query("SELECT COALESCE(SUM(d.cantidadRecibida), 0) FROM DetalleRecepcion d "
             + "WHERE d.detallePedido.id = :idDetallePedido "
             + "AND d.recepcion.estadoRecepcion.nombre <> 'ANULADA' "

@@ -13,6 +13,7 @@ public record CrearTransferenciaRequest(
         String observacion,
         @NotEmpty(message = "Debe agregar al menos un producto")
         List<@Valid DetalleRequest> detalles) {
-    public record DetalleRequest(Long idProducto, Long idLote,
+    public record DetalleRequest(Long idProducto, Long idLote, Long idPresentacion,
+            BigDecimal cantidadPresentacion,
             @DecimalMin(value = "0.001", message = "La cantidad debe ser mayor que cero") BigDecimal cantidad) { }
 }
