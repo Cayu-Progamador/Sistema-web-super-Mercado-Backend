@@ -25,6 +25,20 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
    Optional<Usuario> findByUsernameWithRoles(String username);
 
    @Query("""
+      SELECT DISTINCT p.codigo FROM Usuario u
+      JOIN u.usuarioRoles ur
+      JOIN ur.rol r
+      JOIN r.rolPermisos rp
+      JOIN rp.permiso p
+      WHERE u.username = :username
+        AND ur.estado = true
+        AND r.estado = true
+        AND rp.estado = true
+        AND p.estado = true
+      """)
+   List<String> findPermissionCodesByUsername(@Param("username") String username);
+
+   @Query("""
       SELECT u FROM Usuario u
       JOIN u.empleado e
       JOIN e.persona p

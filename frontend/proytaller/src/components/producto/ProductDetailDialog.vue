@@ -170,7 +170,7 @@
 
       <q-card-actions align="right" class="q-pa-md prod-actions">
         <q-btn flat label="Cerrar" color="green-8" no-caps class="btn-cerrar" v-close-popup />
-        <q-btn
+        <q-btn v-permiso="'PRODUCTOS_EDITAR'"
           unelevated
           color="green-8"
           icon="edit"

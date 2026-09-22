@@ -8,7 +8,7 @@
             <h1>Gestión de Ubicaciones</h1>
             <p>Administra zonas, pasillos, estantes y sectores físicos dentro de los almacenes.</p>
           </div>
-        </div><q-btn unelevated no-caps icon="add" label="Nueva Ubicación" color="green-8"
+        </div><q-btn v-permiso="'UBICACIONES_CREAR'" unelevated no-caps icon="add" label="Nueva Ubicación" color="green-8"
           @click="abrirNuevaUbicacion" />
       </header>
       <UbicacionIndicadores :total="totalElementos" :activas="ubicacionesActivas" :inactivas="ubicacionesInactivas"

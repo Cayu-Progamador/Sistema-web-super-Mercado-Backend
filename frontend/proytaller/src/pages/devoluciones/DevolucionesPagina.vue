@@ -32,7 +32,7 @@
       <!-- Toolbar -->
       <div class="row items-center justify-between q-my-md dv-toolbar-row">
         <div class="q-ml-md">
-          <q-btn
+          <q-btn v-permiso="'DEVOLUCIONES_CREAR'"
             class="dv-btn dv-btn-primario"
             label="+ Nueva Devolución"
             icon="add"

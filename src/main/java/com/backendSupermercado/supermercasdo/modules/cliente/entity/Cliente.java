@@ -1,6 +1,7 @@
 package com.backendSupermercado.supermercasdo.modules.cliente.entity;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,10 +32,10 @@ public class Cliente {
     @Column(name = "nombres", nullable = false, length = 100)
     private String nombres;
 
-    @Column(name = "apellido_paterno", nullable = false, length = 100)
+    @Column(name = "apellido_paterno", length = 100)
     private String apellidoPaterno;
 
-    @Column(name = "apellido_materno", nullable = false, length = 100)
+    @Column(name = "apellido_materno", length = 100)
     private String apellidoMaterno;
 
     @Column(name = "ci", nullable = false, unique = true, length = 20)
@@ -42,6 +43,15 @@ public class Cliente {
 
     @Column(name = "correo", length = 150)
     private String correo;
+
+    @Column(name = "telefono", length = 20)
+    private String telefono;
+
+    @Column(name = "limite_credito", precision = 14, scale = 2)
+    private BigDecimal limiteCredito;
+
+    @Column(name = "direccion", length = 255)
+    private String direccion;
 
     @Builder.Default
     @Column(name = "estado", nullable = false)

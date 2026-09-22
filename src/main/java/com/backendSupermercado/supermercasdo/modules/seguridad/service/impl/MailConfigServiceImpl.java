@@ -11,6 +11,7 @@ import com.backendSupermercado.supermercasdo.modules.empleado.entity.Contacto;
 import com.backendSupermercado.supermercasdo.modules.seguridad.entity.ConfiguracionCorreo;
 import com.backendSupermercado.supermercasdo.modules.seguridad.repository.ConfiguracionCorreoRepository;
 import com.backendSupermercado.supermercasdo.modules.seguridad.service.MailConfigService;
+import com.backendSupermercado.supermercasdo.modules.seguridad.service.MailPasswordCipher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,11 +20,12 @@ import lombok.RequiredArgsConstructor;
 public class MailConfigServiceImpl implements MailConfigService {
 
     private final ConfiguracionCorreoRepository configuracionCorreoRepository;
+    private final MailPasswordCipher mailPasswordCipher;
 
     @Override
     public JavaMailSender javaMailSender() {
         // Obtener la configuracion de correo
-        ConfiguracionCorreo config = configuracionCorreoRepository.findByActivoTrue()
+        ConfiguracionCorreo config = configuracionCorreoRepository.findFirstByActivoTrueOrderByIdAsc()
                 .orElseThrow(() -> new ResourceConflictException("No existe configuracion SMTP"));
         
                 // Obtener el correo de la persona
@@ -41,7 +43,7 @@ public class MailConfigServiceImpl implements MailConfigService {
         mailSender.setHost(config.getSmtpConfig().getSmtp());
         mailSender.setPort(config.getSmtpConfig().getPuerto());
         mailSender.setUsername(correo);
-        mailSender.setPassword(config.getPasswordEmail());
+        mailSender.setPassword(mailPasswordCipher.decrypt(config.getPasswordEmail()));
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");

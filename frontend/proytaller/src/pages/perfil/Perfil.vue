@@ -50,7 +50,7 @@
 
             <!-- Avatar + nombre -->
             <div class="row items-center no-wrap q-gutter-md q-mb-lg">
-              <div class="avatar-lg-wrap" @click="mostrarFoto = true" style="cursor: pointer">
+              <div class="avatar-lg-wrap" :style="{ cursor: puedeEditar ? 'pointer' : 'default' }" @click="puedeEditar && (mostrarFoto = true)">
                 <div class="avatar-lg">
                   <img v-if="perfil.fotoUrl" :src="perfil.fotoUrl" class="avatar-lg-img" />
                   <span v-else>{{ iniciales }}</span>
@@ -161,7 +161,7 @@
             </div>
 
             <div class="row justify-end q-mt-md">
-              <q-btn label="Guardar Cambios" icon="save" class="btn-save" unelevated @click="guardarCambios"
+              <q-btn v-permiso="'PERFIL_EDITAR'" label="Guardar Cambios" icon="save" class="btn-save" unelevated @click="guardarCambios"
                 :loading="guardando">
                 <template #loading>
                   <q-spinner-dots color="white" size="1em" />
@@ -267,10 +267,11 @@ const guardando = ref(false)
 const tabActiva = ref('info')
 const mostrarFoto = ref(false)
 
-const tabs = [
+const puedeEditar = computed(() => authStore.tienePermiso('PERFIL_EDITAR'))
+const tabs = computed(() => [
   { key: 'info', label: 'Información Personal' },
-  { key: 'password', label: 'Cambiar Contraseña' },
-]
+  ...(puedeEditar.value ? [{ key: 'password', label: 'Cambiar Contraseña' }] : [])
+])
 
 const perfil = ref({
   nombres: '',

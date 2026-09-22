@@ -16,7 +16,7 @@ const props = defineProps({ modelValue: Boolean, cliente: Object })
 const emit = defineEmits(['update:modelValue'])
 const visible = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) })
 const nombre = computed(() => [props.cliente?.nombres, props.cliente?.apellidoPaterno, props.cliente?.apellidoMaterno].filter(Boolean).join(' '))
-const detalles = computed(() => [{ label: 'CI', value: props.cliente?.ci || '--' }, { label: 'Correo', value: props.cliente?.correo || '--' }, { label: 'Fecha de registro', value: props.cliente?.fechaRegistro ? new Date(props.cliente.fechaRegistro).toLocaleDateString('es-BO') : '--' }])
+const detalles = computed(() => [{ label: 'CI', value: props.cliente?.ci || '--' }, { label: 'Celular', value: props.cliente?.telefono || '--' }, { label: 'Correo', value: props.cliente?.correo || '--' }, { label: 'Dirección', value: props.cliente?.direccion || '--' }, { label: 'Fecha de registro', value: props.cliente?.fechaRegistro ? new Date(props.cliente.fechaRegistro).toLocaleDateString('es-BO') : '--' }])
 </script>
 
 <style scoped>

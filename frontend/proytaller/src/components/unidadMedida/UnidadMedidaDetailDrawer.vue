@@ -19,7 +19,7 @@
                 <q-tooltip>Cerrar</q-tooltip>
               </q-btn>
               <div class="text-subtitle2 text-weight-bold">Detalle de Unidad de Medida</div>
-              <q-btn flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', unidad)">
+              <q-btn v-permiso="'UNIDAD_MEDIDA_EDITAR'" flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', unidad)">
                 <q-tooltip>Editar unidad</q-tooltip>
               </q-btn>
             </div>

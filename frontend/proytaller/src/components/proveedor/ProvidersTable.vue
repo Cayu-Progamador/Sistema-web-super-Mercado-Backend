@@ -79,7 +79,7 @@
         <q-btn flat round dense icon="visibility" size="md" @click="$emit('ver-detalle', props.row)" style="color: #006051">
           <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
         </q-btn>
-        <q-btn flat round dense icon="edit" size="md" @click="$emit('editar', props.row)" style="color: #F57C00">
+        <q-btn v-permiso="'PROVEEDORES_EDITAR'" flat round dense icon="edit" size="md" @click="$emit('editar', props.row)" style="color: #F57C00">
           <q-tooltip class="bg-orange text-white">Editar proveedor</q-tooltip>
         </q-btn>
         <q-btn flat round dense icon="file_download" size="md" style="color: #8BC34A">
@@ -101,7 +101,7 @@
             </q-list>
           </q-menu>
         </q-btn>
-        <q-btn
+        <q-btn v-permiso="'PROVEEDORES_EDITAR'"
           flat
           round
           dense

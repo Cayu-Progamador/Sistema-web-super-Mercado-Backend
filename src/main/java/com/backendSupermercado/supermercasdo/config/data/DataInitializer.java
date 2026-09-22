@@ -9,6 +9,8 @@ import com.backendSupermercado.supermercasdo.modules.almacen.entity.Almacen;
 import com.backendSupermercado.supermercasdo.modules.almacen.entity.TipoAlmacen;
 import com.backendSupermercado.supermercasdo.modules.almacen.repository.AlmacenRepository;
 import com.backendSupermercado.supermercasdo.modules.almacen.repository.TipoAlmacenRepository;
+import com.backendSupermercado.supermercasdo.modules.caja.entity.Caja;
+import com.backendSupermercado.supermercasdo.modules.caja.repository.CajaRepository;
 import com.backendSupermercado.supermercasdo.modules.devoluciones.entity.EstadoDevolucion;
 import com.backendSupermercado.supermercasdo.modules.devoluciones.entity.MotivoDevolucion;
 import com.backendSupermercado.supermercasdo.modules.devoluciones.repository.EstadoDevolucionRepository;
@@ -46,6 +48,7 @@ public class DataInitializer implements CommandLineRunner {
     private final EstadoDevolucionRepository estadoDevolucionRepository;
     private final EstadoPedidoRepository estadoPedidoRepository;
     private final EstadoTransferenciaRepository estadoTransferenciaRepository;
+    private final CajaRepository cajaRepository;
 
     @Override
     public void run(String... args) {
@@ -58,6 +61,16 @@ public class DataInitializer implements CommandLineRunner {
         seedMotivosDevolucion();
         seedEstadosDevolucion();
         seedEstadosTransferencia();
+        seedCajas();
+    }
+
+    private void seedCajas() {
+        for (int i = 1; i <= 8; i++) {
+            String nombre = String.format("Caja %02d", i);
+            if (!cajaRepository.findByNombre(nombre).isPresent()) {
+                cajaRepository.save(Caja.builder().nombre(nombre).build());
+            }
+        }
     }
 
     private void seedEstadosTransferencia() {

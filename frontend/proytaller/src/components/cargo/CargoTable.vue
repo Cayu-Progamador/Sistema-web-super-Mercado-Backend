@@ -7,7 +7,7 @@
           <div class="text-caption table-subtitle">Administra los cargos del sistema</div>
         </div>
         <div class="row items-center q-gutter-sm">
-          <q-btn class="btn-add" icon="add" label="Nuevo Cargo" @click="abrirForm()" unelevated />
+          <q-btn v-permiso="'CARGOS_CREAR'" class="btn-add" icon="add" label="Nuevo Cargo" @click="abrirForm()" unelevated />
         </div>
       </div>
 
@@ -107,11 +107,11 @@
         <template v-slot:body-cell-acciones="props">
           <q-td :props="props">
             <div class="row no-wrap justify-center q-gutter-xs">
-              <q-btn flat round dense class="action-btn action-edit" icon="edit" @click="abrirForm(props.row)">
+              <q-btn v-permiso="'CARGOS_EDITAR'" flat round dense class="action-btn action-edit" icon="edit" @click="abrirForm(props.row)">
                 <q-tooltip anchor="top middle" self="bottom middle" :offset="[0, 6]">Editar cargo</q-tooltip>
               </q-btn>
               <q-btn
-                v-if="props.row.estado"
+                v-if="props.row.estado" v-permiso="'CARGOS_EDITAR'"
                 flat round dense class="action-btn action-block"
                 icon="block"
                 @click="confirmarAccion('desactivar', props.row)"
@@ -119,7 +119,7 @@
                 <q-tooltip anchor="top middle" self="bottom middle" :offset="[0, 6]">Desactivar cargo</q-tooltip>
               </q-btn>
               <q-btn
-                v-else
+                v-else v-permiso="'CARGOS_EDITAR'"
                 flat round dense class="action-btn action-activate"
                 icon="check"
                 @click="confirmarAccion('activar', props.row)"

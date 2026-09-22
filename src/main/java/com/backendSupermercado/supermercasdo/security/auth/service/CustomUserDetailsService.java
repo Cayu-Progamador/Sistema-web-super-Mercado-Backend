@@ -1,5 +1,6 @@
 package com.backendSupermercado.supermercasdo.security.auth.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,10 +25,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepository.findByUsernameWithRoles(username).orElseThrow(
                 () -> new UsernameNotFoundException("Usuario no encontrado"));
-        List<SimpleGrantedAuthority> authorities = usuario.getUsuarioRoles()
-                .stream()
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        usuario.getUsuarioRoles().stream()
+                .filter(ur -> Boolean.TRUE.equals(ur.getEstado()))
                 .map(UsuarioRol::getRol)
-                .map(rol -> new SimpleGrantedAuthority(rol.getNombre())).toList();
+                .filter(rol -> Boolean.TRUE.equals(rol.getEstado()))
+                .forEach(rol -> {
+                    authorities.add(new SimpleGrantedAuthority(rol.getNombre()));
+                });
+        usuarioRepository.findPermissionCodesByUsername(username).stream()
+                .map(SimpleGrantedAuthority::new)
+                .forEach(authorities::add);
 
         // retornar userDetails
         return new CustomUserDetails(usuario, authorities);

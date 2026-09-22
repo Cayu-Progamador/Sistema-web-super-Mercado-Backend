@@ -153,7 +153,7 @@
           >
             <q-tooltip class="bg-green-9">Ver detalle</q-tooltip>
           </q-btn>
-          <q-btn
+          <q-btn v-permiso="'ADMIN_PERMISOS_APROBAR'"
             flat
             round
             dense
@@ -164,7 +164,7 @@
           >
             <q-tooltip class="bg-green-7">Aprobar</q-tooltip>
           </q-btn>
-          <q-btn
+          <q-btn v-permiso="'ADMIN_PERMISOS_APROBAR'"
             flat
             round
             dense

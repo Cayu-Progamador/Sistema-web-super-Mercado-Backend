@@ -8,4 +8,8 @@ import com.backendSupermercado.supermercasdo.modules.seguridad.entity.Configurac
 public interface ConfiguracionCorreoRepository extends JpaRepository<ConfiguracionCorreo,Long>{
 
     Optional<ConfiguracionCorreo> findByActivoTrue();
+
+    Optional<ConfiguracionCorreo> findFirstByActivoTrueOrderByIdAsc();
+
+    Optional<ConfiguracionCorreo> findFirstByOrderByIdAsc();
 }

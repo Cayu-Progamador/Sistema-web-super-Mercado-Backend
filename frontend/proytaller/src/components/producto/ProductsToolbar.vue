@@ -1,7 +1,7 @@
 <template>
   <div class="prod-toolbar prod-toolbar-grid">
     <div class="prod-toolbar-actions">
-      <q-btn class="prod-btn prod-btn-primario" label="Nuevo Producto" icon="add" no-caps @click="$emit('nuevo')" />
+      <q-btn v-permiso="'PRODUCTOS_CREAR'" class="prod-btn prod-btn-primario" label="Nuevo Producto" icon="add" no-caps @click="$emit('nuevo')" />
       <q-btn class="prod-btn prod-btn-exportar" label="Excel" icon="table_chart" no-caps @click="$emit('exportar-excel')" />
       <q-btn class="prod-btn prod-btn-exportar" label="PDF" icon="picture_as_pdf" no-caps @click="$emit('exportar-pdf')" />
       <q-btn class="prod-btn prod-btn-icono" icon="refresh" @click="$emit('actualizar')">

@@ -59,8 +59,8 @@
             <q-separator />
             <q-card-actions class="q-pa-sm cat-card-acciones">
               <q-btn no-caps outline align="left" class="cat-card-btn col" label="Ver" icon="visibility" color="green-8" @click="emit('ver-detalle', uni)" />
-              <q-btn no-caps outline align="left" class="cat-card-btn col" label="Editar" icon="edit" color="orange-8" @click="emit('editar', uni)" />
-              <q-btn
+              <q-btn v-permiso="'UNIDAD_MEDIDA_EDITAR'" no-caps outline align="left" class="cat-card-btn col" label="Editar" icon="edit" color="orange-8" @click="emit('editar', uni)" />
+              <q-btn v-permiso="'UNIDAD_MEDIDA_EDITAR'"
                 no-caps
                 outline
                 align="left"

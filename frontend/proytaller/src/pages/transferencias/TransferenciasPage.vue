@@ -4,7 +4,7 @@
                 <div>
                     <div class="title-with-icon"><q-icon name="swap_horiz" color="green-8" size="32px"/><h1>Gestión de Transferencias</h1></div>
                     <p>Controla el traslado de productos entre almacenes, ubicaciones y sala de ventas.</p>
-                </div><q-btn unelevated no-caps color="green-8" icon="add" label="Nueva Transferencia"
+                </div><q-btn v-permiso="'TRANSFERENCIAS_CREAR'" unelevated no-caps color="green-8" icon="add" label="Nueva Transferencia"
                     @click="abrirNueva" />
             </header>
             <div class="row q-col-gutter-md q-mb-lg">
@@ -27,18 +27,18 @@
                                 :color="colorEstado(p.value)" :label="p.value" /></q-td></template><template
                         #body-cell-acciones="p"><q-td :props="p"><q-btn flat round dense icon="visibility"
                                 color="green-8" @click="ver(p.row)"><q-tooltip>Ver detalle</q-tooltip></q-btn><q-btn flat round dense icon="picture_as_pdf" color="negative" @click="descargarPdf(p.row)"><q-tooltip>Descargar PDF</q-tooltip></q-btn><q-btn
-                                v-if="p.row.estado === 'BORRADOR'" flat round dense icon="edit" color="green-8"
+                                v-if="p.row.estado === 'BORRADOR'" v-permiso="'TRANSFERENCIAS_EDITAR'" flat round dense icon="edit" color="green-8"
                                 @click="continuar(p.row)"><q-tooltip>Editar / Continuar
-                                    borrador</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'BORRADOR'" flat round dense
+                                    borrador</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'BORRADOR'" v-permiso="'TRANSFERENCIAS_EDITAR'" flat round dense
                                 icon="delete" color="negative" @click="accion(p.row, 'eliminar')"><q-tooltip>Eliminar
-                                    borrador</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'PENDIENTE'" flat round
+                                    borrador</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'PENDIENTE'" v-permiso="'TRANSFERENCIAS_APROBAR'" flat round
                                 dense icon="play_arrow" color="orange-8"
                                 @click="accion(p.row, 'procesar')"><q-tooltip>Procesar
-                                    transferencia</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'EN_PROCESO'" flat
+                                    transferencia</q-tooltip></q-btn><q-btn v-if="p.row.estado === 'EN_PROCESO'" v-permiso="'TRANSFERENCIAS_APROBAR'" flat
                                 round dense icon="check" color="green-8"
                                 @click="accion(p.row, 'completar')"><q-tooltip>Completar
                                     transferencia</q-tooltip></q-btn><q-btn
-                                v-if="['PENDIENTE', 'EN_PROCESO'].includes(p.row.estado)" flat round dense icon="block"
+                                v-if="['PENDIENTE', 'EN_PROCESO'].includes(p.row.estado)" v-permiso="'TRANSFERENCIAS_EDITAR'" flat round dense icon="block"
                                 color="negative" @click="accion(p.row, 'cancelar')"><q-tooltip>Cancelar
                                     transferencia</q-tooltip></q-btn></q-td></template><template #pagination="scope"><div class="row items-center q-gutter-xs"><q-btn round flat dense icon="first_page" color="green-8" :disable="scope.isFirstPage" @click="scope.firstPage"/><q-btn round flat dense icon="chevron_left" color="green-8" :disable="scope.isFirstPage" @click="scope.prevPage"/><span class="q-px-sm text-caption">Página {{ pagination.page }}</span><q-btn round flat dense icon="chevron_right" color="green-8" :disable="scope.isLastPage" @click="scope.nextPage"/><q-btn round flat dense icon="last_page" color="green-8" :disable="scope.isLastPage" @click="scope.lastPage"/></div></template></q-table></q-card>
         </div>

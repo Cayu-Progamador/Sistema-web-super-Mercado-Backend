@@ -36,7 +36,7 @@ public class PasswordResetToken {
     )
     private LocalDateTime fechaExpiracion;
 
-    @Column(nullable = false, length = 6)
+    @Column(nullable = false, length = 255)
     private String pin;
 
     // control de intentos fallidos (MUY IMPORTANTE)
@@ -47,6 +47,9 @@ public class PasswordResetToken {
         nullable = false
     )
     private Boolean used = false;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
 
     // fecha de creación (auditoría)
     @Column(nullable = false)

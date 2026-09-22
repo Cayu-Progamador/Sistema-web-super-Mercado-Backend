@@ -19,7 +19,7 @@
                 <q-tooltip>Cerrar</q-tooltip>
               </q-btn>
               <div class="text-subtitle2 text-weight-bold">Detalle de Subcategoría</div>
-              <q-btn flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar-subcategoria', subcategoria, categoria)">
+              <q-btn v-permiso="'CATEGORIAS_EDITAR'" flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar-subcategoria', subcategoria, categoria)">
                 <q-tooltip>Editar subcategoría</q-tooltip>
               </q-btn>
             </div>

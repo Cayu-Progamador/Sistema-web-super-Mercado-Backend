@@ -17,7 +17,7 @@
         
         <UnidadMedidaDashboard :unidades="unidades" />
         <div class="um-header-actions">
-          <q-btn no-caps label="Nueva Unidad de Medida" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaUnidad()" />
+          <q-btn v-permiso="'UNIDAD_MEDIDA_CREAR'" no-caps label="Nueva Unidad de Medida" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaUnidad()" />
         </div>
       </div>
 

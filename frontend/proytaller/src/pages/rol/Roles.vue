@@ -69,7 +69,7 @@
               <q-icon name="search" class="search-icon" />
             </template>
           </q-input>
-          <q-btn label="Nuevo Rol" icon="add" class="btn-nuevo" unelevated @click="abrirDialog" />
+          <q-btn v-permiso="'ROLES_CREAR'" label="Nuevo Rol" icon="add" class="btn-nuevo" unelevated @click="abrirDialog" />
         </div>
       </div>
 
@@ -155,9 +155,9 @@
           <q-td :props="props">
             <div class="row no-wrap q-gutter-xs">
               <q-btn flat round dense class="act-btn act-view" icon="visibility" @click="verRol(props.row)" />
-              <q-btn v-if="!props.row.activo" flat round dense class="act-btn act-activar" icon="check" @click="confirmarActivar(props.row)" />
-              <q-btn v-if="props.row.activo && props.row.nombre !== 'ADMIN'" flat round dense class="act-btn act-desactivar" icon="block" @click="confirmarDesactivar(props.row)" />
-              <q-btn v-if="props.row.nombre !== 'ADMIN'" flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
+              <q-btn v-if="!props.row.activo" v-permiso="'ROLES_EDITAR'" flat round dense class="act-btn act-activar" icon="check" @click="confirmarActivar(props.row)" />
+              <q-btn v-if="props.row.activo && props.row.nombre !== 'ADMIN'" v-permiso="'ROLES_EDITAR'" flat round dense class="act-btn act-desactivar" icon="block" @click="confirmarDesactivar(props.row)" />
+              <q-btn v-if="props.row.nombre !== 'ADMIN'" v-permiso="'ROLES_EDITAR'" flat round dense class="act-btn act-edit" icon="edit" @click="editarRol(props.row)" />
             </div>
           </q-td>
         </template>

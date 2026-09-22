@@ -1,0 +1,3 @@
+<template><div class="row q-col-gutter-md"><div v-for="card in cards" :key="card.label" class="col-12 col-sm-6 col-lg-3"><q-card flat bordered class="summary-card"><q-card-section class="row items-center no-wrap"><q-avatar :color="`${card.color}-1`" :text-color="`${card.color}-9`" :icon="card.icon"/><div class="q-ml-md"><div class="summary-label">{{card.label}}</div><div class="summary-value">{{card.value}}</div></div></q-card-section></q-card></div></div></template>
+<script setup>defineProps({cards:{type:Array,required:true}})</script>
+<style scoped>.summary-card{border-radius:15px;border-color:#e1eae3}.summary-label{color:#789080;font-size:12px}.summary-value{margin-top:3px;color:#26352c;font-size:22px;font-weight:900}</style>

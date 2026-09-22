@@ -8,7 +8,7 @@
             <div class="row items-center no-wrap q-mb-xs">
               <q-icon name="person" size="1.5rem" class="user-icon q-mr-sm" />
               <q-item-label class="user-name text-weight-bold">
-                {{ userInfo.nombreEmpleado }}
+                {{ [userInfo.nombreEmpleado, userInfo.apellidoEmpleado].filter(Boolean).join(' ') || userInfo.username }}
               </q-item-label>
             </div>
 

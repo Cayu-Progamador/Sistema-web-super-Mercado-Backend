@@ -7,7 +7,7 @@
           <div class="q-ml-md"><h1>Gestión de Almacenes</h1><p>Administra los espacios físicos donde se almacena la mercadería del supermercado.</p></div>
         </div>
         <div class="row q-gutter-sm no-wrap">
-          <q-btn unelevated no-caps color="green-8" icon="add" label="Nuevo Almacén" @click="abrirNuevo" />
+          <q-btn v-permiso="'ALMACEN_CREAR'" unelevated no-caps color="green-8" icon="add" label="Nuevo Almacén" @click="abrirNuevo" />
         </div>
       </header>
 

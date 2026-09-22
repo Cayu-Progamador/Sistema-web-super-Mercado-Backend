@@ -19,6 +19,10 @@ spring:
         format_sql: true 
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  sql:
+    init:
+      mode: always
+
   
   # Configuración de subida de archivos
   servlet:
@@ -38,6 +42,7 @@ app:
   uploads:
     directorio: uploads/fotos-perfil
     directorio-productos: uploads/productos
+    directorio-configuracion: uploads/configuracion
   empresa:
     nombre: "SUPERMERCADO LA MARTITA"
     eslogan: "Tu mejor opción en calidad y precio"
@@ -46,4 +51,3 @@ app:
     telefono: "(591) 2-1234567"
     ciudad: "La Paz, Bolivia"
     logo: "uploads/logo.png"
-

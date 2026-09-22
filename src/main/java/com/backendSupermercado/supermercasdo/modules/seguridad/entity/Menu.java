@@ -44,6 +44,13 @@ public class Menu {
     @Column(name = "visible")
     private Boolean visible = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_menu_padre")
+    private Menu menuPadre;
+
+    @OneToMany(mappedBy = "menuPadre", fetch = FetchType.LAZY)
+    private List<Menu> submenus = new ArrayList<>();
+
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY)
     private List<MenuPermisos> menuPermisos = new ArrayList<>();
 }

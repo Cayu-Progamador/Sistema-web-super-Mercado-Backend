@@ -28,7 +28,7 @@ public class EmailServiceImpl implements EmailService {
 
             JavaMailSender mailSender = mailConfigService.javaMailSender();
             
-            ConfiguracionCorreo config = configuracionCorreoRepository.findByActivoTrue()
+            ConfiguracionCorreo config = configuracionCorreoRepository.findFirstByActivoTrueOrderByIdAsc()
                     .orElseThrow(() -> new ResourceConflictException("No se encontró configuración de correo activa"));
 
             MimeMessage message = mailSender.createMimeMessage();

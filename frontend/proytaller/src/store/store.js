@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', {
         token: null,
         userInfo: null,
         controlaAsistencia: false,
+        permisos: [],
     }),
 
     getters: {
@@ -43,6 +44,14 @@ export const useAuthStore = defineStore('auth', {
             this.userInfo = userInfo;
         },
 
+        setPermisos(permisos) {
+            this.permisos = Array.isArray(permisos) ? permisos : [];
+        },
+
+        tienePermiso(codigo) {
+            return this.permisos.includes('ROLE_ADMIN') || this.permisos.includes(codigo);
+        },
+
         logout() {
             this.$reset();
         }
@@ -51,6 +60,6 @@ export const useAuthStore = defineStore('auth', {
     persist: {
         key: 'auth',
         storage: localStorage,
-        paths: ['token', 'userInfo', 'controlaAsistencia']
+        paths: ['token', 'userInfo', 'controlaAsistencia', 'permisos']
     }
 });

@@ -17,8 +17,8 @@
         <CategoryDashboard />
         
         <div class="cat-header-actions">
-          <q-btn no-caps label="Nueva Subcategoría" icon="playlist_add" class="cat-btn cat-btn-outline" @click="abrirNuevaSubcategoria()" />
-          <q-btn no-caps label="Nueva Categoría" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaCategoria()" />
+          <q-btn v-permiso="'CATEGORIAS_CREAR'" no-caps label="Nueva Subcategoría" icon="playlist_add" class="cat-btn cat-btn-outline" @click="abrirNuevaSubcategoria()" />
+          <q-btn v-permiso="'CATEGORIAS_CREAR'" no-caps label="Nueva Categoría" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaCategoria()" />
         </div>
       </div>
       

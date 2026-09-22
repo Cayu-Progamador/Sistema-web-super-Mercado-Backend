@@ -86,7 +86,7 @@
                 <q-btn flat round dense size="sm" icon="visibility" style="color: #2E7D32;" @click="emit('ver-detalle-subcategoria', sub, cat)">
                   <q-tooltip>Ver detalle subcategoría</q-tooltip>
                 </q-btn>
-                <q-btn flat round dense size="sm" icon="edit" style="color: #388E3C;" @click="emit('editar-subcategoria', sub, cat)">
+                <q-btn v-permiso="'CATEGORIAS_EDITAR'" flat round dense size="sm" icon="edit" style="color: #388E3C;" @click="emit('editar-subcategoria', sub, cat)">
                   <q-tooltip>Editar subcategoría</q-tooltip>
                 </q-btn>
               </div>

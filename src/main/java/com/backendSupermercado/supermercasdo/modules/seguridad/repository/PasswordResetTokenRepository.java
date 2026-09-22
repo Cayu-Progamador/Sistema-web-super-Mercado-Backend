@@ -22,7 +22,6 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     @Query("DELETE FROM PasswordResetToken p WHERE p.usuario = :usuario")
     void deleteByUsuario(@Param("usuario") Usuario usuario);
 
-    @Query("SELECT p FROM PasswordResetToken p WHERE p.usuario = :usuario ORDER BY p.createdAt DESC")
-    Optional<PasswordResetToken> findTopByUsuarioOrderByCreatedAtDesc(@Param("usuario") Usuario usuario);
+    Optional<PasswordResetToken> findTopByUsuarioOrderByCreatedAtDesc(Usuario usuario);
 
 }

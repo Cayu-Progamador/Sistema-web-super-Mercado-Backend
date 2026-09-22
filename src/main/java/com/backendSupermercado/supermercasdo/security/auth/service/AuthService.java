@@ -2,8 +2,8 @@ package com.backendSupermercado.supermercasdo.security.auth.service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+        private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
         
         private final UsuarioRepository usuarioRepository;
@@ -247,6 +249,13 @@ public class AuthService {
                 Usuario usuario = usuarioRepository.findByCorreo(email)
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
+                passwordResetTokenRepository.findTopByUsuarioOrderByCreatedAtDesc(usuario)
+                                .filter(anterior -> anterior.getCreatedAt().isAfter(LocalDateTime.now().minusMinutes(1)))
+                                .ifPresent(anterior -> {
+                                        throw new ResourceConflictException(
+                                                        "Espere un minuto antes de solicitar otro código");
+                                });
+
                 // eliminar PINs anteriores del usuario
                 passwordResetTokenRepository.deleteByUsuario(usuario);
 
@@ -254,10 +263,11 @@ public class AuthService {
                 String pin = generarPin6Digitos();
 
                 PasswordResetToken reset = new PasswordResetToken();
-                reset.setPin(pin);
+                reset.setPin(passwordEncoder.encode(pin));
                 reset.setUsuario(usuario);
                 reset.setFechaExpiracion(LocalDateTime.now().plusMinutes(10));
                 reset.setUsed(false);
+                reset.setVerifiedAt(null);
                 reset.setAttempts(0);
                 reset.setCreatedAt(LocalDateTime.now());
 
@@ -268,7 +278,7 @@ public class AuthService {
 
         // generar PIN de 6 dígitos
         private String generarPin6Digitos() {
-                int pin = 100000 + new Random().nextInt(900000);
+                int pin = 100000 + SECURE_RANDOM.nextInt(900000);
                 return String.valueOf(pin);
         }
 
@@ -283,6 +293,14 @@ public class AuthService {
                                 .findTopByUsuarioOrderByCreatedAtDesc(usuario)
                                 .orElseThrow(() -> new ResourceConflictException("PIN no encontrado"));
 
+                if (Boolean.TRUE.equals(token.getUsed())) {
+                        throw new BadCredentialsException("PIN ya utilizado");
+                }
+
+                if (token.getVerifiedAt() != null) {
+                        throw new BadCredentialsException("PIN ya verificado");
+                }
+
                 // verificar expiración
                 if (token.getFechaExpiracion().isBefore(LocalDateTime.now())) {
                         throw new BadCredentialsException("PIN expirado");
@@ -294,7 +312,7 @@ public class AuthService {
                 }
 
                 // validar PIN
-                if (!token.getPin().equals(pinIngresado)) {
+                if (pinIngresado == null || !passwordEncoder.matches(pinIngresado, token.getPin())) {
 
                         token.setAttempts(token.getAttempts() + 1);
                         passwordResetTokenRepository.save(token);
@@ -302,8 +320,8 @@ public class AuthService {
                         throw new BadCredentialsException("PIN incorrecto");
                 }
 
-                // marcar usado
-                token.setUsed(true);
+                // registrar la verificación; se consumirá al cambiar la contraseña
+                token.setVerifiedAt(LocalDateTime.now());
                 passwordResetTokenRepository.save(token);
         }
 
@@ -315,11 +333,36 @@ public class AuthService {
                         throw new BadCredentialsException("La nueva contraseña no puede estar vacía");
                 }
 
+                if (!request.getNewPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,}$")) {
+                        throw new BadCredentialsException(
+                                        "La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula, número y carácter especial");
+                }
+
                 Usuario usuario = usuarioRepository.findByCorreo(request.getEmail())
                                 .orElseThrow(() -> new ResourceConflictException("Usuario no encontrado"));
 
+                PasswordResetToken token = passwordResetTokenRepository
+                                .findTopByUsuarioOrderByCreatedAtDesc(usuario)
+                                .orElseThrow(() -> new ResourceConflictException("PIN no encontrado"));
+
+                if (Boolean.TRUE.equals(token.getUsed())) {
+                        throw new BadCredentialsException("PIN ya utilizado");
+                }
+                if (token.getFechaExpiracion().isBefore(LocalDateTime.now())) {
+                        throw new BadCredentialsException("PIN expirado");
+                }
+                if (token.getVerifiedAt() == null) {
+                        throw new BadCredentialsException("Debe verificar el PIN antes de cambiar la contraseña");
+                }
+                if (request.getPin() == null || !passwordEncoder.matches(request.getPin(), token.getPin())) {
+                        throw new BadCredentialsException("PIN incorrecto");
+                }
+
                 usuario.setPassword(passwordEncoder.encode(request.getNewPassword()));
                 usuarioRepository.save(usuario);
+
+                token.setUsed(true);
+                passwordResetTokenRepository.save(token);
         }
 
 }

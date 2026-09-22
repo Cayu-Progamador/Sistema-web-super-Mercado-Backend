@@ -34,7 +34,7 @@
               </q-list>
             </q-menu>
           </q-btn>
-          <q-btn class="btn-add" icon="add" label="Nuevo Empleado" @click="mostrarForm = true" unelevated />
+          <q-btn v-permiso="'EMPLEADOS_CREAR'" class="btn-add" icon="add" label="Nuevo Empleado" @click="mostrarForm = true" unelevated />
         </div>
       </div>
 
@@ -85,11 +85,11 @@
               <q-btn flat round dense class="action-btn action-detail" icon="visibility" @click="verDetalle(props.row)">
                 <q-tooltip color="#0d4d33" text-color="white">Ver detalle</q-tooltip>
               </q-btn>
-              <q-btn flat round dense class="action-btn action-edit" icon="edit" @click="editarEmpleado(props.row)">
+              <q-btn v-permiso="'EMPLEADOS_EDITAR'" flat round dense class="action-btn action-edit" icon="edit" @click="editarEmpleado(props.row)">
                 <q-tooltip color="#0d4d33" text-color="white">Editar</q-tooltip>
               </q-btn>
               <q-btn
-                v-if="props.row.estado"
+                v-if="props.row.estado" v-permiso="'EMPLEADOS_EDITAR'"
                 flat round dense class="action-btn action-delete"
                 icon="block" color="red"
                 @click="confirmarAccion('desactivar', props.row)"
@@ -97,7 +97,7 @@
                 <q-tooltip color="#0d4d33" text-color="white">Desactivar</q-tooltip>
               </q-btn>
               <q-btn
-                v-else
+                v-else v-permiso="'EMPLEADOS_EDITAR'"
                 flat round dense class="action-btn"
                 icon="check" color="green"
                 @click="confirmarAccion('activar', props.row)"

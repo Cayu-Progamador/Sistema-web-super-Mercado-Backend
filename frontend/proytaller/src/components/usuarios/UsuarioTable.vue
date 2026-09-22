@@ -13,7 +13,7 @@
         <div class="row items-center q-gutter-sm">
           <q-btn class="btn-add" icon="picture_as_pdf" label="PDF" @click="exportarPDF" unelevated color="red" />
           <q-btn class="btn-add" icon="table_chart" label="Excel" @click="exportarExcel" unelevated color="green" />
-          <q-btn class="btn-add" icon="add" label="Nuevo Usuario" @click="mostrarModal = true" unelevated />
+          <q-btn v-permiso="'USUARIOS_CREAR'" class="btn-add" icon="add" label="Nuevo Usuario" @click="mostrarModal = true" unelevated />
         </div>
       </div>
 
@@ -71,11 +71,11 @@
             <div class="row no-wrap q-gutter-xs">
               <q-btn flat round dense class="action-btn action-view" icon="visibility" @click="verUsuario(props.row)"/>
 
-              <q-btn flat round dense class="action-btn action-edit" icon="edit" @click="editarUsuario(props.row)" />
+              <q-btn v-permiso="'USUARIOS_EDITAR'" flat round dense class="action-btn action-edit" icon="edit" @click="editarUsuario(props.row)" />
 
-              <q-btn v-if="props.row.activo" flat round dense class="action-btn action-delete" icon="block" color="red"
+              <q-btn v-if="props.row.activo" v-permiso="'USUARIOS_EDITAR'" flat round dense class="action-btn action-delete" icon="block" color="red"
                 @click="confirmarAccion('desactivar', props.row.idUsuario, props.row.username, props.row.rol)" />
-              <q-btn v-else flat round dense class="action-btn" icon="check" color="green"
+              <q-btn v-else v-permiso="'USUARIOS_EDITAR'" flat round dense class="action-btn" icon="check" color="green"
                 @click="confirmarAccion('activar', props.row.idUsuario, props.row.username, props.row.rol)" />
             </div>
           </q-td>

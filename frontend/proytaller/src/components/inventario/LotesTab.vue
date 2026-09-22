@@ -41,7 +41,7 @@
               :label="p.value" /></q-td></template>
         <template #body-cell-acciones="p"><q-td :props="p" class="actions-cell"><q-btn flat round dense
               icon="visibility" color="green-8" @click="verLote(p.row)"><q-tooltip>Ver
-                lote</q-tooltip></q-btn><q-btn flat round dense icon="edit" color="green-8"
+                lote</q-tooltip></q-btn><q-btn v-permiso="'INVENTARIO_EDITAR'" flat round dense icon="edit" color="green-8"
               @click="$emit('editar', p.row)"><q-tooltip>Editar lote</q-tooltip></q-btn><q-btn flat round dense
               icon="receipt_long" color="grey-7" @click="$emit('kardex', p.row)"><q-tooltip>Ver
                 Kardex</q-tooltip></q-btn></q-td></template>

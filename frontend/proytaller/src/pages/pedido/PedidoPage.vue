@@ -30,7 +30,7 @@
       <!-- Botón nuevo pedido -->
       <div class="row q-my-md">
         <div class="col-12">
-          <q-btn class="pd-btn pd-btn-nuevo" label="+ Nuevo Pedido" icon="add" no-caps @click="abrirNuevo" />
+          <q-btn v-permiso="'PEDIDOS_CREAR'" class="pd-btn pd-btn-nuevo" label="+ Nuevo Pedido" icon="add" no-caps @click="abrirNuevo" />
         </div>
       </div>
 

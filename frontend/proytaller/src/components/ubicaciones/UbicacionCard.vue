@@ -45,7 +45,7 @@
       <q-btn flat round color="green-8" icon="visibility" aria-label="Ver detalle" @click="$emit('ver', ubicacion)">
         <q-tooltip>Ver detalle de la ubicación</q-tooltip>
       </q-btn>
-      <q-btn flat round color="orange-8" icon="edit" aria-label="Editar" @click="$emit('editar', ubicacion)">
+      <q-btn v-permiso="'UBICACIONES_EDITAR'" flat round color="orange-8" icon="edit" aria-label="Editar" @click="$emit('editar', ubicacion)">
         <q-tooltip>Editar ubicación</q-tooltip>
       </q-btn>
       <q-btn flat round color="green-8" icon="picture_as_pdf" aria-label="Descargar PDF" @click="$emit('pdf', ubicacion)">

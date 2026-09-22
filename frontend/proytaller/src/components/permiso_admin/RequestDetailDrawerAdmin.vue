@@ -90,10 +90,10 @@
       </div>
 
       <div class="drawer-footer" v-if="solicitud.nombreEstado === 'Pendiente'">
-        <button class="btn-drawer btn-drawer--rechazar" @click="$emit('rechazar', solicitud)">
+        <button v-permiso="'ADMIN_PERMISOS_APROBAR'" class="btn-drawer btn-drawer--rechazar" @click="$emit('rechazar', solicitud)">
           <q-icon name="cancel" size="15px" /> Rechazar
         </button>
-        <button class="btn-drawer btn-drawer--aprobar" @click="$emit('aprobar', solicitud)">
+        <button v-permiso="'ADMIN_PERMISOS_APROBAR'" class="btn-drawer btn-drawer--aprobar" @click="$emit('aprobar', solicitud)">
           <q-icon name="check_circle" size="15px" /> Aprobar
         </button>
       </div>

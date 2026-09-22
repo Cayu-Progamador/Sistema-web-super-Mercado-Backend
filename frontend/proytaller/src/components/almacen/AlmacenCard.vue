@@ -32,7 +32,7 @@
       <q-btn flat round color="green-8" icon="visibility" aria-label="Ver detalles del almacén" @click="$emit('ver', almacen)">
         <q-tooltip>Ver detalles del almacén</q-tooltip>
       </q-btn>
-      <q-btn flat round color="orange-8" icon="edit" aria-label="Editar almacén" @click="$emit('editar', almacen)">
+      <q-btn v-permiso="'ALMACEN_EDITAR'" flat round color="orange-8" icon="edit" aria-label="Editar almacén" @click="$emit('editar', almacen)">
         <q-tooltip>Editar almacén</q-tooltip>
       </q-btn>
       <q-btn

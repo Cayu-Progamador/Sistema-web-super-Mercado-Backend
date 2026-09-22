@@ -9,7 +9,7 @@
           </div>
           <p>Controla entradas y salidas justificadas con trazabilidad.</p>
         </div>
-        <q-btn unelevated no-caps color="green-8" icon="add" label="Nuevo ajuste" @click="abrirNuevo" />
+        <q-btn v-permiso="'AJUSTES_INVENTARIO_CREAR'" unelevated no-caps color="green-8" icon="add" label="Nuevo ajuste" @click="abrirNuevo" />
       </header>
 
       <div class="cards row q-col-gutter-md q-mb-lg">

@@ -19,7 +19,7 @@
                 <q-tooltip>Cerrar</q-tooltip>
               </q-btn>
               <div class="text-subtitle2 text-weight-bold">Detalle de Marca</div>
-              <q-btn flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', marca)">
+              <q-btn v-permiso="'MARCAS_EDITAR'" flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', marca)">
                 <q-tooltip>Editar marca</q-tooltip>
               </q-btn>
             </div>

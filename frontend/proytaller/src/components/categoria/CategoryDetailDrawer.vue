@@ -19,7 +19,7 @@
                 <q-tooltip>Cerrar</q-tooltip>
               </q-btn>
               <div class="text-subtitle2 text-weight-bold">Detalle de Categoría</div>
-              <q-btn flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', categoria)">
+              <q-btn v-permiso="'CATEGORIAS_EDITAR'" flat round dense icon="edit" size="sm" class="close-btn" @click="emit('editar', categoria)">
                 <q-tooltip>Editar categoría</q-tooltip>
               </q-btn>
             </div>
@@ -93,7 +93,7 @@
                   <div class="text-caption text-grey-7">{{ sub.productos.length }} productos</div>
                 </q-card-section>
                 <q-card-section class="q-px-sm">
-                  <q-btn flat round dense size="sm" icon="edit" style="color: #388E3C;" @click="emit('editar-subcategoria', sub, categoria)">
+                  <q-btn v-permiso="'CATEGORIAS_EDITAR'" flat round dense size="sm" icon="edit" style="color: #388E3C;" @click="emit('editar-subcategoria', sub, categoria)">
                     <q-tooltip>Editar subcategoría</q-tooltip>
                   </q-btn>
                 </q-card-section>

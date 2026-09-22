@@ -17,7 +17,7 @@
       <!-- Toolbar -->
       <div class="row items-center justify-between q-my-md toolbar-row">
         <div class="row items-center q-gutter-sm">
-          <q-btn unelevated color="green-8" icon="add" label="Nuevo Contrato" @click="abrirNuevo" no-caps />
+          <q-btn v-permiso="'CONTRATOS_CREAR'" unelevated color="green-8" icon="add" label="Nuevo Contrato" @click="abrirNuevo" no-caps />
           <q-btn outline color="green-8" icon="picture_as_pdf" label="PDF" @click="exportarPDF" no-caps />
           <q-btn outline color="green-8" icon="table_view" label="Excel" @click="exportarExcel" no-caps />
           <q-btn flat color="green-8" icon="refresh" @click="recargar" />

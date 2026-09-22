@@ -35,7 +35,7 @@
       <!-- Toolbar -->
       <div class="row items-center justify-between q-my-md rp-toolbar-row">
         <div class="row items-center q-gutter-sm q-ml-md">
-          <q-btn
+          <q-btn v-permiso="'RECEPCION_CREAR'"
             class="rp-btn rp-btn-primario"
             label="+ Nueva Recepción"
             icon="add"

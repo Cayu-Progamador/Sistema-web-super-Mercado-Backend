@@ -175,7 +175,7 @@
 
         <!-- Acciones -->
         <div class="pv-footer-actions">
-          <q-btn class="pv-btn-editar" no-caps label="Editar proveedor" icon="edit" @click="$emit('editar', proveedor)" />
+          <q-btn v-permiso="'PROVEEDORES_EDITAR'" class="pv-btn-editar" no-caps label="Editar proveedor" icon="edit" @click="$emit('editar', proveedor)" />
         </div>
       </div>
     </q-scroll-area>

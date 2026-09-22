@@ -123,6 +123,7 @@
 import { ref, reactive, onUnmounted } from "vue"
 import { useRouter } from "vue-router"
 import { login } from '../../api/login/login'
+import { obtenerMisPermisos } from '../../api/permisosSistema/permisosSistema'
 import { useAuthStore } from "../../store/store"
 import ForgotPassword from '../../components/auth/recuperarPassword/ForgotPassword.vue'
 
@@ -188,6 +189,7 @@ const submitLogin = async () => {
       nombreCompleto: respuesta.nombreCompleto,
       cargo: respuesta.cargo
     }, respuesta.controlaAsistencia)
+    authStore.setPermisos(await obtenerMisPermisos())
     router.push("/")
     
   } catch (error) {

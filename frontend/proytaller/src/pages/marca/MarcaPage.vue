@@ -15,7 +15,7 @@
         <MarcaDashboard :marcas="marcas" />
 
         <div class="um-header-actions">
-          <q-btn no-caps label="Nueva Marca" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaMarca()" />
+          <q-btn v-permiso="'MARCAS_CREAR'" no-caps label="Nueva Marca" icon="add" class="cat-btn cat-btn-primario" @click="abrirNuevaMarca()" />
         </div>
       </div>
 

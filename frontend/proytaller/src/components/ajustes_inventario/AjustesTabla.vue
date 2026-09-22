@@ -8,12 +8,12 @@
       <template #body-cell-acciones="p">
         <q-td :props="p" class="actions">
           <q-btn flat round dense color="green-8" icon="visibility" @click="$emit('ver', p.row)"><q-tooltip>Ver detalle</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'BORRADOR'" flat round dense color="blue-7" icon="edit" @click="$emit('editar', p.row)"><q-tooltip>Editar borrador</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'BORRADOR'" flat round dense color="negative" icon="delete" @click="$emit('eliminar', p.row)"><q-tooltip>Eliminar borrador</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'BORRADOR'" flat round dense color="orange-8" icon="send" @click="$emit('enviar', p.row)"><q-tooltip>Enviar a aprobación</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'PENDIENTE_APROBACION'" flat round dense color="green-8" icon="verified" @click="$emit('aprobar', p.row)"><q-tooltip>Aprobar ajuste</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'PENDIENTE_APROBACION'" flat round dense color="red-7" icon="close" @click="$emit('rechazar', p.row)"><q-tooltip>Rechazar ajuste</q-tooltip></q-btn>
-          <q-btn v-if="p.row.estado === 'APROBADO'" flat round dense color="orange-8" icon="play_arrow" @click="$emit('aplicar', p.row)"><q-tooltip>Aplicar ajuste y actualizar stock</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'BORRADOR'" v-permiso="'AJUSTES_INVENTARIO_EDITAR'" flat round dense color="blue-7" icon="edit" @click="$emit('editar', p.row)"><q-tooltip>Editar borrador</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'BORRADOR'" v-permiso="'AJUSTES_INVENTARIO_EDITAR'" flat round dense color="negative" icon="delete" @click="$emit('eliminar', p.row)"><q-tooltip>Eliminar borrador</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'BORRADOR'" v-permiso="'AJUSTES_INVENTARIO_EDITAR'" flat round dense color="orange-8" icon="send" @click="$emit('enviar', p.row)"><q-tooltip>Enviar a aprobación</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'PENDIENTE_APROBACION'" v-permiso="'AJUSTES_INVENTARIO_APROBAR'" flat round dense color="green-8" icon="verified" @click="$emit('aprobar', p.row)"><q-tooltip>Aprobar ajuste</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'PENDIENTE_APROBACION'" v-permiso="'AJUSTES_INVENTARIO_APROBAR'" flat round dense color="red-7" icon="close" @click="$emit('rechazar', p.row)"><q-tooltip>Rechazar ajuste</q-tooltip></q-btn>
+          <q-btn v-if="p.row.estado === 'APROBADO'" v-permiso="'AJUSTES_INVENTARIO_APROBAR'" flat round dense color="orange-8" icon="play_arrow" @click="$emit('aplicar', p.row)"><q-tooltip>Aplicar ajuste y actualizar stock</q-tooltip></q-btn>
           <q-btn v-if="p.row.estado === 'APLICADO'" flat round dense color="red-6" icon="picture_as_pdf" @click="$emit('pdf', p.row)"><q-tooltip>Descargar PDF</q-tooltip></q-btn>
         </q-td>
       </template>

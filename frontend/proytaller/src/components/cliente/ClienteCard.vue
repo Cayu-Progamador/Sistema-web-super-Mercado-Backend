@@ -16,8 +16,8 @@
     </q-card-section>
     <q-card-actions align="right" class="client-actions">
       <q-btn flat round dense color="green-8" icon="visibility" @click="$emit('ver', cliente)"><q-tooltip>Ver detalle</q-tooltip></q-btn>
-      <q-btn flat round dense color="blue-8" icon="edit" @click="$emit('editar', cliente)"><q-tooltip>Editar cliente</q-tooltip></q-btn>
-      <q-btn flat round dense :color="cliente.estado ? 'negative' : 'green-8'" :icon="cliente.estado ? 'person_off' : 'person_add'"
+      <q-btn v-permiso="'CLIENTES_EDITAR'" flat round dense color="blue-8" icon="edit" @click="$emit('editar', cliente)"><q-tooltip>Editar cliente</q-tooltip></q-btn>
+      <q-btn v-permiso="'CLIENTES_EDITAR'" flat round dense :color="cliente.estado ? 'negative' : 'green-8'" :icon="cliente.estado ? 'person_off' : 'person_add'"
         @click="$emit('estado', cliente)"><q-tooltip>{{ cliente.estado ? 'Desactivar' : 'Activar' }}</q-tooltip></q-btn>
     </q-card-actions>
   </q-card>

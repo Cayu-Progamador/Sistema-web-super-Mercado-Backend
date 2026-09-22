@@ -18,6 +18,7 @@ import { initSessionManager } from './util/sessionManager'
 
 //router
 import router from './router'
+import { useAuthStore } from './store/store'
 
 const app = createApp(App)
 
@@ -31,7 +32,17 @@ app.use(Quasar, quasarSettings)
 //configuración de pinia
 app.use(pinia)
 
+const aplicarPermiso = (el, binding) => {
+  const authStore = useAuthStore()
+  const codigos = Array.isArray(binding.value) ? binding.value : [binding.value]
+  el.style.display = codigos.some(codigo => authStore.tienePermiso(codigo)) ? '' : 'none'
+}
+
+app.directive('permiso', {
+  mounted: aplicarPermiso,
+  updated: aplicarPermiso
+})
+
 //inicializamos rl grstor de session por inactividad
 initSessionManager(router)
 app.mount('#app')
-

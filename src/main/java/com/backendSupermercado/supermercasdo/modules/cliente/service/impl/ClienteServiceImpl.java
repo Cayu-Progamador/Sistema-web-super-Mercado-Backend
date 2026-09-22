@@ -35,10 +35,13 @@ public class ClienteServiceImpl implements ClienteService {
 
         Cliente cliente = Cliente.builder()
                 .nombres(normalizarObligatorio(dto.getNombres()))
-                .apellidoPaterno(normalizarObligatorio(dto.getApellidoPaterno()))
-                .apellidoMaterno(normalizarObligatorio(dto.getApellidoMaterno()))
+                .apellidoPaterno(normalizarOpcional(dto.getApellidoPaterno()))
+                .apellidoMaterno(normalizarOpcional(dto.getApellidoMaterno()))
                 .ci(ci)
                 .correo(normalizarCorreo(dto.getCorreo()))
+                .telefono(normalizarOpcional(dto.getTelefono()))
+                .limiteCredito(dto.getLimiteCredito())
+                .direccion(normalizarOpcional(dto.getDireccion()))
                 .estado(true)
                 .fechaRegistro(LocalDateTime.now())
                 .build();
@@ -54,10 +57,13 @@ public class ClienteServiceImpl implements ClienteService {
         validarCiDisponible(ci, idCliente);
 
         cliente.setNombres(normalizarObligatorio(dto.getNombres()));
-        cliente.setApellidoPaterno(normalizarObligatorio(dto.getApellidoPaterno()));
-        cliente.setApellidoMaterno(normalizarObligatorio(dto.getApellidoMaterno()));
+        cliente.setApellidoPaterno(normalizarOpcional(dto.getApellidoPaterno()));
+        cliente.setApellidoMaterno(normalizarOpcional(dto.getApellidoMaterno()));
         cliente.setCi(ci);
         cliente.setCorreo(normalizarCorreo(dto.getCorreo()));
+        cliente.setTelefono(normalizarOpcional(dto.getTelefono()));
+        cliente.setLimiteCredito(dto.getLimiteCredito());
+        cliente.setDireccion(normalizarOpcional(dto.getDireccion()));
 
         return guardar(cliente);
     }
@@ -129,5 +135,9 @@ public class ClienteServiceImpl implements ClienteService {
 
     private String normalizarCorreo(String correo) {
         return correo == null || correo.isBlank() ? null : correo.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 }

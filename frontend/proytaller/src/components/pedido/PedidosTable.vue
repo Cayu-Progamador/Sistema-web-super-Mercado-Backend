@@ -82,7 +82,7 @@
             <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
           </q-btn>
 
-          <q-btn v-if="props.row.estado === 'BORRADOR'" flat round icon="edit" size="md" style="color: #F57C00" @click="$emit('editar', props.row)">
+          <q-btn v-if="props.row.estado === 'BORRADOR'" v-permiso="'PEDIDOS_EDITAR'" flat round icon="edit" size="md" style="color: #F57C00" @click="$emit('editar', props.row)">
             <q-tooltip class="bg-orange text-white">Editar pedido</q-tooltip>
           </q-btn>
 

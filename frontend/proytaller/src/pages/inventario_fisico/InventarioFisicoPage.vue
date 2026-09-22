@@ -6,7 +6,7 @@
             <h1>Inventario físico</h1>
           </div>
           <p>Planifica conteos, controla diferencias y aprueba ajustes de existencias.</p>
-        </div><q-btn unelevated no-caps color="green-8" icon="add" label="Nuevo inventario" @click="abrirNuevo" />
+        </div><q-btn v-permiso="'INVENTARIO_FISICO_CREAR'" unelevated no-caps color="green-8" icon="add" label="Nuevo inventario" @click="abrirNuevo" />
       </header>
       <InventarioFisicoResumen :items="resumen" />
       <InventarioFisicoFiltros :estados="estados" :almacenes="almacenes" @filtrar="filtrar" @limpiar="limpiar" />

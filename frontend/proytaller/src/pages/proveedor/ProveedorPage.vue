@@ -37,7 +37,7 @@
       <!-- Barra de herramientas -->
       <div class="pv-toolbar pv-toolbar-grid q-mt-sm">
         <div class="pv-toolbar-actions">
-          <q-btn class="pv-btn pv-btn-primario" label="Nuevo Proveedor" icon="add" no-caps @click="nuevoProveedor" />
+          <q-btn v-permiso="'PROVEEDORES_CREAR'" class="pv-btn pv-btn-primario" label="Nuevo Proveedor" icon="add" no-caps @click="nuevoProveedor" />
           <q-btn class="pv-btn pv-btn-naranja" label="Exportar PDF" icon="picture_as_pdf" no-caps @click="exportarPdf" />
           <q-btn class="pv-btn pv-btn-verde" label="Exportar Excel" icon="grid_on" no-caps @click="exportarExcel" />
           <q-btn class="pv-btn pv-btn-icono" icon="refresh" @click="actualizar">

@@ -55,7 +55,7 @@
           <q-btn flat round icon="visibility" size="md" @click="$emit('ver-detalle', props.row.id)" style="color: #006051">
             <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
           </q-btn>
-          <q-btn v-if="props.row.estado === 'ACTIVO' || props.row.estado === 'SUSPENDIDO'" flat round icon="edit" size="md" @click="$emit('editar', props.row.id)" style="color: #F57C00">
+          <q-btn v-if="props.row.estado === 'ACTIVO' || props.row.estado === 'SUSPENDIDO'" v-permiso="'CONTRATOS_EDITAR'" flat round icon="edit" size="md" @click="$emit('editar', props.row.id)" style="color: #F57C00">
             <q-tooltip class="bg-orange text-white">Editar</q-tooltip>
           </q-btn>
           <q-btn flat round icon="picture_as_pdf" size="md" style="color: #8BC34A" @click="$emit('pdf', props.row)">

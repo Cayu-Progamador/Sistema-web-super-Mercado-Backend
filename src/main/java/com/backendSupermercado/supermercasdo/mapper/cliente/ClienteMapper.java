@@ -16,6 +16,9 @@ public class ClienteMapper {
                 .apellidoMaterno(cliente.getApellidoMaterno())
                 .ci(cliente.getCi())
                 .correo(cliente.getCorreo())
+                .telefono(cliente.getTelefono())
+                .limiteCredito(cliente.getLimiteCredito())
+                .direccion(cliente.getDireccion())
                 .estado(cliente.getEstado())
                 .fechaRegistro(cliente.getFechaRegistro())
                 .build();

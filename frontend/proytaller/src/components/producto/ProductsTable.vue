@@ -108,11 +108,11 @@
           <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
         </q-btn>
 
-        <q-btn flat round dense icon="edit_outline" size="md" @click="$emit('editar', props.row)" style="color: #388E3C">
+        <q-btn v-permiso="'PRODUCTOS_EDITAR'" flat round dense icon="edit_outline" size="md" @click="$emit('editar', props.row)" style="color: #388E3C">
           <q-tooltip class="bg-positive text-white">Editar producto</q-tooltip>
         </q-btn>
 
-<q-btn
+<q-btn v-permiso="'PRODUCTOS_EDITAR'"
           v-if="props.row.estado === 'Activo'"
           flat round dense
           class="prod-accion-estado"
@@ -122,7 +122,7 @@
         >
           <q-tooltip class="bg-grey-7 text-white">Desactivar</q-tooltip>
         </q-btn>
-        <q-btn
+        <q-btn v-permiso="'PRODUCTOS_EDITAR'"
           v-else
           flat round dense
           class="prod-accion-estado"
@@ -194,13 +194,13 @@
           <q-btn flat round dense icon="visibility" @click="$emit('ver-detalle', props.row)">
             <q-tooltip class="bg-primary text-white">Ver detalle</q-tooltip>
           </q-btn>
-          <q-btn flat round dense icon="edit_outline" @click="$emit('editar', props.row)">
+          <q-btn v-permiso="'PRODUCTOS_EDITAR'" flat round dense icon="edit_outline" @click="$emit('editar', props.row)">
             <q-tooltip class="bg-positive text-white">Editar producto</q-tooltip>
           </q-btn>
-          <q-btn v-if="props.row.estado === 'Activo'" flat round dense icon="block" color="red" @click="$emit('cambiar-estado', props.row)">
+          <q-btn v-if="props.row.estado === 'Activo'" v-permiso="'PRODUCTOS_EDITAR'" flat round dense icon="block" color="red" @click="$emit('cambiar-estado', props.row)">
             <q-tooltip class="bg-grey-7 text-white">Desactivar</q-tooltip>
           </q-btn>
-          <q-btn v-else flat round dense icon="check" color="green" @click="$emit('cambiar-estado', props.row)">
+          <q-btn v-else v-permiso="'PRODUCTOS_EDITAR'" flat round dense icon="check" color="green" @click="$emit('cambiar-estado', props.row)">
             <q-tooltip class="bg-grey-7 text-white">Activar</q-tooltip>
           </q-btn>
         </div>

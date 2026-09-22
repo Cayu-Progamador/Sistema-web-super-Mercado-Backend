@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useAuthStore } from "../store/store";
 import router from "../router";
+import { Notify } from "quasar";
 
 // Crear instancia de axios
 const instance = axios.create({
@@ -50,6 +51,12 @@ instance.interceptors.response.use(
 
       case 403:
         console.error("Acceso denegado");
+        Notify.create({
+          type: "negative",
+          message: error.response.data?.message || "No tienes permiso para realizar esta acción.",
+          position: "top",
+          timeout: 3000
+        });
         break;
 
       default:
