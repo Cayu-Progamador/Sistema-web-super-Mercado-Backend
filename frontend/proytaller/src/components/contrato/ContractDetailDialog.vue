@@ -279,7 +279,7 @@ const tipoPagoIcon = computed(() => {
 })
 
 function chipColor(estado) {
-  return { ACTIVO: '#006051', VENCIDO: '#C10015', FINALIZADO: '#6b7280', SUSPENDIDO: '#F57C00' }[estado] || '#9ca3af'
+  return { ACTIVO: '#006051', PENDIENTE: '#1976D2', VENCIDO: '#C10015', FINALIZADO: '#6b7280', SUSPENDIDO: '#F57C00' }[estado] || '#9ca3af'
 }
 
 function formatNumber(val) {

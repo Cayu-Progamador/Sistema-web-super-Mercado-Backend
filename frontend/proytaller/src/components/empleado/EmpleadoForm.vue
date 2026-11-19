@@ -27,31 +27,44 @@
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Nombres <span class="required">*</span></div>
-              <q-input v-model="form.nombres" outlined dense placeholder="Ej: Juan Carlos" class="field-input" :rules="[requiredField]" />
+              <q-input v-model="form.nombres" outlined dense placeholder="Ej: Juan Carlos" class="field-input"
+                :rules="[requiredField, soloLetras]" @update:model-value="sanearNombre('nombres')" />
             </div>
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Apellido Paterno</div>
-              <q-input v-model="form.apellidoPaterno" outlined dense placeholder="Ej: P&eacute;rez" class="field-input" />
+              <q-input v-model="form.apellidoPaterno" outlined dense placeholder="Ej: P&eacute;rez" class="field-input"
+                :rules="[soloLetrasOpcional]" @update:model-value="sanearNombre('apellidoPaterno')" />
             </div>
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Apellido Materno</div>
-              <q-input v-model="form.apellidoMaterno" outlined dense placeholder="Ej: L&oacute;pez" class="field-input" />
+              <q-input v-model="form.apellidoMaterno" outlined dense placeholder="Ej: L&oacute;pez" class="field-input"
+                :rules="[soloLetrasOpcional]" @update:model-value="sanearNombre('apellidoMaterno')" />
             </div>
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">CI <span class="required">*</span></div>
-              <q-input v-model="form.ci" outlined dense placeholder="Ej: 1234567" class="field-input" :rules="[requiredField, ciFormat]" />
+              <q-input v-model="form.ci" outlined dense placeholder="Ej: 1234567" class="field-input" inputmode="numeric"
+                maxlength="8" :rules="[requiredField, ciFormat]" @update:model-value="sanearCi" />
             </div>
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Fecha de Nacimiento <span class="required">*</span></div>
-              <q-input v-model="form.fechaNacimiento" outlined dense type="date" class="field-input" :rules="[requiredField]" />
+              <q-input
+                v-model="form.fechaNacimiento"
+                outlined
+                dense
+                type="date"
+                class="field-input"
+                :min="fechaMinimaNacimiento"
+                :max="fechaMaximaNacimiento"
+                :rules="[requiredField, fechaNacimientoValida]"
+              />
             </div>
           </div>
           <div class="col-12 col-md-6">
@@ -74,19 +87,6 @@
 
           <div class="col-12">
             <div class="section-divider">
-              <q-icon name="work" size="18px" color="#4a8c25" />
-              <span>Datos Laborales</span>
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="field-group q-mb-md">
-              <div class="field-lbl">Fecha de Contrataci&oacute;n</div>
-              <q-input v-model="form.fechaContratacion" outlined dense type="date" class="field-input" />
-            </div>
-          </div>
-
-          <div class="col-12">
-            <div class="section-divider">
               <q-icon name="contact_mail" size="18px" color="#4a8c25" />
               <span>Contacto</span>
             </div>
@@ -94,13 +94,31 @@
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Correo <span class="required">*</span></div>
-              <q-input v-model="form.correo" outlined dense placeholder="Ej: correo@ejemplo.com" class="field-input" :rules="[requiredField, emailFormat]" />
+              <q-input
+                v-model="form.correo"
+                outlined
+                dense
+                placeholder="Ej: correo@ejemplo.com"
+                class="field-input"
+                :rules="[requiredField, emailFormat]"
+                @update:model-value="sanearCorreo"
+              />
             </div>
           </div>
           <div class="col-12 col-md-6">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Tel&eacute;fono <span class="required">*</span></div>
-              <q-input v-model="form.telefono" outlined dense placeholder="Ej: 71234567" class="field-input" :rules="[requiredField]" />
+              <q-input
+                v-model="form.telefono"
+                outlined
+                dense
+                placeholder="Ej: 71234567"
+                class="field-input"
+                inputmode="numeric"
+                maxlength="8"
+                :rules="[requiredField, telefonoBoliviano]"
+                @update:model-value="sanearTelefono"
+              />
             </div>
           </div>
 
@@ -113,19 +131,62 @@
           <div class="col-12 col-md-4">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Pa&iacute;s <span class="required">*</span></div>
-              <q-input v-model="form.pais" outlined dense placeholder="Ej: Bolivia" class="field-input" :rules="[requiredField]" />
+              <q-select
+                v-model="form.pais"
+                :options="paises"
+                option-label="nombre"
+                option-value="nombre"
+                emit-value
+                map-options
+                outlined
+                dense
+                placeholder="Seleccionar país"
+                class="field-input"
+                :rules="[requiredField]"
+                :loading="cargandoPaises"
+                @update:model-value="alCambiarPais"
+              />
             </div>
           </div>
           <div class="col-12 col-md-4">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Departamento <span class="required">*</span></div>
-              <q-input v-model="form.departamento" outlined dense placeholder="Ej: Tarija" class="field-input" :rules="[requiredField]" />
+              <q-select
+                v-model="form.departamento"
+                :options="departamentos"
+                option-label="nombre"
+                option-value="nombre"
+                emit-value
+                map-options
+                outlined
+                dense
+                placeholder="Seleccionar departamento"
+                class="field-input"
+                :rules="[requiredField]"
+                :disable="!form.pais"
+                :loading="cargandoDepartamentos"
+                @update:model-value="alCambiarDepartamento"
+              />
             </div>
           </div>
           <div class="col-12 col-md-4">
             <div class="field-group q-mb-md">
               <div class="field-lbl">Ciudad <span class="required">*</span></div>
-              <q-input v-model="form.ciudad" outlined dense placeholder="Ej: Villa Montes" class="field-input" :rules="[requiredField]" />
+              <q-select
+                v-model="form.ciudad"
+                :options="ciudades"
+                option-label="nombre"
+                option-value="nombre"
+                emit-value
+                map-options
+                outlined
+                dense
+                placeholder="Seleccionar ciudad"
+                class="field-input"
+                :rules="[requiredField]"
+                :disable="!form.departamento"
+                :loading="cargandoCiudades"
+              />
             </div>
           </div>
           <div class="col-12 col-md-6">
@@ -161,6 +222,7 @@
             :label="esEditar ? 'Actualizar' : 'Guardar'"
             type="submit"
             :loading="guardando"
+            :disable="!formularioValido || guardando"
             icon="save"
             unelevated
             class="btn-save"
@@ -174,7 +236,13 @@
 <script setup>
 import { reactive, ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { crearEmpleado, actualizarEmpleado } from '../../api/empleado/empleado'
+import {
+  crearEmpleado,
+  actualizarEmpleado,
+  listarPaises,
+  listarDepartamentos,
+  listarCiudadesPorDepartamento
+} from '../../api/empleado/empleado'
 import { listarSexos } from '../../api/sexo/sexo'
 
 const props = defineProps({
@@ -186,8 +254,14 @@ const emit = defineEmits(['guardar', 'cerrar'])
 const $q = useQuasar()
 const guardando = ref(false)
 const cargandoOpciones = ref(false)
+const cargandoPaises = ref(false)
+const cargandoDepartamentos = ref(false)
+const cargandoCiudades = ref(false)
 
 const sexos = ref([])
+const paises = ref([])
+const departamentos = ref([])
+const ciudades = ref([])
 
 const cargarOpciones = async () => {
   cargandoOpciones.value = true
@@ -201,13 +275,47 @@ const cargarOpciones = async () => {
   }
 }
 
+const cargarPaises = async () => {
+  cargandoPaises.value = true
+  try {
+    paises.value = await listarPaises()
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al cargar países' })
+  } finally {
+    cargandoPaises.value = false
+  }
+}
+
+const cargarDepartamentos = async (idPais) => {
+  cargandoDepartamentos.value = true
+  try {
+    departamentos.value = await listarDepartamentos(idPais)
+  } catch {
+    departamentos.value = []
+    $q.notify({ type: 'negative', message: 'Error al cargar departamentos' })
+  } finally {
+    cargandoDepartamentos.value = false
+  }
+}
+
+const cargarCiudades = async (idDepartamento) => {
+  cargandoCiudades.value = true
+  try {
+    ciudades.value = await listarCiudadesPorDepartamento(idDepartamento)
+  } catch {
+    ciudades.value = []
+    $q.notify({ type: 'negative', message: 'Error al cargar ciudades' })
+  } finally {
+    cargandoCiudades.value = false
+  }
+}
+
 const form = reactive({
   nombres: '',
   apellidoPaterno: '',
   apellidoMaterno: '',
   ci: '',
   fechaNacimiento: '',
-  fechaContratacion: '',
   correo: '',
   telefono: '',
   idSexo: null,
@@ -227,7 +335,6 @@ watch(() => props.empleado, (val) => {
     form.apellidoMaterno = val.apellidoMaterno || ''
     form.ci = val.ci || ''
     form.fechaNacimiento = val.fechaNacimiento || ''
-    form.fechaContratacion = val.fechaContratacion || ''
     form.correo = val.correo || ''
     form.telefono = val.telefono || ''
     form.idSexo = val.idSexo || null
@@ -244,7 +351,6 @@ watch(() => props.empleado, (val) => {
     form.apellidoMaterno = ''
     form.ci = ''
     form.fechaNacimiento = ''
-    form.fechaContratacion = ''
     form.correo = ''
     form.telefono = ''
     form.idSexo = null
@@ -266,9 +372,102 @@ watch(sexos, (nuevosSexos) => {
 
 const requiredField = val => (val !== null && val !== undefined && val !== '') || 'Campo obligatorio'
 
-const emailFormat = val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Correo inv&aacute;lido'
+const fechaMinimaNacimiento = computed(() => {
+  const fecha = new Date()
+  fecha.setFullYear(fecha.getFullYear() - 65)
+  return fecha.toISOString().slice(0, 10)
+})
 
-const ciFormat = val => !val || /^\d{4,15}$/.test(val) || 'CI inv&aacute;lido (solo n&uacute;meros, 4-15 d&iacute;gitos)'
+const fechaMaximaNacimiento = computed(() => {
+  const fecha = new Date()
+  fecha.setFullYear(fecha.getFullYear() - 18)
+  return fecha.toISOString().slice(0, 10)
+})
+
+const fechaNacimientoValida = val => {
+  if (!val) return true
+
+  const nacimiento = new Date(val + 'T00:00:00')
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+
+  if (nacimiento > hoy) return 'La fecha de nacimiento no puede ser futura.'
+  if (val < fechaMinimaNacimiento.value) return 'La edad no puede ser mayor a 65 años.'
+  if (val > fechaMaximaNacimiento.value) return 'El empleado debe tener al menos 18 años.'
+  return true
+}
+
+const emailFormat = val =>
+  /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(val || '') ||
+  'Ingrese un correo válido, por ejemplo: nombre@correo.com.'
+
+const telefonoBoliviano = val =>
+  /^[67]\d{7}$/.test(val || '') ||
+  'El celular debe tener 8 dígitos y comenzar con 6 o 7.'
+
+const soloLetras = val => /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test((val || '').trim()) || 'Solo se permiten letras.'
+
+const soloLetrasOpcional = val => !val || /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(val.trim()) || 'Solo se permiten letras.'
+
+const ciFormat = val => /^\d{4,8}$/.test(val || '') || 'El CI debe tener entre 4 y 8 dígitos.'
+
+const formularioValido = computed(() => {
+  return (
+    String(form.nombres || '').trim().length > 0 &&
+    /^[A-Za-z\u00C0-\u017F ]+$/.test(String(form.nombres).trim()) &&
+    /^\d{4,8}$/.test(form.ci || '') &&
+    fechaNacimientoValida(form.fechaNacimiento) === true &&
+    /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(form.correo || '') &&
+    /^[67]\d{7}$/.test(form.telefono || '') &&
+    form.idSexo !== null &&
+    String(form.pais || '').trim().length > 0 &&
+    String(form.departamento || '').trim().length > 0 &&
+    String(form.ciudad || '').trim().length > 0
+  )
+})
+
+function sanearNombre(campo) {
+  form[campo] = String(form[campo] || '').replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '')
+}
+
+function sanearCi() {
+  form.ci = String(form.ci || '').replace(/\D/g, '').slice(0, 8)
+}
+
+function sanearCorreo() {
+  form.correo = String(form.correo || '').replace(/\s/g, '').toLowerCase()
+}
+
+function sanearTelefono() {
+  form.telefono = String(form.telefono || '').replace(/\D/g, '').slice(0, 8)
+}
+
+async function alCambiarPais(nombrePais) {
+  form.departamento = ''
+  form.ciudad = ''
+  departamentos.value = []
+  ciudades.value = []
+
+  const pais = paises.value.find(item => item.nombre === nombrePais)
+  if (pais) await cargarDepartamentos(pais.idPais)
+}
+
+async function alCambiarDepartamento(nombreDepartamento) {
+  form.ciudad = ''
+  ciudades.value = []
+
+  const departamento = departamentos.value.find(item => item.nombre === nombreDepartamento)
+  if (departamento) await cargarCiudades(departamento.idDepartamento)
+}
+
+async function cargarUbicacionActual() {
+  const pais = paises.value.find(item => item.nombre === form.pais)
+  if (!pais) return
+
+  await cargarDepartamentos(pais.idPais)
+  const departamento = departamentos.value.find(item => item.nombre === form.departamento)
+  if (departamento) await cargarCiudades(departamento.idDepartamento)
+}
 
 const guardar = async () => {
   guardando.value = true
@@ -294,8 +493,9 @@ const guardar = async () => {
   }
 }
 
-onMounted(() => {
-  cargarOpciones()
+onMounted(async () => {
+  await Promise.all([cargarOpciones(), cargarPaises()])
+  await cargarUbicacionActual()
 })
 </script>
 

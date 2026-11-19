@@ -92,7 +92,7 @@ const loading = ref(false)
 const historial = ref([])
 
 function chipColor(estado) {
-  return { ACTIVO: 'green-7', VENCIDO: 'red-6', FINALIZADO: 'grey-6', SUSPENDIDO: 'orange-7' }[estado] || 'grey-5'
+  return { ACTIVO: 'green-7', PENDIENTE: 'blue-7', VENCIDO: 'red-6', FINALIZADO: 'grey-6', SUSPENDIDO: 'orange-7' }[estado] || 'grey-5'
 }
 
 watch(() => props.contratoId, async (id) => {

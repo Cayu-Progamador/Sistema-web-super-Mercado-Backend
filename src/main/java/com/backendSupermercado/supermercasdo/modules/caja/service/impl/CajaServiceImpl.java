@@ -10,6 +10,7 @@ import com.backendSupermercado.supermercasdo.modules.caja.dto.*;
 import com.backendSupermercado.supermercasdo.modules.caja.entity.*;
 import com.backendSupermercado.supermercasdo.modules.caja.enums.*;
 import com.backendSupermercado.supermercasdo.modules.caja.repository.*;
+import com.backendSupermercado.supermercasdo.modules.caja.service.CajaArqueoPdfService;
 import com.backendSupermercado.supermercasdo.modules.usuario.entity.Usuario;
 import com.backendSupermercado.supermercasdo.modules.usuario.repository.UsuarioRepository;
 import com.backendSupermercado.supermercasdo.modules.venta.repository.PagoVentaRepository;
@@ -25,6 +26,7 @@ public class CajaServiceImpl implements com.backendSupermercado.supermercasdo.mo
     private final UsuarioRepository usuarioRepository;
     private final PagoVentaRepository pagoVentaRepository;
     private final PagoCreditoRepository pagoCreditoRepository;
+    private final CajaArqueoPdfService cajaArqueoPdfService;
 
     public List<CajaResponse> listarCajas() {
         return cajaRepository.findAll().stream().map(c -> new CajaResponse(c.getIdCaja(), c.getNombre(), c.getEstado(),
@@ -85,6 +87,21 @@ public class CajaServiceImpl implements com.backendSupermercado.supermercasdo.mo
     public SesionCajaResponse sesionAbierta(Long idUsuario) {
         return sesionRepository.findByUsuarioIdUsuarioAndEstado(idUsuario, EstadoSesionCaja.ABIERTA)
                 .map(s -> { actualizarSaldoEsperado(s); return response(s); }).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] generarArqueoPdf(Long idSesion, Long idUsuario, boolean esAdministrador) {
+        SesionCaja sesion = sesionRepository.findById(idSesion)
+                .orElseThrow(() -> new EntityNotFoundException("Sesión de caja no encontrada"));
+
+        if (!esAdministrador && !sesion.getUsuario().getIdUsuario().equals(idUsuario)) {
+            throw new IllegalStateException("No tiene permiso para imprimir este arqueo");
+        }
+        if (sesion.getEstado() != EstadoSesionCaja.CERRADA) {
+            throw new IllegalStateException("El arqueo solo está disponible para sesiones cerradas");
+        }
+
+        return cajaArqueoPdfService.generar(response(sesion));
     }
 
     private BigDecimal actualizarSaldoEsperado(SesionCaja s) {

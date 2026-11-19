@@ -221,7 +221,7 @@
                 </q-input>
                 </div>
                 <div class="col-12 col-md-4">
-                  <q-input v-model="form.persona.fechaNacimiento" label="Fecha de nacimiento *" stack-label outlined color="green-8" type="date" :rules="[v => !!v || 'Requerido']" placeholder="DD / MM / AAAA" class="q-mb-md field-green" />
+                  <q-input v-model="form.persona.fechaNacimiento" label="Fecha de nacimiento *" stack-label outlined color="green-8" type="date" :min="fechaNacimientoMinima" :max="fechaNacimientoMaxima" :rules="[fechaNacimientoValida]" placeholder="DD / MM / AAAA" class="q-mb-md field-green" />
                 </div>
                 <div class="col-12 col-md-4">
                   <q-select v-model="form.persona.sexo" :options="sexos" label="Género *" stack-label outlined color="green-8" emit-value map-options class="q-mb-md field-green" :rules="[v => !!v || 'Requerido']">
@@ -367,8 +367,34 @@ const formValido = computed(() => {
     return form.empresa.contactos.some((c) => c.telefono || c.correo)
   }
   const p = form.persona
-  return p.nombres && p.apellidoPaterno && p.ci && p.fechaNacimiento && p.sexo && p.telefono && p.correo && p.direccion.zona
+  return p.nombres && p.apellidoPaterno && p.ci && fechaNacimientoValida(p.fechaNacimiento) === true && p.sexo && p.telefono && p.correo && p.direccion.zona
 })
+
+function formatearFecha(fecha) {
+  const anio = fecha.getFullYear()
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  return `${anio}-${mes}-${dia}`
+}
+
+const fechaNacimientoMaxima = (() => {
+  const fecha = new Date()
+  fecha.setFullYear(fecha.getFullYear() - 18)
+  return formatearFecha(fecha)
+})()
+
+const fechaNacimientoMinima = (() => {
+  const fecha = new Date()
+  fecha.setFullYear(fecha.getFullYear() - 110)
+  return formatearFecha(fecha)
+})()
+
+function fechaNacimientoValida(valor) {
+  if (!valor) return 'La fecha de nacimiento es obligatoria.'
+  if (valor > fechaNacimientoMaxima) return 'El proveedor debe tener al menos 18 años.'
+  if (valor < fechaNacimientoMinima) return 'La edad no puede ser mayor a 110 años.'
+  return true
+}
 
 function agregarContacto() {
   form.empresa.contactos.push({ telefono: '', correo: '' })

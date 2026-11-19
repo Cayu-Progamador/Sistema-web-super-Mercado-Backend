@@ -38,6 +38,7 @@ const aplicarPermiso = (el, binding) => {
   el.style.display = codigos.some(codigo => authStore.tienePermiso(codigo)) ? '' : 'none'
 }
 
+
 app.directive('permiso', {
   mounted: aplicarPermiso,
   updated: aplicarPermiso

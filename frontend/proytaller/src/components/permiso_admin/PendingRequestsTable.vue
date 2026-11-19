@@ -68,6 +68,9 @@
           dense
           label="Desde"
           type="date"
+          :max="filtroFechaFin || hoy"
+          :error="!!errorFechaDesde"
+          :error-message="errorFechaDesde"
           class="filter-item"
         />
         <q-input
@@ -76,10 +79,14 @@
           dense
           label="Hasta"
           type="date"
+          :min="filtroFechaInicio || undefined"
+          :max="hoy"
+          :error="!!errorFechaHasta"
+          :error-message="errorFechaHasta"
           class="filter-item"
         />
         <div class="filter-actions">
-          <q-btn unelevated no-caps color="green-8" label="Buscar" size="12px" class="filter-btn" @click="aplicarFiltros" />
+          <q-btn unelevated no-caps color="green-8" label="Buscar" size="12px" class="filter-btn" :disable="rangoFechasInvalido" @click="aplicarFiltros" />
           <q-btn flat no-caps color="grey-7" label="Limpiar" size="12px" @click="limpiarFiltros" />
         </div>
       </div>
@@ -204,12 +211,39 @@ const mostrarFiltros = ref(false)
 const filtroTipo = ref(null)
 const filtroFechaInicio = ref('')
 const filtroFechaFin = ref('')
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (filtroFechaInicio.value && filtroFechaInicio.value > hoy) {
+    return 'No puede seleccionar una fecha futura.'
+  }
+  if (filtroFechaInicio.value && filtroFechaFin.value && filtroFechaInicio.value > filtroFechaFin.value) {
+    return 'La fecha desde no puede ser mayor que la fecha hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (filtroFechaFin.value && filtroFechaFin.value > hoy) {
+    return 'No puede seleccionar una fecha futura.'
+  }
+  if (filtroFechaInicio.value && filtroFechaFin.value && filtroFechaFin.value < filtroFechaInicio.value) {
+    return 'La fecha hasta no puede ser menor que la fecha desde.'
+  }
+  return ''
+})
+
+const rangoFechasInvalido = computed(() =>
+  !!errorFechaDesde.value || !!errorFechaHasta.value
+)
 
 const tipoOptions = computed(() =>
   props.tiposPermiso.map(t => ({ label: t.nombre, value: t.id }))
 )
 
 function aplicarFiltros() {
+  if (rangoFechasInvalido.value) return
 }
 
 function limpiarFiltros() {
@@ -239,10 +273,10 @@ const filteredRows = computed(() => {
   if (filtroTipo.value) {
     rows = rows.filter(r => r.idTipo === filtroTipo.value)
   }
-  if (filtroFechaInicio.value) {
+  if (!rangoFechasInvalido.value && filtroFechaInicio.value) {
     rows = rows.filter(r => r.fechaInicio >= filtroFechaInicio.value)
   }
-  if (filtroFechaFin.value) {
+  if (!rangoFechasInvalido.value && filtroFechaFin.value) {
     rows = rows.filter(r => (r.fechaFin || r.fechaInicio) <= filtroFechaFin.value)
   }
   return rows

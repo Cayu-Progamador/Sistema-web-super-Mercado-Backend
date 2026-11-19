@@ -644,6 +644,7 @@
 .dv-num-input :deep(input) {
   color: #1B5E20 !important;
   font-weight: 600 !important;
+  font-size: 16px !important;
 }
 
 .dv-num-input.dv-input-error :deep(.q-field__control) {

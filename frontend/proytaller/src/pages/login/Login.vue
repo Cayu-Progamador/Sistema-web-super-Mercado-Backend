@@ -1,6 +1,9 @@
 <template>
   <q-dialog v-model="dialog" persistent maximized transition-show="jump-down" transition-hide="jump-up">
-    <div class="full-width full-height flex flex-center login-bg">
+    <div
+      class="full-width full-height flex flex-center login-bg"
+      :style="fondoLoginStyle"
+    >
 
       <q-card class="login-card" flat>
         <div class="row no-wrap full-height">
@@ -16,7 +19,13 @@
 
               <div class="left-logo-wrap q-mb-lg">
                 <div class="left-logo-icon">
-                  <svg width="36" height="36" viewBox="0 0 80 80" fill="none">
+                  <img
+                    v-if="configuracion.logoUrl"
+                    :src="resolverArchivo(configuracion.logoUrl)"
+                    :alt="`Logo de ${configuracion.nombreComercial || 'supermercado'}`"
+                    class="login-logo"
+                  />
+                  <svg v-else width="36" height="36" viewBox="0 0 80 80" fill="none">
                     <path d="M18 22 Q18 18 22 18 L58 18" stroke="#c8e0a0" stroke-width="5" stroke-linecap="round"
                       fill="none" />
                     <path d="M22 18 L28 50 Q29 54 33 54 L58 54 Q62 54 63 50 L68 28 L24 28" stroke="#9fe1cb"
@@ -31,7 +40,9 @@
                     <path d="M56 16 Q60 8 65 8 Q62 14 66 13 Q63 19 56 16Z" fill="#eaf4d8" />
                   </svg>
                 </div>
-                <span class="left-brand">Mercat</span>
+                <span class="left-brand">
+                  {{ configuracion.nombreComercial || 'Mercat' }}
+                </span>
               </div>
 
               <div class="left-title">{{ lorem.split(' ').slice(0, 2).join(' ') || 'Bienvenido' }}</div>
@@ -120,12 +131,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onUnmounted } from "vue"
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue"
 import { useRouter } from "vue-router"
 import { login } from '../../api/login/login'
 import { obtenerMisPermisos } from '../../api/permisosSistema/permisosSistema'
 import { useAuthStore } from "../../store/store"
 import ForgotPassword from '../../components/auth/recuperarPassword/ForgotPassword.vue'
+import { obtenerConfiguracionEmpresa } from '../../api/configuracion/configuracionEmpresa'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -134,6 +146,38 @@ const isLoading = ref(false)
 const errorMsg = ref("")
 const isPwd = ref(true)
 const forgotRef = ref(null)
+
+const configuracion = reactive({
+  nombreComercial: 'Mercat',
+  logoUrl: '',
+  fondoLoginUrl: ''
+})
+
+const resolverArchivo = (url) => {
+  if (!url || url.startsWith('data:') || url.startsWith('http')) return url
+  return `${import.meta.env.VITE_API_URL || ''}${url}`
+}
+
+const fondoLoginStyle = computed(() => {
+  const fondo = resolverArchivo(configuracion.fondoLoginUrl)
+  return fondo
+    ? {
+        backgroundImage: `url("${fondo}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }
+    : {}
+})
+
+onMounted(async () => {
+  try {
+    const respuesta = await obtenerConfiguracionEmpresa()
+    Object.assign(configuracion, respuesta || {})
+  } catch (error) {
+    console.warn('No se pudo cargar la configuración visual del login', error)
+  }
+})
 
 // --- VARIABLES PARA EL BLOQUEO ---
 const bloqueado = ref(false)

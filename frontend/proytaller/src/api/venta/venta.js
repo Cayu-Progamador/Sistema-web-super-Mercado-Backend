@@ -42,6 +42,10 @@ export function obtenerResumenVentas() {
   return request({ url: `${BASE_URL}/resumen`, method: 'get' })
 }
 
+export function obtenerDashboardVentas() {
+  return request({ url: `${BASE_URL}/dashboard`, method: 'get' })
+}
+
 export function listarCreditos(params = {}) {
   return request({ url: '/api/creditos', method: 'get', params })
 }

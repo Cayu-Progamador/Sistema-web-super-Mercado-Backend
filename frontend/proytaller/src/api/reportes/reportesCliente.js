@@ -1,0 +1,4 @@
+import request from '../../util/request'
+export const rutasReporteCliente = { 'clientes-general':'clientes-general','compras-cliente':'compras-cliente','clientes-frecuentes':'clientes-frecuentes','creditos-general':'creditos-general','creditos-pendientes':'creditos-pendientes','creditos-vencidos':'creditos-vencidos','pagos-creditos':'pagos-creditos','saldos-cliente':'saldos-cliente','recuperacion-creditos':'recuperacion-creditos' }
+export function consultarReporteCliente(tipo, params = {}) { return request({ url:`/api/reportes/clientes/${rutasReporteCliente[tipo]}`, method:'get', params }) }
+export function exportarReporteCliente(tipo, formato, params = {}) { return request({ url:`/api/reportes/clientes/${rutasReporteCliente[tipo]}/${formato.toLowerCase()}`, method:'get', params, responseType:'blob' }) }

@@ -32,12 +32,15 @@ const $q = useQuasar()
 const creditos = ref([]); const cargando = ref(false); const pagina = ref(1); const totalPaginas = ref(1)
 const resumen = ref({ totalPorCobrar: 0, totalVencido: 0, totalCobrado: 0, cuentasActivas: 0 })
 const filtros = reactive({ busqueda: '', estado: '', desde: '', hasta: '' })
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+const fechasValidas = () => (!filtros.desde || filtros.desde <= hoy) && (!filtros.hasta || filtros.hasta <= hoy) && (!filtros.desde || !filtros.hasta || filtros.desde <= filtros.hasta)
 const detalleAbierto = ref(false); const pagoAbierto = ref(false); const creditoSeleccionado = ref(null)
 const sesionCaja = ref(null)
 const moneda = value => `Bs ${Number(value || 0).toFixed(2)}`
 const summaryCards = computed(() => [{ label: 'Total por cobrar', value: moneda(resumen.value.totalPorCobrar), icon: 'account_balance_wallet', color: 'green' }, { label: 'Créditos vencidos', value: moneda(resumen.value.totalVencido), icon: 'warning', color: 'red' }, { label: 'Total cobrado', value: moneda(resumen.value.totalCobrado), icon: 'payments', color: 'blue' }, { label: 'Cuentas activas', value: resumen.value.cuentasActivas, icon: 'groups', color: 'orange' }])
 function mapCredito(c) { return { ...c, id: c.idCuenta, codigoVenta: c.codigoVenta, saldo: Number(c.saldo || 0), total: Number(c.total || 0), pagoInicial: Number(c.pagoInicial || 0), productos: c.productos || [], pagos: (c.pagos || []).map(p => ({ ...p, referencia: p.referenciaQr, fecha: p.fechaPago ? new Date(p.fechaPago).toLocaleDateString('es-BO') : '--' })) } }
-async function cargarCreditos () { cargando.value = true; try { const r = await listarCreditos({ page: pagina.value - 1, size: 6, buscar: filtros.busqueda || undefined, estado: filtros.estado || undefined, desde: filtros.desde || undefined, hasta: filtros.hasta || undefined }); creditos.value = (r?.content || []).map(mapCredito); totalPaginas.value = Math.max(1, r?.totalPages || 1) } catch { $q.notify({ type: 'negative', message: 'No se pudieron cargar los créditos.' }) } finally { cargando.value = false } }
+async function cargarCreditos () { if (!fechasValidas()) { creditos.value = []; totalPaginas.value = 1; return } cargando.value = true; try { const r = await listarCreditos({ page: pagina.value - 1, size: 6, buscar: filtros.busqueda || undefined, estado: filtros.estado || undefined, desde: filtros.desde || undefined, hasta: filtros.hasta || undefined }); creditos.value = (r?.content || []).map(mapCredito); totalPaginas.value = Math.max(1, r?.totalPages || 1) } catch { $q.notify({ type: 'negative', message: 'No se pudieron cargar los créditos.' }) } finally { cargando.value = false } }
 async function cargarResumen () { try { resumen.value = await obtenerResumenCreditos() || resumen.value } catch { /* la lista sigue disponible */ } }
 function limpiarFiltros () { Object.assign(filtros, { busqueda: '', estado: '', desde: '', hasta: '' }); pagina.value = 1; cargarCreditos() }
 function abrirDetalle (credito) { creditoSeleccionado.value = credito; detalleAbierto.value = true }

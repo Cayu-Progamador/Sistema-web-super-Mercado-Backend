@@ -4,19 +4,31 @@
       <div class="col-12 col-md-6">
         <q-select
           :model-value="seleccionada?.idRecepcion || null"
-          :options="recepciones"
-          label="Recepción"
+          :options="opcionesFiltradas"
+          label="Recepción de origen *"
           outlined
           dense
           color="green-8"
-          option-label="numero"
+          use-input
+          input-debounce="0"
+          option-label="etiqueta"
           option-value="idRecepcion"
           emit-value
           map-options
-          placeholder="Seleccione la recepción"
+          hint="Seleccione la recepción donde ingresaron los productos a devolver."
+          placeholder="Buscar por código o proveedor"
           class="dv-filter-field"
+          @filter="filtrarRecepciones"
           @update:model-value="$emit('seleccionar', $event)"
         >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label>{{ scope.opt.numero }} — {{ scope.opt.proveedor }}</q-item-label>
+                <q-item-label caption>{{ formatFecha(scope.opt.fechaRecepcion) }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
           <template v-slot:no-option>
             <q-item>
               <q-item-section class="text-grey-6">
@@ -54,6 +66,10 @@
                 {{ seleccionada.estado }}
               </q-chip>
             </div>
+            <div class="col-12">
+              <div class="dv-mini-label">Productos disponibles para devolución</div>
+              <div class="dv-mini-valor">{{ productosDisponibles }} producto(s)</div>
+            </div>
           </div>
         </q-card>
       </div>
@@ -62,12 +78,44 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+
+const props = defineProps({
   recepciones: { type: Array, default: () => [] },
   seleccionada: { type: Object, default: null }
 })
 
 defineEmits(['seleccionar'])
+
+const opcionesFiltradas = ref([])
+
+watch(
+  () => props.recepciones,
+  (recepciones) => {
+    opcionesFiltradas.value = crearOpciones(recepciones)
+  },
+  { immediate: true }
+)
+
+const productosDisponibles = computed(() =>
+  (props.seleccionada?.detalle || []).filter(detalle => Number(detalle.disponible) > 0).length
+)
+
+function crearOpciones(recepciones) {
+  return (recepciones || []).map(recepcion => ({
+    ...recepcion,
+    etiqueta: `${recepcion.numero || 'REC'} — ${recepcion.proveedor || 'Sin proveedor'} — ${formatFecha(recepcion.fechaRecepcion)}`
+  }))
+}
+
+function filtrarRecepciones(valor, update) {
+  const texto = (valor || '').toLowerCase().trim()
+  update(() => {
+    opcionesFiltradas.value = crearOpciones(props.recepciones).filter(recepcion =>
+      !texto || recepcion.etiqueta.toLowerCase().includes(texto)
+    )
+  })
+}
 
 function formatFecha(fecha) {
   if (!fecha) return '—'

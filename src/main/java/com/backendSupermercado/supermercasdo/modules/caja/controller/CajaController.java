@@ -2,6 +2,9 @@ package com.backendSupermercado.supermercasdo.modules.caja.controller;
 
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.backendSupermercado.supermercasdo.modules.caja.dto.*;
@@ -55,6 +58,18 @@ public class CajaController {
     public SesionCajaResponse abierta(@AuthenticationPrincipal CustomUserDetails user) {
         if (user == null) throw new IllegalArgumentException("Usuario autenticado requerido");
         return service.sesionAbierta(user.getId());
+    }
+
+    @GetMapping("/sesiones/{id}/arqueo/pdf")
+    public ResponseEntity<byte[]> imprimirArqueo(@AuthenticationPrincipal CustomUserDetails user, @PathVariable Long id) {
+        if (user == null) throw new IllegalArgumentException("Usuario autenticado requerido");
+        boolean admin = user.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()));
+        byte[] pdf = service.generarArqueoPdf(id, user.getId(), admin);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=arqueo-caja-" + id + ".pdf")
+                .body(pdf);
     }
 
     @GetMapping("/mis-sesiones")

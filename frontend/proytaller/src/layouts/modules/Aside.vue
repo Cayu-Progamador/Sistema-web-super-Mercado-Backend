@@ -104,11 +104,12 @@
         <q-item-section class="sidebar-label">Permisos del sistema</q-item-section>
       </q-item>
 
-      <q-expansion-item v-if="puede('CONFIGURACION_VER')" v-model="expandidoConfiguracion" expand-separator class="sidebar-item sidebar-expansion" :class="{ 'sidebar-expansion-activo': expandidoConfiguracion }">
+      <!-- CONFIGURACION_MOVIDA_AL_FINAL -->
+      <!--
         <template v-slot:header><q-item-section avatar><q-icon name="settings" class="sidebar-icon" /></q-item-section><q-item-section class="sidebar-label">Configuración</q-item-section></template>
         <q-item clickable v-ripple to="/configuracion/datos" class="sidebar-sub-item" active-class="sidebar-item-active"><q-item-section avatar><q-icon name="storefront" class="sidebar-icon sidebar-sub-icon" /></q-item-section><q-item-section class="sidebar-label">Datos del supermercado</q-item-section></q-item>
         <q-item clickable v-ripple to="/configuracion/recuperacion" class="sidebar-sub-item" active-class="sidebar-item-active"><q-item-section avatar><q-icon name="lock_reset" class="sidebar-icon sidebar-sub-icon" /></q-item-section><q-item-section class="sidebar-label">Recuperación de contraseña</q-item-section></q-item>
-      </q-expansion-item>
+      </q-expansion-item> -->
 
       <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
 
@@ -328,7 +329,34 @@
 
       </q-expansion-item>
 
-      
+      <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
+
+      <div v-show="!isMini" class="sidebar-section-label">Análisis</div>
+
+      <q-item clickable v-ripple to="/reportes" class="sidebar-item" active-class="sidebar-item-active">
+        <q-item-section avatar>
+          <q-icon name="analytics" class="sidebar-icon" />
+        </q-item-section>
+        <q-item-section class="sidebar-label">Reportes</q-item-section>
+      </q-item>
+
+      <q-separator v-show="!isMini" class="sidebar-separator q-my-sm" />
+
+      <q-expansion-item v-if="puede('CONFIGURACION_VER')" v-model="expandidoConfiguracion" expand-separator class="sidebar-item sidebar-expansion"
+        :class="{ 'sidebar-expansion-activo': expandidoConfiguracion }">
+        <template v-slot:header>
+          <q-item-section avatar><q-icon name="settings" class="sidebar-icon" /></q-item-section>
+          <q-item-section class="sidebar-label">Configuración</q-item-section>
+        </template>
+        <q-item clickable v-ripple to="/configuracion/datos" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar><q-icon name="storefront" class="sidebar-icon sidebar-sub-icon" /></q-item-section>
+          <q-item-section class="sidebar-label">Datos del supermercado</q-item-section>
+        </q-item>
+        <q-item clickable v-ripple to="/configuracion/recuperacion" class="sidebar-sub-item" active-class="sidebar-item-active">
+          <q-item-section avatar><q-icon name="lock_reset" class="sidebar-icon sidebar-sub-icon" /></q-item-section>
+          <q-item-section class="sidebar-label">Recuperación de contraseña</q-item-section>
+        </q-item>
+      </q-expansion-item>
 
     </q-list>
   </q-scroll-area>

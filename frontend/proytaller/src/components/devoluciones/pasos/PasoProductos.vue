@@ -79,7 +79,7 @@
               :error="tieneError(props.row)"
               :error-message="`Debe ser entre 1 y ${disponibleOrigen(props.row)}`"
               class="dv-num-input"
-              style="max-width: 130px"
+              style="width: 190px; max-width: 190px"
             />
             <span v-else class="text-grey-4">—</span>
           </q-td>
@@ -134,7 +134,7 @@ const columnas = [
   { name: 'producto', label: 'Producto y lote', field: 'producto', align: 'left', style: 'min-width: 220px' },
   { name: 'ubicacionOrigen', label: 'Origen del stock', field: 'ubicacionOrigen', align: 'left', style: 'min-width: 210px' },
   { name: 'disponible', label: 'Disponible', field: 'disponible', align: 'center', style: 'width: 100px' },
-  { name: 'cantidadDevolver', label: 'Cantidad', field: 'cantidadDevolver', align: 'center', style: 'width: 150px' },
+  { name: 'cantidadDevolver', label: 'Cantidad', field: 'cantidadDevolver', align: 'center', style: 'width: 210px' },
   { name: 'motivo', label: 'Motivo', field: 'motivo', align: 'left', style: 'min-width: 220px' }
 ]
 

@@ -8,6 +8,7 @@ import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaResponseDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaCatalogoDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VerificacionVentaDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaResumenDto;
+import com.backendSupermercado.supermercasdo.modules.venta.dto.DashboardVentasDto;
 import java.util.List;
 import java.math.BigDecimal;
 
@@ -28,6 +29,8 @@ public interface VentaService {
     BigDecimal gananciaDelDia();
 
     VentaResumenDto resumen();
+
+    DashboardVentasDto dashboard();
 
     void anular(Long idUsuario, Long idVenta, String motivo);
 }

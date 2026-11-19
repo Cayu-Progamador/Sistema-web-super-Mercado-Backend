@@ -28,9 +28,10 @@
             outlined
             dense
             class="month-input"
+            :max="mesHoy"
             @update:model-value="onFechaChange"
           />
-          <q-btn dense flat round icon="chevron_right" size="md" class="month-nav" @click="cambiarMes(1)" />
+          <q-btn dense flat round icon="chevron_right" size="md" class="month-nav" :disable="!puedeAvanzar" @click="cambiarMes(1)" />
           <q-btn dense flat no-caps icon="today" size="sm" class="hoy-btn" label="Hoy" @click="irHoy" />
         </div>
       </div>
@@ -80,7 +81,8 @@ const props = defineProps({
   empleados: { type: Array, default: () => [] },
   mes: { type: Number, default: new Date().getMonth() + 1 },
   anio: { type: Number, default: new Date().getFullYear() },
-  modo: { type: String, default: 'dia' }
+  modo: { type: String, default: 'dia' },
+  puedeAvanzar: { type: Boolean, default: true }
 })
 const emit = defineEmits(['update:modelValue', 'cambiar-mes', 'ir-hoy'])
 
@@ -96,6 +98,8 @@ function toggleExpand(id) {
 }
 
 const fechaLocal = ref(`${props.anio}-${String(props.mes).padStart(2, '0')}`)
+const fechaActual = new Date()
+const mesHoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`
 
 watch(() => [props.mes, props.anio], ([m, a]) => {
   fechaLocal.value = `${a}-${String(m).padStart(2, '0')}`
@@ -122,6 +126,10 @@ function cambiarMes(delta) {
 }
 function onFechaChange(val) {
   if (!val) return
+  if (val > mesHoy) {
+    fechaLocal.value = `${props.anio}-${String(props.mes).padStart(2, '0')}`
+    return
+  }
   const [a, m] = val.split('-').map(Number)
   emit('cambiar-mes', 0, m, a)
 }

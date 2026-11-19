@@ -16,4 +16,6 @@ public interface CajaService {
     Page<SesionCajaResponse> listarMisSesiones(Long idUsuario, String buscar, Long idCaja, java.time.LocalDateTime desde, java.time.LocalDateTime hasta, Pageable pageable);
 
     SesionCajaResponse sesionAbierta(Long idUsuario);
+
+    byte[] generarArqueoPdf(Long idSesion, Long idUsuario, boolean esAdministrador);
 }

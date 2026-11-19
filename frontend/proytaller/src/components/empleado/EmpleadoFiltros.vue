@@ -48,6 +48,9 @@
                 type="date"
                 clearable
                 class="filter-field"
+                :max="local.fechaHasta || hoy"
+                :error="!!errorFechaDesde"
+                :error-message="errorFechaDesde"
                 @update:model-value="onFilterChange"
               />
             </div>
@@ -60,6 +63,10 @@
                 type="date"
                 clearable
                 class="filter-field"
+                :min="local.fechaDesde || undefined"
+                :max="hoy"
+                :error="!!errorFechaHasta"
+                :error-message="errorFechaHasta"
                 @update:model-value="onFilterChange"
               />
             </div>
@@ -129,6 +136,25 @@ const local = reactive({
   ordenarPor: props.filters?.ordenarPor ?? 'recientes'
 })
 
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (local.fechaDesde && local.fechaDesde > hoy) return 'No puede seleccionar una fecha futura.'
+  if (local.fechaDesde && local.fechaHasta && local.fechaDesde > local.fechaHasta) {
+    return 'La fecha desde no puede ser posterior a hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (local.fechaHasta && local.fechaHasta > hoy) return 'No puede seleccionar una fecha futura.'
+  if (local.fechaDesde && local.fechaHasta && local.fechaDesde > local.fechaHasta) {
+    return 'La fecha hasta debe ser igual o posterior a desde.'
+  }
+  return ''
+})
+
 watch(() => props.filters, (val) => {
   if (val) {
     local.search = val.search ?? ''
@@ -144,6 +170,8 @@ function onFilterChange() {
 }
 
 function emitSearch() {
+  if (errorFechaDesde.value || errorFechaHasta.value) return
+
   filtrosActivos.value = Object.values(local).some(v => v !== null && v !== undefined && v !== '')
   emit('search', { ...local })
 }

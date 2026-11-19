@@ -2,7 +2,8 @@
 
 /* ── Fondo ── */
 .login-bg {
-  background: #f0f5eb !important;
+  background: #f0f5eb;
+  transition: background-image .35s ease, background-color .35s ease;
 }
 
 /* ── Card ── */
@@ -104,10 +105,10 @@
 }
 
 .left-logo-icon {
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
@@ -386,4 +387,174 @@
 .left-panel,
 .right-panel {
   transition: all 0.3s ease;
+}
+
+.login-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .login-card {
+    width: min(680px, 92vw);
+    height: auto;
+    min-height: 0;
+  }
+
+  .login-card > .row {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+  }
+
+  .left-panel {
+    min-height: 220px;
+  }
+
+  .left-panel::after {
+    display: none;
+  }
+
+  .left-content {
+    min-height: 220px;
+    align-items: center;
+    text-align: center;
+    padding: 30px 40px 24px;
+  }
+
+  .left-title-main {
+    font-size: 26px;
+  }
+
+  .right-panel {
+    padding: 42px 48px 44px;
+  }
+
+  .login-form {
+    max-width: 390px;
+  }
+}
+
+/* Móviles */
+@media (max-width: 640px) {
+  .login-bg {
+    padding: 12px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 430px;
+    min-height: 0;
+    margin: auto 0;
+    border-radius: 22px !important;
+  }
+
+  .login-card > .row {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+  }
+
+  .left-panel {
+    min-height: 188px;
+  }
+
+  .left-panel::after {
+    display: none;
+  }
+
+  .left-content {
+    min-height: 188px;
+    align-items: center;
+    text-align: center;
+    padding: 24px 22px 20px;
+  }
+
+  .left-logo-wrap {
+    margin-bottom: 14px !important;
+  }
+
+  .left-logo-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+  }
+
+  .login-logo {
+    width: 46px;
+    height: 46px;
+  }
+
+  .left-brand {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+  }
+
+  .left-title,
+  .left-desc,
+  .orange-bar {
+    display: none;
+  }
+
+  .left-title-main {
+    font-size: 22px;
+  }
+
+  .right-panel {
+    padding: 30px 22px 28px;
+  }
+
+  .right-panel .q-mb-xl {
+    margin-bottom: 24px !important;
+  }
+
+  .right-title {
+    font-size: 24px;
+  }
+
+  .login-form {
+    max-width: none;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 360px) {
+  .login-bg {
+    padding: 7px;
+  }
+
+  .left-panel,
+  .left-content {
+    min-height: 155px;
+  }
+
+  .left-content {
+    padding: 18px 16px;
+  }
+
+  .left-title-main {
+    font-size: 19px;
+  }
+
+  .right-panel {
+    padding: 24px 16px;
+  }
+
+  .right-title {
+    font-size: 22px;
+  }
 }

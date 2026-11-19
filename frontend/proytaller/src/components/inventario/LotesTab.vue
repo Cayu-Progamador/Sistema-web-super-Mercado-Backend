@@ -14,17 +14,23 @@
         <q-select v-model="filtro.producto" outlined dense clearable class="col-12 col-sm-6 col-md-2" label="Producto"
           :options="productos" option-label="label" option-value="value" emit-value map-options />
         <div class="col-12 col-sm-6 col-md-4 row q-gutter-sm justify-end">
-          <q-btn unelevated no-caps color="green-8" icon="filter_alt" label="Filtrar" @click="aplicar" />
+          <q-btn unelevated no-caps color="green-8" icon="filter_alt" label="Filtrar"
+            :disable="rangoVencimientoInvalido" @click="aplicar" />
           <q-btn flat round color="green-8" icon="restart_alt" @click="limpiar">
             <q-tooltip>Limpiar filtros</q-tooltip>
           </q-btn>
-          <q-btn outline no-caps color="green-8" icon="picture_as_pdf" label="Descargar PDF" :loading="descargandoPdf" @click="descargarPdf" />
+          <q-btn outline no-caps color="green-8" icon="picture_as_pdf" label="Descargar PDF"
+            :disable="rangoVencimientoInvalido" :loading="descargandoPdf" @click="descargarPdf" />
         </div>
         <div class="col-12 row q-col-gutter-md">
           <q-input v-model="filtro.desde" outlined dense type="date" class="col-12 col-sm-6 col-md-3"
-            label="Vencimiento desde" />
+            label="Vencimiento desde" :max="filtro.hasta || undefined"
+            :error="rangoVencimientoInvalido"
+            error-message="La fecha inicial no puede ser mayor que la final." />
           <q-input v-model="filtro.hasta" outlined dense type="date" class="col-12 col-sm-6 col-md-3"
-            label="Vencimiento hasta" />
+            label="Vencimiento hasta" :min="filtro.desde || undefined"
+            :error="rangoVencimientoInvalido"
+            error-message="La fecha final debe ser igual o posterior a la inicial." />
         </div>
       </q-card-section>
     </q-card>
@@ -69,6 +75,9 @@ defineEmits(['ver', 'editar', 'kardex'])
 const filtro = reactive({ buscar: '', producto: null, desde: '', hasta: '' })
 const filtrosAbiertos = ref(false)
 const aplicado = ref({ ...filtro })
+const rangoVencimientoInvalido = computed(() => Boolean(
+  filtro.desde && filtro.hasta && filtro.desde > filtro.hasta
+))
 const productos = computed(() => [...new Map(filas.value.filter(r => r.idProducto).map(r => [r.idProducto, { label: r.producto, value: r.idProducto }])).values()])
 const filtrados = computed(() => filas.value.filter((r) => {
   const f = aplicado.value
@@ -76,7 +85,7 @@ const filtrados = computed(() => filas.value.filter((r) => {
   return (!f.buscar || texto.includes(f.buscar.toLowerCase())) && (!f.producto || r.idProducto === f.producto) && (!f.desde || r.fechaVencimiento >= f.desde) && (!f.hasta || r.fechaVencimiento <= f.hasta)
 }))
 const columns = [{ name: 'codigoLote', label: 'Código lote', field: 'codigoLote', align: 'left' }, { name: 'producto', label: 'Producto', field: 'producto', align: 'left' }, { name: 'fechaIngreso', label: 'Ingreso', field: 'fechaIngreso' }, { name: 'fechaVencimiento', label: 'Vencimiento', field: 'fechaVencimiento' }, { name: 'cantidad', label: 'Cantidad', field: 'cantidad' }, { name: 'estado', label: 'Estado', field: 'estado' }, { name: 'acciones', label: 'Acciones', field: 'acciones' }]
-function aplicar() { aplicado.value = { ...filtro }; pagination.value.page = 1; cargar({ pagination: pagination.value }) }
+function aplicar() { if (rangoVencimientoInvalido.value) return; aplicado.value = { ...filtro }; pagination.value.page = 1; cargar({ pagination: pagination.value }) }
 function limpiar() { Object.assign(filtro, { buscar: '', producto: null, desde: '', hasta: '' }); aplicar() }
 async function descargarPdf () { descargandoPdf.value = true; try { const archivo = await descargarLotesPdf({ buscar: aplicado.value.buscar || undefined, idProducto: aplicado.value.producto || undefined, fechaDesde: aplicado.value.desde || undefined, fechaHasta: aplicado.value.hasta || undefined }); guardarPdf(archivo, 'lotes'); $q.notify({ type: 'positive', message: 'PDF de lotes descargado.' }) } catch (error) { $q.notify({ type: 'negative', message: error.response?.data?.message || 'No se pudo descargar el PDF de lotes.' }) } finally { descargandoPdf.value = false } }
 function guardarPdf (archivo, nombre) { const url = URL.createObjectURL(archivo); const enlace = document.createElement('a'); enlace.href = url; enlace.download = `${nombre}_${new Date().toISOString().slice(0, 10)}.pdf`; document.body.appendChild(enlace); enlace.click(); enlace.remove(); URL.revokeObjectURL(url) }

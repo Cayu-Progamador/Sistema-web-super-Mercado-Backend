@@ -26,6 +26,14 @@ public class ContratoListadoDto {
     private Integer horasSemana;
     private Boolean controlaAsistencia;
     private Integer toleranciaMinutos;
+    private Long turnoId;
+    private Boolean lunes;
+    private Boolean martes;
+    private Boolean miercoles;
+    private Boolean jueves;
+    private Boolean viernes;
+    private Boolean sabado;
+    private Boolean domingo;
     private String estado;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;

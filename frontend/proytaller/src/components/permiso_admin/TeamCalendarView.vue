@@ -2,9 +2,9 @@
   <div>
     <div class="calendar-toolbar">
       <div class="calendar-nav">
-        <q-btn flat round dense icon="chevron_left" @click="mesAnterior" />
+        <q-btn flat round dense icon="chevron_left" :disable="!puedeMesAnterior" @click="mesAnterior" />
         <div class="calendar-title">{{ mesActualTexto }} {{ añoActual }}</div>
-        <q-btn flat round dense icon="chevron_right" @click="mesSiguiente" />
+        <q-btn flat round dense icon="chevron_right" :disable="!puedeMesSiguiente" @click="mesSiguiente" />
         <q-btn flat no-caps dense label="Hoy" size="12px" color="green-8" @click="irHoy" class="q-ml-sm" />
       </div>
       <div class="calendar-count" v-if="totalPermisosMes > 0">{{ totalPermisosMes }} permiso(s) este mes</div>
@@ -74,6 +74,50 @@ const props = defineProps({
 
 const fechaActual = ref(new Date())
 const filtroTipo = ref(null)
+const limiteMesInicial = computed(() => {
+  const mesActual = new Date()
+  const limite = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1)
+  let existePermisoAprobado = false
+
+  props.solicitudes
+    .filter(s => s.nombreEstado === 'Aprobado')
+    .forEach(s => {
+      if (!s.fechaInicio) return
+      const fecha = new Date(`${s.fechaInicio}T00:00:00`)
+      const mesPermiso = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
+      if (!existePermisoAprobado || mesPermiso < limite) {
+        limite.setTime(mesPermiso.getTime())
+        existePermisoAprobado = true
+      }
+    })
+
+  return limite
+})
+const limiteMesCalendario = computed(() => {
+  const mesActual = new Date()
+  const limite = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1)
+
+  props.solicitudes
+    .filter(s => s.nombreEstado === 'Aprobado')
+    .forEach(s => {
+      const fechaFin = s.fechaFin || s.fechaInicio
+      if (!fechaFin) return
+
+      const fecha = new Date(`${fechaFin}T00:00:00`)
+      const mesPermiso = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
+      if (mesPermiso > limite) limite.setTime(mesPermiso.getTime())
+    })
+
+  return limite
+})
+const puedeMesAnterior = computed(() => {
+  const mesAnterior = new Date(fechaActual.value.getFullYear(), fechaActual.value.getMonth() - 1, 1)
+  return mesAnterior >= limiteMesInicial.value
+})
+const puedeMesSiguiente = computed(() => {
+  const siguienteMes = new Date(fechaActual.value.getFullYear(), fechaActual.value.getMonth() + 1, 1)
+  return siguienteMes <= limiteMesCalendario.value
+})
 
 const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
@@ -155,10 +199,12 @@ const diasDelMes = computed(() => {
 })
 
 function mesAnterior() {
+  if (!puedeMesAnterior.value) return
   fechaActual.value = new Date(fechaActual.value.getFullYear(), fechaActual.value.getMonth() - 1, 1)
 }
 
 function mesSiguiente() {
+  if (!puedeMesSiguiente.value) return
   fechaActual.value = new Date(fechaActual.value.getFullYear(), fechaActual.value.getMonth() + 1, 1)
 }
 

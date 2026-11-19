@@ -53,16 +53,31 @@
                 <q-select v-model="filtros.controlaAsistencia" :options="asistenciaOptions" label="Control Asistencia" outlined dense clearable emit-value map-options class="filter-field" />
               </div>
               <div class="col-12 col-md-3">
-                <q-input v-model="filtros.fechaDesde" label="Fecha Inicio Desde" outlined dense type="date" class="filter-field" />
+                <q-input
+                  v-model="filtros.fechaDesde"
+                  label="Fecha Inicio Desde"
+                  outlined
+                  dense
+                  type="date"
+                  :max="filtros.fechaHasta || fechaHoy"
+                  :error="!!errorFechaInicioDesde"
+                  :error-message="errorFechaInicioDesde"
+                  class="filter-field"
+                />
               </div>
               <div class="col-12 col-md-3">
-                <q-input v-model="filtros.fechaHasta" label="Fecha Inicio Hasta" outlined dense type="date" class="filter-field" />
-              </div>
-              <div class="col-12 col-md-3">
-                <q-input v-model="filtros.fechaFinDesde" label="Fecha Fin Desde" outlined dense type="date" class="filter-field" />
-              </div>
-              <div class="col-12 col-md-3">
-                <q-input v-model="filtros.fechaFinHasta" label="Fecha Fin Hasta" outlined dense type="date" class="filter-field" />
+                <q-input
+                  v-model="filtros.fechaHasta"
+                  label="Fecha Inicio Hasta"
+                  outlined
+                  dense
+                  type="date"
+                  :min="filtros.fechaDesde || undefined"
+                  :max="fechaHoy"
+                  :error="!!errorFechaInicioHasta"
+                  :error-message="errorFechaInicioHasta"
+                  class="filter-field"
+                />
               </div>
               <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
                 <q-btn flat color="green-8" icon="clear" label="Limpiar" @click="limpiarFiltros" no-caps />
@@ -129,13 +144,34 @@ const filtros = reactive({
   tipoJornada: null,
   controlaAsistencia: null,
   fechaDesde: null,
-  fechaHasta: null,
-  fechaFinDesde: null,
-  fechaFinHasta: null
+  fechaHasta: null
+})
+
+const fechaHoy = new Date().toISOString().slice(0, 10)
+
+const errorFechaInicioDesde = computed(() => {
+  if (filtros.fechaDesde && filtros.fechaDesde > fechaHoy) {
+    return 'La fecha desde no puede ser posterior a hoy.'
+  }
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+    return 'La fecha desde no puede ser mayor que la fecha hasta.'
+  }
+  return ''
+})
+
+const errorFechaInicioHasta = computed(() => {
+  if (filtros.fechaHasta && filtros.fechaHasta > fechaHoy) {
+    return 'La fecha hasta no puede ser posterior a hoy.'
+  }
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaHasta < filtros.fechaDesde) {
+    return 'La fecha hasta no puede ser menor que la fecha desde.'
+  }
+  return ''
 })
 
 const estadoOptions = [
   { label: 'Activo', value: 'ACTIVO' },
+  { label: 'Pendiente', value: 'PENDIENTE' },
   { label: 'Vencido', value: 'VENCIDO' },
   { label: 'Finalizado', value: 'FINALIZADO' },
   { label: 'Suspendido', value: 'SUSPENDIDO' }
@@ -192,6 +228,10 @@ function onSearch(val) {
 }
 
 function aplicarFiltros() {
+  if (errorFechaInicioDesde.value || errorFechaInicioHasta.value) {
+    $q.notify({ type: 'negative', message: 'Corrija el rango de fechas de inicio.' })
+    return
+  }
   filtrosActivos.value = Object.values(filtros).some(v => v !== null && v !== undefined && v !== '')
   tableRef.value?.filtrar(filtros)
 }
@@ -203,8 +243,6 @@ function limpiarFiltros() {
   filtros.controlaAsistencia = null
   filtros.fechaDesde = null
   filtros.fechaHasta = null
-  filtros.fechaFinDesde = null
-  filtros.fechaFinHasta = null
   filtrosActivos.value = false
   tableRef.value?.filtrar(null)
 }
@@ -276,6 +314,10 @@ async function exportarPDFIndividual(row) {
 }
 
 function exportarPDF() {
+  if (errorFechaInicioDesde.value || errorFechaInicioHasta.value) {
+    $q.notify({ type: 'negative', message: 'Corrija el rango de fechas de inicio.' })
+    return
+  }
   const params = {}
   if (searchText.value) params.busqueda = searchText.value
   if (filtros.estado) params.estado = filtros.estado
@@ -284,8 +326,6 @@ function exportarPDF() {
   if (filtros.controlaAsistencia != null) params.controlaAsistencia = filtros.controlaAsistencia
   if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde
   if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta
-  if (filtros.fechaFinDesde) params.fechaFinDesde = filtros.fechaFinDesde
-  if (filtros.fechaFinHasta) params.fechaFinHasta = filtros.fechaFinHasta
   exportarContratosPDF(params)
     .then(blob => {
       const url = URL.createObjectURL(blob)
@@ -300,6 +340,10 @@ function exportarPDF() {
 }
 
 function exportarExcel() {
+  if (errorFechaInicioDesde.value || errorFechaInicioHasta.value) {
+    $q.notify({ type: 'negative', message: 'Corrija el rango de fechas de inicio.' })
+    return
+  }
   const params = {}
   if (searchText.value) params.busqueda = searchText.value
   if (filtros.estado) params.estado = filtros.estado
@@ -308,8 +352,6 @@ function exportarExcel() {
   if (filtros.controlaAsistencia != null) params.controlaAsistencia = filtros.controlaAsistencia
   if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde
   if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta
-  if (filtros.fechaFinDesde) params.fechaFinDesde = filtros.fechaFinDesde
-  if (filtros.fechaFinHasta) params.fechaFinHasta = filtros.fechaFinHasta
   exportarContratosExcel(params)
     .then(blob => {
       const url = URL.createObjectURL(blob)

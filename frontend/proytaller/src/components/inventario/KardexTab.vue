@@ -49,6 +49,9 @@
           type="date"
           class="col-12 col-sm-6 col-md-2"
           label="Desde"
+          :max="filtro.fechaHasta || fechaHoy"
+          :error="fechasInvalidas"
+          error-message="La fecha inicial debe ser válida y no superar la fecha final ni hoy."
         />
 
         <q-input
@@ -58,6 +61,10 @@
           type="date"
           class="col-12 col-sm-6 col-md-2"
           label="Hasta"
+          :min="filtro.fechaDesde || undefined"
+          :max="fechaHoy"
+          :error="fechasInvalidas"
+          error-message="La fecha final debe ser válida, no superar hoy y ser posterior a Desde."
         />
 
         <div class="col-12 col-md row q-gutter-sm justify-end">
@@ -67,6 +74,7 @@
             color="green-8"
             icon="filter_alt"
             label="Filtrar"
+            :disable="fechasInvalidas"
             @click="consultar"
           />
           <q-btn
@@ -83,6 +91,7 @@
             color="green-8"
             icon="picture_as_pdf"
             label="Descargar PDF"
+            :disable="fechasInvalidas"
             :loading="descargandoPdf"
             @click="descargarPdf"
           />
@@ -114,7 +123,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 import { descargarKardexPdf, listarKardex } from '../../api/kardex/kardex'
@@ -153,6 +162,12 @@ const filtro = reactive({
 })
 
 const aplicado = ref({ ...filtro })
+const fechaHoy = new Date().toLocaleDateString('en-CA')
+const fechasInvalidas = computed(() => Boolean(
+  (filtro.fechaDesde && filtro.fechaDesde > fechaHoy)
+  || (filtro.fechaHasta && filtro.fechaHasta > fechaHoy)
+  || (filtro.fechaDesde && filtro.fechaHasta && filtro.fechaDesde > filtro.fechaHasta)
+))
 const pagination = ref({
   page: 1,
   rowsPerPage: 8,
@@ -220,6 +235,7 @@ async function cargar({ pagination: pagina = pagination.value } = {}) {
 }
 
 function consultar() {
+  if (fechasInvalidas.value) return
   aplicado.value = { ...filtro }
   pagination.value.page = 1
   cargar({ pagination: pagination.value })

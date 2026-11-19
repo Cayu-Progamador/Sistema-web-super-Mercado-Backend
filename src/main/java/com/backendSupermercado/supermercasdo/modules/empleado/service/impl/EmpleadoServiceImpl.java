@@ -130,9 +130,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         Empleado empleado = new Empleado();
         empleado.setPersona(persona);
         empleado.setEstado(true);
-        if (dto.getFechaContratacion() != null && !dto.getFechaContratacion().isBlank()) {
-            empleado.setFechaContratacion(LocalDate.parse(dto.getFechaContratacion()));
-        }
+        empleado.setFechaContratacion(LocalDate.now());
         empleado = empleadoRepository.save(empleado);
 
         return toResponseDto(empleado, persona, contacto, direccion, sexo);

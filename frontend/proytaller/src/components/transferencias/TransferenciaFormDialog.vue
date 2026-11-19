@@ -220,15 +220,17 @@
               </div>
             </div>
           </div>
-          <q-input v-model="cantidadProducto" type="number" outlined label="Cantidad a transferir *" color="green-8"
+          <q-input v-model="cantidadProducto" type="text" inputmode="decimal" outlined label="Cantidad a transferir *" color="green-8"
             class="q-mt-md" :disable="!productoSeleccionado"
             :hint="productoSeleccionado ? `Disponible: ${productoSeleccionado.stock} ${productoSeleccionado.unidad}` : 'Selecciona primero un producto'"
             persistent-hint min="1" :max="productoSeleccionado?.stock" step="any"
+            @update:model-value="normalizarCantidad"
             :rules="[cantidadRequerida, cantidadPositiva, cantidadDisponible]" />
         </q-card-section>
         <q-card-actions align="right" class="dialog-footer q-pa-md">
           <q-btn flat no-caps color="green-8" label="Cancelar" @click="dialogProducto = false" />
-          <q-btn unelevated no-caps color="green-8" icon="add" label="Agregar producto" @click="agregarProducto" />
+          <q-btn unelevated no-caps color="green-8" icon="add" label="Agregar producto"
+            :disable="!puedeAgregarProducto" @click="agregarProducto" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -242,6 +244,12 @@ import { listarAlmacenes } from '../../api/almacen/almacen'
 import { listarProductosUbicacion, listarUbicacionesPaginado } from '../../api/ubicacionAlmacen/ubicacionAlmacen'
 const PasoHeader = defineComponent({ props: { icon: String, title: String, text: String }, setup: p => () => h('div', { class: 'paso-head' }, [h('span', { class: 'material-icons paso-icon' }, p.icon), h('div', [h('strong', p.title), h('small', p.text)])]) })
 const $q = useQuasar(); const props = defineProps({ modelValue: Boolean }); const emit = defineEmits(['update:modelValue', 'guardar']); const visible = computed({ get: () => props.modelValue, set: v => emit('update:modelValue', v) }); const paso = ref(1); const almacenes = ref([]); const ubicaciones = ref([]); const ubicacionesDestino = ref([]); const inventario = ref([]); const productosDisponibles = ref([]); const cargandoAlmacenes = ref(false); const cargandoUbicaciones = ref(false); const cargandoUbicacionesDestino = ref(false); const cargandoProductos = ref(false); const dialogProducto = ref(false); const productoSeleccionado = ref(null); const cantidadProducto = ref(null); const form = reactive({ origen: null, destino: null, ubicacionOrigen: null, ubicacionDestino: null, observacion: '', productos: [] }); const almacenesDestino = computed(() => almacenes.value.filter(a => a.value !== form.origen)); const cantidadesValidas = computed(() => form.productos.length > 0 && form.productos.every(p => Number(p.cantidad) > 0 && Number(p.cantidad) <= Number(p.stockDisponible))); const validacionItems = computed(() => [{ label: 'Almacén de origen seleccionado', ok: !!form.origen }, { label: 'Ubicación de origen seleccionada', ok: !!form.ubicacionOrigen }, { label: 'Almacén de destino seleccionado', ok: !!form.destino }, { label: 'Ubicación de destino seleccionada', ok: !!form.ubicacionDestino }, { label: 'Origen y destino son diferentes', ok: !!form.origen && !!form.destino && form.origen !== form.destino }, { label: 'Al menos un producto agregado', ok: form.productos.length > 0 }, { label: 'Cantidades válidas y dentro del stock disponible', ok: cantidadesValidas.value }]); const validacionOk = computed(() => validacionItems.value.every(item => item.ok))
+const puedeAgregarProducto = computed(() => {
+  const producto = productoSeleccionado.value
+  if (!producto || !cantidadValida(cantidadProducto.value)) return false
+  const existente = form.productos.find(item => item.id === producto.id)
+  return Number(existente?.cantidad || 0) + Number(cantidadProducto.value) <= Number(producto.stock)
+})
 function siguiente() { if (paso.value === 2 && (!form.origen || !form.ubicacionOrigen)) { $q.notify({ type: 'negative', message: 'Selecciona el almacén y la ubicación de origen.' }); return } if (paso.value === 3 && (!form.destino || form.origen === form.destino)) { $q.notify({ type: 'negative', message: 'Selecciona un destino diferente al origen.' }); return } if (paso.value === 4 && !form.productos.length) { $q.notify({ type: 'negative', message: 'Agrega al menos un producto.' }); return } paso.value++ }
 async function cargarAlmacenes() { cargandoAlmacenes.value = true; try { const r = await listarAlmacenes({ page: 0, size: 100, sortBy: 'nombre', sortDir: 'asc', estado: true }); almacenes.value = (r?.content || []).map(a => ({ label: a.nombre, value: a.idAlmacen })) } catch { almacenes.value = []; $q.notify({ type: 'negative', message: 'No se pudieron cargar los almacenes.' }) } finally { cargandoAlmacenes.value = false } }
 async function cargarUbicacionesOrigen(idAlmacen) { ubicaciones.value = []; inventario.value = []; form.ubicacionOrigen = null; form.productos = []; if (!idAlmacen) return; cargandoUbicaciones.value = true; try { const r = await listarUbicacionesPaginado({ idAlmacen: Number(idAlmacen), estado: true, page: 0, size: 100 }); ubicaciones.value = (r?.content || []).map(u => ({ label: `${u.codigo} · ${u.nombre}`, value: u.idUbicacion })) } catch { $q.notify({ type: 'negative', message: 'No se pudieron cargar las ubicaciones del almacén.' }) } finally { cargandoUbicaciones.value = false } }
@@ -249,6 +257,12 @@ async function cargarUbicacionesDestino(idAlmacen) { ubicacionesDestino.value = 
 async function cargarInventario(idUbicacion) { inventario.value = []; form.productos = []; if (!idUbicacion) return; cargandoProductos.value = true; try { const r = await listarProductosUbicacion(idUbicacion); inventario.value = (Array.isArray(r) ? r : []).filter(p => Number(p.cantidad) > 0).map((p, i) => ({ ...p, id: `${p.producto}-${p.lote || i}`, stock: Number(p.cantidad), label: `${p.producto} · ${p.lote || 'Sin lote'} · ${p.cantidad} ${p.unidad}` })); productosDisponibles.value = [...inventario.value] } catch { $q.notify({ type: 'negative', message: 'No se pudo cargar el inventario de la ubicación.' }) } finally { cargandoProductos.value = false } }
 function abrirSelectorProducto() { if (!inventario.value.length) { $q.notify({ type: 'warning', message: 'La ubicación seleccionada no tiene productos con stock disponible.' }); return } productoSeleccionado.value = null; cantidadProducto.value = null; productosDisponibles.value = [...inventario.value]; dialogProducto.value = true }
 function filtrarProductos(valor, actualizar) { actualizar(() => { const q = (valor || '').toLowerCase(); productosDisponibles.value = inventario.value.filter(p => p.label.toLowerCase().includes(q)) }) }
+function normalizarCantidad(valor) {
+  var texto = String(valor ?? '').replace(',', '.').replace(/[^0-9.]/g, '')
+  var punto = texto.indexOf('.')
+  if (punto !== -1) texto = texto.slice(0, punto + 1) + texto.slice(punto + 1).replace(/\./g, '')
+  cantidadProducto.value = texto
+}
 function cantidadValida(valor) { if (valor === null || valor === undefined || String(valor).trim() === '') return false; const texto = String(valor).trim(); if (!/^(?:\d+\.?\d*|\.\d+)$/.test(texto)) return false; const numero = Number(texto); return Number.isFinite(numero) && numero > 0 }
 function cantidadRequerida(v) { return cantidadValida(v) || 'Ingresa una cantidad válida.' } function cantidadPositiva(v) { return cantidadValida(v) || 'La cantidad debe ser mayor que cero.' } function cantidadDisponible(v) { const p = productoSeleccionado.value; if (!p || !cantidadValida(v)) return true; const existente = form.productos.find(x => x.id === p.id); return (Number(existente?.cantidad || 0) + Number(v)) <= Number(p.stock) || `No puedes superar el stock disponible (${p.stock} ${p.unidad}).` }
 function agregarProducto() { const p = productoSeleccionado.value; const texto = String(cantidadProducto.value ?? '').trim(); const cantidad = Number(texto); if (!p) { $q.notify({ type: 'negative', message: 'Selecciona un producto.' }); return } if (!cantidadValida(texto)) { $q.notify({ type: 'negative', message: 'La cantidad debe ser un número mayor que cero. No se permiten símbolos ni valores negativos.' }); return } const existente = form.productos.find(x => x.id === p.id); const acumulado = (existente?.cantidad || 0) + cantidad; if (acumulado > p.stock) { $q.notify({ type: 'negative', message: `La cantidad supera el stock disponible (${p.stock} ${p.unidad}).` }); return } if (existente) existente.cantidad = acumulado; else form.productos.push({ id: p.id, producto: p.producto, lote: p.lote || 'Sin lote', cantidad, unidad: p.unidad, stockDisponible: p.stock }); dialogProducto.value = false }

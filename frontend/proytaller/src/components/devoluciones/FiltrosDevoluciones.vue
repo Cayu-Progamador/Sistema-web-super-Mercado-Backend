@@ -41,6 +41,9 @@
           dense
           type="date"
           color="green-8"
+          :max="filtros.fechaHasta || hoy"
+          :error="!!errorFechaDesde"
+          :error-message="errorFechaDesde"
           class="dv-filter-field"
         />
       </div>
@@ -53,13 +56,17 @@
           dense
           type="date"
           color="green-8"
+          :min="filtros.fechaDesde || undefined"
+          :max="hoy"
+          :error="!!errorFechaHasta"
+          :error-message="errorFechaHasta"
           class="dv-filter-field"
         />
       </div>
 
       <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
         <q-btn flat color="green-8" icon="clear" label="Limpiar" no-caps @click="limpiar" />
-        <q-btn unelevated color="green-8" icon="search" label="Buscar" no-caps @click="aplicar" />
+        <q-btn unelevated color="green-8" icon="search" label="Buscar" no-caps :disable="rangoFechasInvalido" @click="aplicar" />
       </div>
     </div>
   </q-card>
@@ -90,7 +97,31 @@ const filtros = reactive({
   fechaHasta: null
 })
 
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (filtros.fechaDesde && filtros.fechaDesde > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+    return 'La fecha desde no puede ser mayor que la fecha hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (filtros.fechaHasta && filtros.fechaHasta > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaHasta < filtros.fechaDesde) {
+    return 'La fecha hasta no puede ser menor que la fecha desde.'
+  }
+  return ''
+})
+
+const rangoFechasInvalido = computed(() =>
+  !!errorFechaDesde.value || !!errorFechaHasta.value
+)
+
 function aplicar() {
+  if (rangoFechasInvalido.value) return
   emit('filtrar', { ...filtros })
 }
 

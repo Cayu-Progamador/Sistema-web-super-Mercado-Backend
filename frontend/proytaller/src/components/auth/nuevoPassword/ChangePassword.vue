@@ -50,16 +50,26 @@
                     @click="mostrar.nueva = !mostrar.nueva" />
                 </template>
               </q-input>
-              <span class="field-hint">Debe contener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y
-                símbolos.</span>
+              <span class="field-hint">Mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</span>
 
-              <!-- Fortaleza -->
-              <div class="fortaleza-wrap q-mt-sm">
-                <div class="fortaleza-label">Fortaleza de la contraseña:</div>
-                <div class="fortaleza-bars">
-                  <div v-for="i in 4" :key="i" class="fortaleza-bar" :class="getBarClass(i)"></div>
+              <!-- Fortaleza: mismo estilo que Registrar Usuario -->
+              <div v-if="form.nueva" class="q-mt-sm q-mb-sm">
+                <div class="row items-center justify-between q-mb-xs">
+                  <span class="text-caption text-grey-6">Fortaleza de la contraseña:</span>
+                  <span class="text-caption text-weight-bold" :style="{ color: fuerzaHex }">
+                    {{ fortalezaTexto }}
+                  </span>
                 </div>
-                <div class="fortaleza-text" :class="fortalezaColor">{{ fortalezaTexto }}</div>
+                <q-linear-progress :value="fuerzaValor" :color="fuerzaColorQuasar" rounded size="7px"
+                  class="strength-bar q-mb-sm" />
+                <div class="row q-gutter-xs">
+                  <q-chip v-for="req in requisitosFortaleza" :key="req.label" dense size="sm"
+                    :icon="req.cumple ? 'check_circle' : 'radio_button_unchecked'"
+                    :color="req.cumple ? 'positive' : 'grey-3'"
+                    :text-color="req.cumple ? 'white' : 'grey-6'" class="req-chip">
+                    {{ req.label }}
+                  </q-chip>
+                </div>
               </div>
             </div>
 
@@ -225,6 +235,20 @@ const fortalezaColor = computed(() => {
   return 'ft-verde'
 })
 
+const fuerzaValor = computed(() => fortaleza.value / 5)
+
+const fuerzaHex = computed(() => {
+  if (fortaleza.value <= 2) return '#e53935'
+  if (fortaleza.value === 3) return '#fb8c00'
+  return '#43a047'
+})
+
+const fuerzaColorQuasar = computed(() => {
+  if (fortaleza.value <= 2) return 'negative'
+  if (fortaleza.value === 3) return 'warning'
+  return 'positive'
+})
+
 const getBarClass = (i) => {
   if (fortaleza.value === 0) return ''
   if (fortaleza.value <= 1) return i <= 1 ? 'bar-rojo' : ''
@@ -239,6 +263,14 @@ const requisitos = computed(() => [
   { texto: 'Al menos una minúscula (a-z)', cumplido: /[a-z]/.test(form.nueva) },
   { texto: 'Al menos un número (0-9)', cumplido: /[0-9]/.test(form.nueva) },
   { texto: 'Al menos un carácter especial (!@#$%)', cumplido: /[!@#$%^&*]/.test(form.nueva) }
+])
+
+const requisitosFortaleza = computed(() => [
+  { label: '8 caracteres', cumple: form.nueva.length >= 8 },
+  { label: 'Mayúscula', cumple: /[A-Z]/.test(form.nueva) },
+  { label: 'Minúscula', cumple: /[a-z]/.test(form.nueva) },
+  { label: 'Número', cumple: /[0-9]/.test(form.nueva) },
+  { label: 'Especial', cumple: /[!@#$%^&*]/.test(form.nueva) }
 ])
 
 const resetForm = () => {

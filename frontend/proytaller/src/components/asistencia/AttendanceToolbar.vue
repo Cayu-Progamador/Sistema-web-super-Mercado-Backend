@@ -2,7 +2,7 @@
   <div class="row items-center q-gutter-sm q-mb-md">
     <q-btn dense flat round icon="chevron_left" size="md" class="date-nav-btn" @click="$emit('cambiar-fecha', -1)" />
     <div class="date-label text-center">{{ fechaFormateada }}</div>
-    <q-btn dense flat round icon="chevron_right" size="md" class="date-nav-btn" @click="$emit('cambiar-fecha', 1)" />
+    <q-btn dense flat round icon="chevron_right" size="md" class="date-nav-btn" :disable="!puedeAvanzar" @click="$emit('cambiar-fecha', 1)" />
     <q-btn flat dense no-caps icon="today" size="sm" class="date-nav-btn q-ml-xs" label="Hoy" @click="$emit('ir-hoy')" />
 
     <q-space />
@@ -53,7 +53,8 @@ import { ref } from 'vue'
 
 const props = defineProps({
   fechaFormateada: { type: String, default: '' },
-  filtrosVisibles: { type: Boolean, default: false }
+  filtrosVisibles: { type: Boolean, default: false },
+  puedeAvanzar: { type: Boolean, default: true }
 })
 
 defineEmits(['cambiar-fecha', 'ir-hoy', 'buscar', 'exportar-pdf', 'exportar-excel', 'actualizar', 'toggle-filtros', 'ver-ausentes'])

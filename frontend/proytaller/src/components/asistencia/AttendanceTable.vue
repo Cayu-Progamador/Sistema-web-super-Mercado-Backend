@@ -87,7 +87,7 @@
               <q-tooltip>{{ motivoNoJustificable(props.row) }}</q-tooltip>
             </q-btn>
             <q-btn v-permiso="'PANEL_ASISTENCIA_EDITAR'" flat round dense icon="edit" size="md" color="blue-7" @click="$emit('editar', props.row)">
-              <q-tooltip>{{ props.row.idAsistencia ? 'Editar registro' : 'Registrar asistencia' }}</q-tooltip>
+            <q-tooltip>{{ props.row.idAsistencia ? 'Editar asistencia' : 'Registrar asistencia manual' }}</q-tooltip>
             </q-btn>
             <q-btn flat round dense icon="download" size="md" color="teal" :disable="!props.row.idAsistencia"
               @click="$emit('descargar', props.row)">

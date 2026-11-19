@@ -1,6 +1,7 @@
 package com.backendSupermercado.supermercasdo.modules.proveedor.service.impl;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -288,6 +289,7 @@ public class ProveedorServiceImpl implements ProveedorService {
                 .orElseThrow(() -> new IllegalArgumentException("Sexo no encontrado"));
 
         LocalDate fechaNacimiento = parseFecha(dto.getFechaNacimiento());
+        validarFechaNacimientoProveedor(fechaNacimiento);
         if (fechaNacimiento.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
         }
@@ -404,6 +406,8 @@ public class ProveedorServiceImpl implements ProveedorService {
             throw new IllegalArgumentException("La fecha de nacimiento no es válida");
         }
 
+        validarFechaNacimientoProveedor(fechaNacimiento);
+
         Persona persona = new Persona();
         persona.setNombres(dto.getNombres().trim());
         persona.setApellidoPaterno(normalizar(dto.getApellidoPaterno()));
@@ -483,6 +487,21 @@ public class ProveedorServiceImpl implements ProveedorService {
             return LocalDate.parse(fecha.trim());
         } catch (Exception e) {
             throw new IllegalArgumentException("La fecha de nacimiento no es válida");
+        }
+    }
+
+    private void validarFechaNacimientoProveedor(LocalDate fechaNacimiento) {
+        LocalDate hoy = LocalDate.now();
+        if (fechaNacimiento.isAfter(hoy)) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
+        }
+
+        int edad = Period.between(fechaNacimiento, hoy).getYears();
+        if (edad < 18) {
+            throw new IllegalArgumentException("El proveedor debe tener al menos 18 años");
+        }
+        if (edad > 110) {
+            throw new IllegalArgumentException("La edad del proveedor no puede ser mayor a 110 años");
         }
     }
 

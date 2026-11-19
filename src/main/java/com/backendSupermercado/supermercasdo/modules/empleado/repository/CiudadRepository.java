@@ -1,6 +1,7 @@
 package com.backendSupermercado.supermercasdo.modules.empleado.repository;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,5 @@ public interface CiudadRepository extends JpaRepository<Ciudad, Long> {
     Optional<Ciudad> findByNombreAndDepartamento(String nombre, DepartamentoGeografico departamento);
     Optional<Ciudad> findByNombreIgnoreCase(String nombre);
     Optional<Ciudad> findFirstByNombreIgnoreCase(String nombre);
+    List<Ciudad> findByDepartamentoIdDepartamentoOrderByNombreAsc(Long idDepartamento);
 }

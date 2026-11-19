@@ -19,6 +19,7 @@
     <AttendanceToolbar
       :fecha-formateada="fechaFormateada"
       :filtros-visibles="showFilters"
+      :puede-avanzar="puedeAvanzarFecha"
       @cambiar-fecha="cambiarFecha"
       @ir-hoy="irHoy"
       @buscar="onBuscar"
@@ -71,6 +72,7 @@
       :mes="ausentesMes"
       :anio="ausentesAnio"
       :modo="ausentesModo"
+      :puede-avanzar="puedeAvanzarMesAusentes"
       @cambiar-mes="onCambiarMesAusentes"
       @ir-hoy="abrirAusentes"
     />
@@ -153,6 +155,13 @@ const fechaFormateada = computed(() => {
   }).replace(/^\w/, c => c.toUpperCase())
 })
 
+const puedeAvanzarFecha = computed(() => fmtDate(selectedDate.value) < fmtDate(new Date()))
+const puedeAvanzarMesAusentes = computed(() => {
+  const hoy = new Date()
+  return ausentesAnio.value < hoy.getFullYear() ||
+    (ausentesAnio.value === hoy.getFullYear() && ausentesMes.value < hoy.getMonth() + 1)
+})
+
 function fmtDate(d) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -178,13 +187,19 @@ async function cargarTabla() {
   tableLoading.value = true
   try {
     const { page, rowsPerPage, sortBy, descending } = tablePagination.value
+    const tieneRangoFechas = !!(filtrosActivos.value.fechaDesde || filtrosActivos.value.fechaHasta)
     const params = {
       page: page - 1,
       size: rowsPerPage,
       sortBy,
-      sortDir: descending ? 'desc' : 'asc',
-      fechaDesde: fmtDate(selectedDate.value),
-      fechaHasta: fmtDate(selectedDate.value)
+      sortDir: descending ? 'desc' : 'asc'
+    }
+    if (tieneRangoFechas) {
+      if (filtrosActivos.value.fechaDesde) params.fechaDesde = filtrosActivos.value.fechaDesde
+      if (filtrosActivos.value.fechaHasta) params.fechaHasta = filtrosActivos.value.fechaHasta
+    } else {
+      params.fechaDesde = fmtDate(selectedDate.value)
+      params.fechaHasta = fmtDate(selectedDate.value)
     }
     if (busqueda.value?.trim()) {
       params.busqueda = busqueda.value.trim()
@@ -216,6 +231,7 @@ async function cargarTabla() {
 function cambiarFecha(delta) {
   const d = new Date(selectedDate.value)
   d.setDate(d.getDate() + delta)
+  if (fmtDate(d) > fmtDate(new Date())) return
   selectedDate.value = d
   cargarTabla()
 }
@@ -281,14 +297,27 @@ function abrirAusentes() {
 
 function onCambiarMesAusentes(delta, mes, anio) {
   ausentesModo.value = 'mes'
+  let nuevoMes = ausentesMes.value
+  let nuevoAnio = ausentesAnio.value
+
   if (delta !== 0) {
-    ausentesMes.value += delta
-    if (ausentesMes.value > 12) { ausentesMes.value = 1; ausentesAnio.value++ }
-    if (ausentesMes.value < 1) { ausentesMes.value = 12; ausentesAnio.value-- }
+    nuevoMes += delta
+    if (nuevoMes > 12) { nuevoMes = 1; nuevoAnio++ }
+    if (nuevoMes < 1) { nuevoMes = 12; nuevoAnio-- }
   } else {
-    ausentesMes.value = mes
-    ausentesAnio.value = anio
+    nuevoMes = mes
+    nuevoAnio = anio
   }
+
+  const hoy = new Date()
+  if (nuevoAnio > hoy.getFullYear() ||
+      (nuevoAnio === hoy.getFullYear() && nuevoMes > hoy.getMonth() + 1)) {
+    $q.notify({ type: 'negative', message: 'No se permiten consultas de meses futuros.' })
+    return
+  }
+
+  ausentesMes.value = nuevoMes
+  ausentesAnio.value = nuevoAnio
   cargarAusentes()
 }
 
@@ -355,11 +384,17 @@ function descargarArchivo(res, nombre) {
 }
 
 function exportarPDF() {
+  const tieneRangoFechas = !!(filtrosActivos.value.fechaDesde || filtrosActivos.value.fechaHasta)
   const params = {
-    fechaDesde: fmtDate(selectedDate.value),
-    fechaHasta: fmtDate(selectedDate.value),
     sortBy: tablePagination.value.sortBy || 'fecha',
     sortDir: tablePagination.value.descending ? 'desc' : 'asc'
+  }
+  if (tieneRangoFechas) {
+    if (filtrosActivos.value.fechaDesde) params.fechaDesde = filtrosActivos.value.fechaDesde
+    if (filtrosActivos.value.fechaHasta) params.fechaHasta = filtrosActivos.value.fechaHasta
+  } else {
+    params.fechaDesde = fmtDate(selectedDate.value)
+    params.fechaHasta = fmtDate(selectedDate.value)
   }
   if (busqueda.value?.trim()) params.busqueda = busqueda.value.trim()
   if (filtrosActivos.value.estado) params.estado = filtrosActivos.value.estado
@@ -369,11 +404,17 @@ function exportarPDF() {
 }
 
 function exportarExcel() {
+  const tieneRangoFechas = !!(filtrosActivos.value.fechaDesde || filtrosActivos.value.fechaHasta)
   const params = {
-    fechaDesde: fmtDate(selectedDate.value),
-    fechaHasta: fmtDate(selectedDate.value),
     sortBy: tablePagination.value.sortBy || 'fecha',
     sortDir: tablePagination.value.descending ? 'desc' : 'asc'
+  }
+  if (tieneRangoFechas) {
+    if (filtrosActivos.value.fechaDesde) params.fechaDesde = filtrosActivos.value.fechaDesde
+    if (filtrosActivos.value.fechaHasta) params.fechaHasta = filtrosActivos.value.fechaHasta
+  } else {
+    params.fechaDesde = fmtDate(selectedDate.value)
+    params.fechaHasta = fmtDate(selectedDate.value)
   }
   if (busqueda.value?.trim()) params.busqueda = busqueda.value.trim()
   if (filtrosActivos.value.estado) params.estado = filtrosActivos.value.estado

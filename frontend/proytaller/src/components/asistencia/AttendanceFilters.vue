@@ -29,9 +29,36 @@
               map-options
             />
           </div>
-          <div class="col-12 col-md-3 row q-gutter-sm justify-end">
+          <div class="col-12 col-md-3">
+            <q-input
+              v-model="filtros.fechaDesde"
+              type="date"
+              label="Fecha Desde"
+              outlined
+              dense
+              :max="filtros.fechaHasta || fechaHoy"
+              :error="!!errorFechaDesde"
+              :error-message="errorFechaDesde"
+              class="filter-field"
+            />
+          </div>
+          <div class="col-12 col-md-3">
+            <q-input
+              v-model="filtros.fechaHasta"
+              type="date"
+              label="Fecha Hasta"
+              outlined
+              dense
+              :min="filtros.fechaDesde || undefined"
+              :max="fechaHoy"
+              :error="!!errorFechaHasta"
+              :error-message="errorFechaHasta"
+              class="filter-field"
+            />
+          </div>
+          <div class="col-12 row q-gutter-sm justify-end">
             <q-btn flat no-caps color="teal-9" icon="clear" label="Limpiar" @click="limpiar" />
-            <q-btn unelevated no-caps color="teal-9" icon="search" label="Buscar" @click="$emit('aplicar-filtros', { ...filtros })" />
+            <q-btn unelevated no-caps color="teal-9" icon="search" label="Buscar" :disable="rangoFechasInvalido" @click="buscar" />
           </div>
         </div>
       </q-card>
@@ -40,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { obtenerFiltrosAsistencia } from '../../api/asistencia/asistencia'
 
 defineProps({
@@ -51,8 +78,37 @@ const emit = defineEmits(['aplicar-filtros'])
 
 const filtros = reactive({
   turno: null,
-  estado: null
+  estado: null,
+  fechaDesde: null,
+  fechaHasta: null
 })
+
+const fechaActual = new Date()
+const fechaHoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (filtros.fechaDesde && filtros.fechaDesde > fechaHoy) {
+    return 'No se permiten fechas posteriores a hoy.'
+  }
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+    return 'La fecha desde no puede ser mayor que la fecha hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (filtros.fechaHasta && filtros.fechaHasta > fechaHoy) {
+    return 'No se permiten fechas posteriores a hoy.'
+  }
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaHasta < filtros.fechaDesde) {
+    return 'La fecha hasta no puede ser menor que la fecha desde.'
+  }
+  return ''
+})
+
+const rangoFechasInvalido = computed(() =>
+  !!errorFechaDesde.value || !!errorFechaHasta.value
+)
 
 const turnoOptions = ref([])
 const estadoOptions = ref([])
@@ -74,6 +130,13 @@ async function cargarOpciones() {
 function limpiar() {
   filtros.turno = null
   filtros.estado = null
+  filtros.fechaDesde = null
+  filtros.fechaHasta = null
+  emit('aplicar-filtros', { ...filtros })
+}
+
+function buscar() {
+  if (rangoFechasInvalido.value) return
   emit('aplicar-filtros', { ...filtros })
 }
 

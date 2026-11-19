@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,16 +66,31 @@ public class ContratoServiceImpl implements ContratoService {
 
     @Transactional
     public void actualizarVencidos() {
-        List<Contrato> vencidos = contratoRepository.findAll(
-                Specification.where(ContratoSpecification.estadoEqual("ACTIVO"))
-                        .and(ContratoSpecification.fechaFinVencido())
-        );
-        for (Contrato c : vencidos) {
-            c.setEstado("VENCIDO");
+        LocalDate hoy = LocalDate.now();
+        List<Contrato> contratosActualizados = new ArrayList<>();
+
+        for (Contrato contrato : contratoRepository.findAll()) {
+            if ("PENDIENTE".equals(contrato.getEstado())
+                    && contrato.getFechaInicio() != null
+                    && !contrato.getFechaInicio().isAfter(hoy)) {
+                contrato.setEstado("ACTIVO");
+                contratosActualizados.add(contrato);
+            }
+            if ("ACTIVO".equals(contrato.getEstado())
+                    && contrato.getFechaFin() != null
+                    && contrato.getFechaFin().isBefore(hoy)) {
+                contrato.setEstado("VENCIDO");
+                contratosActualizados.add(contrato);
+            }
         }
-        if (!vencidos.isEmpty()) {
-            contratoRepository.saveAll(vencidos);
+        if (!contratosActualizados.isEmpty()) {
+            contratoRepository.saveAll(contratosActualizados);
         }
+    }
+
+    @Scheduled(cron = "0 5 0 * * *")
+    public void actualizarEstadosProgramados() {
+        actualizarVencidos();
     }
 
     @Override
@@ -139,6 +155,13 @@ public class ContratoServiceImpl implements ContratoService {
                 .orElseThrow(() -> new EntityNotFoundException("Tipo de jornada no encontrado con id: " + dto.getTipoJornadaId()));
 
         LocalDate fechaInicio = LocalDate.parse(dto.getFechaInicio());
+        if (fechaInicio.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a la fecha actual");
+        }
+        if (empleado.getFechaContratacion() != null
+                && fechaInicio.isBefore(empleado.getFechaContratacion())) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser anterior a la fecha de contratación");
+        }
         LocalDate fechaFin = null;
         if (dto.getFechaFin() != null && !dto.getFechaFin().isBlank()) {
             fechaFin = LocalDate.parse(dto.getFechaFin());
@@ -152,6 +175,8 @@ public class ContratoServiceImpl implements ContratoService {
             throw new IllegalArgumentException("Estado inválido: " + dto.getEstado() + ". Valores permitidos: ACTIVO, SUSPENDIDO");
         }
 
+        estadoValido = fechaInicio.isAfter(LocalDate.now()) ? "PENDIENTE" : "ACTIVO";
+
         Boolean controlaAsistencia = dto.getControlaAsistencia() != null ? dto.getControlaAsistencia() : true;
 
         if (Boolean.TRUE.equals(controlaAsistencia)) {
@@ -161,6 +186,10 @@ public class ContratoServiceImpl implements ContratoService {
             if (dto.getHorasSemana() == null || dto.getHorasSemana() < 1) {
                 throw new IllegalArgumentException("Si controla asistencia, las horas por semana son obligatorias (mínimo 1)");
             }
+        }
+
+        if (Boolean.TRUE.equals(controlaAsistencia)) {
+            validarTurnoAsistencia(dto.getContratoTurno());
         }
 
         validarSueldoBase(dto.getSueldoBase());
@@ -242,13 +271,65 @@ public class ContratoServiceImpl implements ContratoService {
 
         validarSueldoBase(dto.getSueldoBase());
 
+        Boolean controlaAsistencia = dto.getControlaAsistencia() != null
+                ? dto.getControlaAsistencia()
+                : false;
+
+        if (Boolean.TRUE.equals(controlaAsistencia)) {
+            if (dto.getHorasDia() == null || dto.getHorasDia() < 1 || dto.getHorasDia() > 24) {
+                throw new IllegalArgumentException("Las horas por día deben estar entre 1 y 24");
+            }
+            if (dto.getHorasSemana() == null || dto.getHorasSemana() < 1) {
+                throw new IllegalArgumentException("Las horas por semana son obligatorias");
+            }
+        }
+
+        if (Boolean.TRUE.equals(controlaAsistencia)) {
+            validarTurnoAsistencia(dto.getContratoTurno());
+        }
+
+        if (dto.getToleranciaMinutos() != null
+                && (dto.getToleranciaMinutos() < 0 || dto.getToleranciaMinutos() > 30)) {
+            throw new IllegalArgumentException("La tolerancia debe estar entre 0 y 30 minutos");
+        }
+
+        TipoPago tipoPago = null;
+        if (dto.getTipoPagoId() != null) {
+            tipoPago = tipoPagoRepository.findById(dto.getTipoPagoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Tipo de pago no encontrado con id: " + dto.getTipoPagoId()));
+        }
+
         contrato.setCargo(cargo);
         contrato.setTipoContrato(tipoContrato);
         contrato.setTipoJornada(tipoJornada);
         contrato.setFechaInicio(fechaInicio);
         contrato.setFechaFin(fechaFin);
         contrato.setSueldoBase(dto.getSueldoBase());
+        contrato.setHorasDia(controlaAsistencia ? dto.getHorasDia() : null);
+        contrato.setHorasSemana(controlaAsistencia ? dto.getHorasSemana() : null);
+        contrato.setControlaAsistencia(controlaAsistencia);
+        contrato.setToleranciaMinutos(dto.getToleranciaMinutos());
         contrato.setObservaciones(dto.getObservaciones());
+        contrato.setTipoPago(tipoPago);
+
+        contrato.getContratoTurnos().clear();
+        if (Boolean.TRUE.equals(controlaAsistencia) && dto.getContratoTurno() != null) {
+            ContratoTurnoRequestDto turnoDto = dto.getContratoTurno();
+            Turno turno = turnoRepository.findById(turnoDto.getTurnoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Turno no encontrado con id: " + turnoDto.getTurnoId()));
+
+            ContratoTurno contratoTurno = new ContratoTurno();
+            contratoTurno.setContrato(contrato);
+            contratoTurno.setTurno(turno);
+            contratoTurno.setLunes(Boolean.TRUE.equals(turnoDto.getLunes()));
+            contratoTurno.setMartes(Boolean.TRUE.equals(turnoDto.getMartes()));
+            contratoTurno.setMiercoles(Boolean.TRUE.equals(turnoDto.getMiercoles()));
+            contratoTurno.setJueves(Boolean.TRUE.equals(turnoDto.getJueves()));
+            contratoTurno.setViernes(Boolean.TRUE.equals(turnoDto.getViernes()));
+            contratoTurno.setSabado(Boolean.TRUE.equals(turnoDto.getSabado()));
+            contratoTurno.setDomingo(Boolean.TRUE.equals(turnoDto.getDomingo()));
+            contrato.getContratoTurnos().add(contratoTurno);
+        }
 
         if ("ACTIVO".equals(contrato.getEstado())
                 && contrato.getFechaFin() != null
@@ -442,6 +523,24 @@ public class ContratoServiceImpl implements ContratoService {
         return toListadoDto(contrato);
     }
 
+    private void validarTurnoAsistencia(ContratoTurnoRequestDto turnoDto) {
+        if (turnoDto == null || turnoDto.getTurnoId() == null) {
+            throw new IllegalArgumentException("Si controla asistencia, debe seleccionar un turno");
+        }
+
+        boolean tieneDiaLaboral = Boolean.TRUE.equals(turnoDto.getLunes())
+                || Boolean.TRUE.equals(turnoDto.getMartes())
+                || Boolean.TRUE.equals(turnoDto.getMiercoles())
+                || Boolean.TRUE.equals(turnoDto.getJueves())
+                || Boolean.TRUE.equals(turnoDto.getViernes())
+                || Boolean.TRUE.equals(turnoDto.getSabado())
+                || Boolean.TRUE.equals(turnoDto.getDomingo());
+
+        if (!tieneDiaLaboral) {
+            throw new IllegalArgumentException("Seleccione al menos un día laboral");
+        }
+    }
+
     private void validarCamposRequeridos(ContratoRequestDto dto) {
         if (dto.getEmpleadoId() == null) {
             throw new IllegalArgumentException("El empleado es obligatorio");
@@ -505,6 +604,19 @@ public class ContratoServiceImpl implements ContratoService {
         dto.setHorasSemana(contrato.getHorasSemana());
         dto.setControlaAsistencia(contrato.getControlaAsistencia());
         dto.setToleranciaMinutos(contrato.getToleranciaMinutos());
+
+        if (contrato.getContratoTurnos() != null && !contrato.getContratoTurnos().isEmpty()) {
+            ContratoTurno turnoContrato = contrato.getContratoTurnos().get(0);
+            dto.setTurnoId(turnoContrato.getTurno() != null ? turnoContrato.getTurno().getId() : null);
+            dto.setLunes(turnoContrato.getLunes());
+            dto.setMartes(turnoContrato.getMartes());
+            dto.setMiercoles(turnoContrato.getMiercoles());
+            dto.setJueves(turnoContrato.getJueves());
+            dto.setViernes(turnoContrato.getViernes());
+            dto.setSabado(turnoContrato.getSabado());
+            dto.setDomingo(turnoContrato.getDomingo());
+        }
+
         dto.setEstado(contrato.getEstado());
         dto.setFechaInicio(contrato.getFechaInicio());
         dto.setFechaFin(contrato.getFechaFin());

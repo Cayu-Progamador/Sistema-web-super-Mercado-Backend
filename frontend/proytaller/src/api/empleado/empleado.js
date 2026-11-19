@@ -1,5 +1,17 @@
 import request from '../../util/request'
 
+export function listarPaises() {
+    return request({ url: '/api/ubicaciones/paises', method: 'get' })
+}
+
+export function listarDepartamentos(idPais) {
+    return request({ url: `/api/ubicaciones/paises/${idPais}/departamentos`, method: 'get' })
+}
+
+export function listarCiudadesPorDepartamento(idDepartamento) {
+    return request({ url: `/api/ubicaciones/departamentos/${idDepartamento}/ciudades`, method: 'get' })
+}
+
 export function getDashboardEmpleados() {
     return request({
         url: '/api/empleados/estadisticas',

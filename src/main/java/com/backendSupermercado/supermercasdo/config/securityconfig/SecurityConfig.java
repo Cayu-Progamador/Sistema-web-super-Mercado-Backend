@@ -36,7 +36,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/permisos-sistema/mis-permisos").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/configuracion-correo").hasAuthority("ROLE_ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/api/configuracion-correo").hasAuthority("ROLE_ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/configuracion-empresa").hasAuthority("ROLE_ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/configuracion-empresa").permitAll()
                     .requestMatchers(HttpMethod.PUT, "/api/configuracion-empresa").hasAuthority("ROLE_ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/asistencias/hoy", "/api/asistencias/mis-asistencias", "/api/asistencias/mi-resumen", "/api/asistencias/mis-ausencias", "/api/asistencias/tiene-acceso", "/api/asistencias/descargar-reporte").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/asistencias/marcar", "/api/asistencias/justificar").authenticated()
@@ -50,6 +50,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, "/api/solicitudes-permiso/*/revisar").hasAnyAuthority("ROLE_ADMIN", "ADMIN_PERMISOS_EDITAR")
                     .requestMatchers(HttpMethod.PUT, "/api/solicitudes-permiso/*/aprobar", "/api/solicitudes-permiso/*/rechazar").hasAnyAuthority("ROLE_ADMIN", "ADMIN_PERMISOS_APROBAR")
                     // Lectura de módulos
+                    .requestMatchers(HttpMethod.GET, "/api/reportes/ventas/**").hasAnyAuthority("ROLE_ADMIN", "HISTORIAL_VENTAS_VER")
                     .requestMatchers(HttpMethod.GET, "/api/ventas/catalogo").hasAnyAuthority("ROLE_ADMIN", "NUEVA_VENTA_VER", "NUEVA_VENTA_CREAR")
                     .requestMatchers(HttpMethod.GET, "/api/ventas/**").hasAnyAuthority("ROLE_ADMIN", "HISTORIAL_VENTAS_VER")
                     .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAnyAuthority("ROLE_ADMIN", "CLIENTES_VER")

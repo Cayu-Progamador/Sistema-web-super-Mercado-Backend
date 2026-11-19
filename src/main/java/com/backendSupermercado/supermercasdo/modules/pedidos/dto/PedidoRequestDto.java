@@ -22,6 +22,7 @@ public class PedidoRequestDto {
     @NotNull(message = "El proveedor es obligatorio")
     private Long idProveedor;
 
+    @NotNull(message = "La fecha estimada de entrega es obligatoria")
     private LocalDate fechaEntregaEstimada;
 
     @Size(max = 1000, message = "La observación no puede exceder 1000 caracteres")

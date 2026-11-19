@@ -24,10 +24,12 @@
             <div class="col-12 col-md-4">
               <div class="row q-col-gutter-sm">
                 <div class="col-6">
-                  <q-input v-model="filtros.fechaDesde" label="Fecha Desde" outlined dense type="date" class="filter-field" clearable />
+                  <q-input v-model="filtros.fechaDesde" label="Fecha Desde" outlined dense type="date" class="filter-field" clearable
+                    :max="filtros.fechaHasta || hoy" :error="!!errorFechaDesde" :error-message="errorFechaDesde" />
                 </div>
                 <div class="col-6">
-                  <q-input v-model="filtros.fechaHasta" label="Fecha Hasta" outlined dense type="date" class="filter-field" clearable />
+                  <q-input v-model="filtros.fechaHasta" label="Fecha Hasta" outlined dense type="date" class="filter-field" clearable
+                    :min="filtros.fechaDesde || undefined" :max="hoy" :error="!!errorFechaHasta" :error-message="errorFechaHasta" />
                 </div>
               </div>
             </div>
@@ -57,6 +59,25 @@ const filtros = ref({
   activo: null,
   fechaDesde: null,
   fechaHasta: null
+})
+
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (filtros.value.fechaDesde && filtros.value.fechaDesde > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.value.fechaDesde && filtros.value.fechaHasta && filtros.value.fechaDesde > filtros.value.fechaHasta) {
+    return 'La fecha desde no puede ser posterior a hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (filtros.value.fechaHasta && filtros.value.fechaHasta > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.value.fechaDesde && filtros.value.fechaHasta && filtros.value.fechaDesde > filtros.value.fechaHasta) {
+    return 'La fecha hasta debe ser igual o posterior a desde.'
+  }
+  return ''
 })
 
 const estadoOptions = [
@@ -92,6 +113,8 @@ const cargarRoles = async () => {
 }
 
 const buscar = () => {
+  if (errorFechaDesde.value || errorFechaHasta.value) return
+
   const params = {}
   if (filtros.value.busqueda?.trim()) params.busqueda = filtros.value.busqueda.trim()
   if (filtros.value.rol) params.rol = filtros.value.rol

@@ -271,7 +271,10 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     private void validarFechaEntrega(LocalDate fechaEntregaEstimada) {
-        if (fechaEntregaEstimada != null && fechaEntregaEstimada.isBefore(LocalDate.now())) {
+        if (fechaEntregaEstimada == null) {
+            throw new IllegalArgumentException("La fecha de entrega estimada es obligatoria");
+        }
+        if (fechaEntregaEstimada.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("La fecha de entrega estimada no puede ser anterior a hoy");
         }
     }

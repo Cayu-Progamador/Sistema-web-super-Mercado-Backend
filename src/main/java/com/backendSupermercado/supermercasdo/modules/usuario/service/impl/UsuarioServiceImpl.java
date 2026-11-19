@@ -295,6 +295,11 @@ public class UsuarioServiceImpl implements UsuarioService {
             return;
         }
 
+        if (passwordEncoder.matches(dto.getPassword(), usuario.getPassword())) {
+            throw new ResourceConflictException(
+                    "La nueva contraseña no puede ser igual a la actual");
+        }
+
         usuario.setPassword(
                 passwordEncoder.encode(dto.getPassword()));
 

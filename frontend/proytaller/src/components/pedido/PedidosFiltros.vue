@@ -34,16 +34,39 @@
       </div>
 
       <div class="col-12 col-md-3">
-        <q-input v-model="filtros.fechaDesde" label="Fecha desde" outlined dense type="date" color="green-8" class="filter-field" />
+        <q-input
+          v-model="filtros.fechaDesde"
+          label="Fecha desde"
+          outlined
+          dense
+          type="date"
+          color="green-8"
+          :max="filtros.fechaHasta || hoy"
+          :error="!!errorFechaDesde"
+          :error-message="errorFechaDesde"
+          class="filter-field"
+        />
       </div>
 
       <div class="col-12 col-md-3">
-        <q-input v-model="filtros.fechaHasta" label="Fecha hasta" outlined dense type="date" color="green-8" class="filter-field" />
+        <q-input
+          v-model="filtros.fechaHasta"
+          label="Fecha hasta"
+          outlined
+          dense
+          type="date"
+          color="green-8"
+          :min="filtros.fechaDesde || undefined"
+          :max="hoy"
+          :error="!!errorFechaHasta"
+          :error-message="errorFechaHasta"
+          class="filter-field"
+        />
       </div>
 
       <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
         <q-btn flat color="green-8" icon="clear" label="Limpiar" @click="limpiar" no-caps />
-        <q-btn unelevated color="green-8" icon="search" label="Buscar" @click="aplicar" no-caps />
+        <q-btn unelevated color="green-8" icon="search" label="Buscar" :disable="rangoFechasInvalido" @click="aplicar" no-caps />
       </div>
     </div>
   </q-card>
@@ -76,6 +99,29 @@ const filtros = reactive({
   fechaHasta: null
 })
 
+const fechaActual = new Date()
+const hoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const errorFechaDesde = computed(() => {
+  if (filtros.fechaDesde && filtros.fechaDesde > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde > filtros.fechaHasta) {
+    return 'La fecha desde no puede ser mayor que la fecha hasta.'
+  }
+  return ''
+})
+
+const errorFechaHasta = computed(() => {
+  if (filtros.fechaHasta && filtros.fechaHasta > hoy) return 'No puede seleccionar una fecha futura.'
+  if (filtros.fechaDesde && filtros.fechaHasta && filtros.fechaHasta < filtros.fechaDesde) {
+    return 'La fecha hasta no puede ser menor que la fecha desde.'
+  }
+  return ''
+})
+
+const rangoFechasInvalido = computed(() =>
+  !!errorFechaDesde.value || !!errorFechaHasta.value
+)
+
 onMounted(async () => {
   try {
     estados.value = await listarEstados()
@@ -85,6 +131,7 @@ onMounted(async () => {
 })
 
 function aplicar() {
+  if (rangoFechasInvalido.value) return
   emit('filtrar', { ...filtros })
 }
 

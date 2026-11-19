@@ -54,7 +54,16 @@
               />
             </div>
             <div class="col-12 col-md-6">
-              <q-input v-model="form.fechaEntregaEstimada" label="Fecha estimada de entrega" type="date" outlined dense color="green-7" />
+              <q-input
+                v-model="form.fechaEntregaEstimada"
+                label="Fecha estimada de entrega *"
+                type="date"
+                outlined
+                dense
+                color="green-7"
+                :min="fechaHoy"
+                :rules="[fechaEntregaValida]"
+              />
             </div>
             <div class="col-12">
               <q-input v-model="form.observacion" label="Observación" type="textarea" outlined dense color="green-7" placeholder="Entregar productos en buen estado." autogrow />
@@ -494,6 +503,15 @@ const form = reactive({
   detalles: []
 })
 
+const fechaActual = new Date()
+const fechaHoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const fechaEntregaValida = valor => {
+  if (!valor) return 'La fecha estimada de entrega es obligatoria.'
+  if (valor < fechaHoy) return 'La fecha estimada de entrega no puede ser anterior a hoy.'
+  return true
+}
+
 const visible = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
@@ -646,7 +664,7 @@ const resumenCantidades = computed(() => {
 })
 
 const paso1Valido = computed(() => {
-  return !!form.idProveedor
+  return !!form.idProveedor && fechaEntregaValida(form.fechaEntregaEstimada) === true
 })
 
 const paso2Valido = computed(() => {
@@ -669,6 +687,10 @@ function formatFecha(fecha) {
 function validarPaso1() {
   if (!form.idProveedor) {
     $q.notify({ type: 'warning', message: 'Seleccione un proveedor.', position: 'top' })
+    return
+  }
+  if (fechaEntregaValida(form.fechaEntregaEstimada) !== true) {
+    $q.notify({ type: 'warning', message: fechaEntregaValida(form.fechaEntregaEstimada), position: 'top' })
     return
   }
   stepperRef.value.next()

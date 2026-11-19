@@ -31,10 +31,10 @@
           class="q-mt-sm"
         >
           <q-tab name="empleado" icon="person" label="Empleado" />
-          <q-tab name="contrato" icon="description" label="Contrato" />
-          <q-tab name="salario" icon="payments" label="Salario" />
-          <q-tab name="asistencia" icon="fingerprint" label="Control Asistencia" />
-          <q-tab name="horario" icon="schedule" label="Horario" />
+          <q-tab name="contrato" icon="description" label="Contrato" :disable="!empleadoValido" />
+          <q-tab name="salario" icon="payments" label="Salario" :disable="!contratoValido" />
+          <q-tab name="asistencia" icon="fingerprint" label="Control Asistencia" :disable="!salarioValido" />
+          <q-tab name="horario" icon="schedule" label="Horario" :disable="!asistenciaValida" />
         </q-tabs>
       </q-card-section>
 
@@ -98,10 +98,30 @@
                 <q-select v-model="form.tipoJornada" :options="tipoJornadaOptions" label="Tipo Jornada *" outlined emit-value map-options color="green-8" :rules="[v => !!v || 'Seleccione jornada']" class="q-mb-md field-green" />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.fechaInicio" label="Fecha Inicio *" outlined type="date" color="green-8" :rules="[v => !!v || 'Requerido']" class="q-mb-md field-green" />
+                <q-input
+                  v-model="form.fechaInicio"
+                  label="Fecha Inicio *"
+                  outlined
+                  type="date"
+                  color="green-8"
+                  :min="esEditar ? undefined : fechaHoy"
+                  :rules="[fechaInicioValida]"
+                  class="q-mb-md field-green"
+                />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.fechaFin" label="Fecha Fin" outlined type="date" color="green-8" :disable="esIndefinido" :hint="esIndefinido ? 'Contrato indefinido — no aplica fecha de fin' : ''" class="q-mb-md field-green" />
+                <q-input
+                  v-model="form.fechaFin"
+                  :label="esIndefinido ? 'Fecha Fin' : 'Fecha Fin *'"
+                  outlined
+                  type="date"
+                  color="green-8"
+                  :min="form.fechaInicio || undefined"
+                  :disable="esIndefinido"
+                  :hint="esIndefinido ? 'Contrato indefinido — no aplica fecha de fin' : ''"
+                  :rules="[fechaFinValida]"
+                  class="q-mb-md field-green"
+                />
               </div>
               <div class="col-12">
                 <q-input v-model="form.observaciones" label="Observaciones" outlined type="textarea" maxlength="500" class="q-mb-md field-green" color="green-8" />
@@ -166,7 +186,7 @@
                 <div class="section-title">Asignación de Horario</div>
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-6">
-                    <q-input v-model="form.horasDia" label="Horas por Día *" outlined type="number" min="1" max="24" color="green-8" @keydown="soloNumeros" :disable="horasDiaDisable" :hint="horasDiaDisable ? `Fijo para ${jornadaSeleccionada?.label || ''}` : ''" class="q-mb-md field-green" />
+                    <q-input v-model="form.horasDia" label="Horas por Día *" outlined type="number" min="1" max="24" color="green-8" @keydown="soloNumeros" :disable="horasDiaDisable" :hint="horasDiaDisable ? `Fijo para ${jornadaSeleccionada?.label || ''}` : ''" :rules="[horasDiaValida]" class="q-mb-md field-green" />
                   </div>
                   <div class="col-12 col-md-6">
                     <q-input v-model="form.horasSemana" label="Horas por Semana" outlined type="number" disable color="green-8" class="q-mb-md field-green"
@@ -178,10 +198,10 @@
                 <div class="q-col-gutter-md">
                   <div class="row q-col-gutter-md">
                     <div class="col-12 col-md-6">
-                      <q-select v-model="form.turnoId" :options="turnoOptionsFiltrados" label="Turno" outlined emit-value map-options clearable color="green-8" class="q-mb-md field-green" />
+                      <q-select v-model="form.turnoId" :options="turnoOptionsFiltrados" label="Turno *" outlined emit-value map-options clearable color="green-8" :rules="[turnoValido]" class="q-mb-md field-green" />
                     </div>
                     <div class="col-12 col-md-6">
-                      <q-input v-model="form.toleranciaMinutos" label="Tolerancia (min)" outlined type="number" min="0" max="30" color="green-8" @keydown="soloNumeros" hint="Máximo 30 minutos" :rules="[v => (v ?? 0) <= 30 || 'Máximo 30 minutos']" class="q-mb-md field-green" />
+                      <q-input v-model="form.toleranciaMinutos" label="Tolerancia (min)" outlined type="number" min="0" max="30" color="green-8" @keydown="soloNumeros" hint="Máximo 30 minutos" :rules="[toleranciaValida]" class="q-mb-md field-green" />
                     </div>
                   </div>
                   <q-slide-transition>
@@ -219,7 +239,35 @@
 
       <q-card-actions align="right" class="q-pa-md dialog-actions">
         <q-btn flat label="Cancelar" color="green-8" v-close-popup no-caps />
-        <q-btn unelevated color="green-8" label="Guardar" @click="guardar" no-caps :loading="saving" :disable="saving" />
+        <q-btn
+          v-if="tab !== 'empleado'"
+          flat
+          label="Anterior"
+          color="green-8"
+          no-caps
+          @click="anterior"
+        />
+        <q-btn
+          v-if="tab !== 'horario'"
+          unelevated
+          color="green-8"
+          label="Siguiente"
+          icon-right="arrow_forward"
+          no-caps
+          :disable="!pasoActualValido"
+          @click="siguiente"
+        />
+        <q-btn
+          v-else
+          unelevated
+          color="green-8"
+          label="Guardar"
+          icon="save"
+          no-caps
+          :loading="saving"
+          :disable="saving || !formularioValido"
+          @click="guardar"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -285,6 +333,91 @@ const diasSemana = [
 
 const diasSeleccionados = computed(() => Object.values(form.dias).filter(Boolean).length)
 
+const fechaActual = new Date()
+const fechaHoy = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}-${String(fechaActual.getDate()).padStart(2, '0')}`
+
+const fechaInicioValida = valor => {
+  if (!valor) return 'La fecha de inicio es obligatoria.'
+  if (!props.esEditar && valor < fechaHoy) {
+    return 'La fecha de inicio no puede ser anterior a la fecha actual.'
+  }
+  return true
+}
+
+const fechaFinValida = valor => {
+  if (esIndefinido.value) return true
+  if (!valor) return 'La fecha de fin es obligatoria.'
+  if (!form.fechaInicio) return 'Primero seleccione la fecha de inicio.'
+  return valor > form.fechaInicio || 'La fecha de fin debe ser posterior a la fecha de inicio.'
+}
+
+const horasDiaValida = valor => {
+  if (!form.controlaAsistencia) return true
+  const horas = Number(valor)
+  if (!Number.isInteger(horas) || horas < 1 || horas > 24) {
+    return 'Las horas por día deben estar entre 1 y 24.'
+  }
+  return true
+}
+
+const toleranciaValida = valor => {
+  if (valor === null || valor === undefined || valor === '') return true
+  const minutos = Number(valor)
+  if (!Number.isInteger(minutos) || minutos < 0 || minutos > 30) {
+    return 'La tolerancia debe estar entre 0 y 30 minutos.'
+  }
+  return true
+}
+
+const turnoValido = valor => {
+  if (!form.controlaAsistencia) return true
+  return !!valor || 'Seleccione un turno.'
+}
+
+const empleadoValido = computed(() => !!form.empleado?.id)
+
+const contratoValido = computed(() => {
+  if (!form.cargo || !form.tipoContrato || !form.tipoJornada || fechaInicioValida(form.fechaInicio) !== true) return false
+  return fechaFinValida(form.fechaFin) === true
+})
+
+const salarioValido = computed(() => Number(form.sueldoBase) > 0)
+
+const asistenciaValida = computed(() => {
+  if (!form.controlaAsistencia) return true
+  return horasDiaValida(form.horasDia) === true &&
+    Number(form.horasSemana) >= 1 &&
+    diasSeleccionados.value >= 1 &&
+    turnoValido(form.turnoId) === true &&
+    toleranciaValida(form.toleranciaMinutos) === true
+})
+
+const horarioValido = computed(() => {
+  if (!form.controlaAsistencia) return true
+  return horasDiaValida(form.horasDia) === true &&
+    Number(form.horasSemana) >= 1 &&
+    diasSeleccionados.value >= 1 &&
+    turnoValido(form.turnoId) === true &&
+    toleranciaValida(form.toleranciaMinutos) === true
+})
+
+const formularioValido = computed(() =>
+  empleadoValido.value &&
+  contratoValido.value &&
+  salarioValido.value &&
+  asistenciaValida.value &&
+  horarioValido.value
+)
+
+const pasoActualValido = computed(() => {
+  if (tab.value === 'empleado') return empleadoValido.value
+  if (tab.value === 'contrato') return contratoValido.value
+  if (tab.value === 'salario') return salarioValido.value
+  return asistenciaValida.value
+})
+
+const ordenTabs = ['empleado', 'contrato', 'salario', 'asistencia', 'horario']
+
 const tipoJornadaHorasMap = {
   'Tiempo Completo': 8,
   'Medio Tiempo': 4,
@@ -322,7 +455,7 @@ const requiereAsistencia = computed(() => {
   return cargosConAsistencia.has(cargoSeleccionado.value.label)
 })
 
-const asistenciaDisable = computed(() => !requiereAsistencia.value)
+const asistenciaDisable = true
 
 const jornadaTurnosMap = {
   'Tiempo Completo': ['Completo'],
@@ -390,8 +523,7 @@ watch(() => form.tipoJornada, (val) => {
   }
 })
 watch(() => form.cargo, (val) => {
-  if (!val) return
-  form.controlaAsistencia = requiereAsistencia.value
+  form.controlaAsistencia = val ? requiereAsistencia.value : false
 })
 
 async function filtrarEmpleados(val, update) {
@@ -449,7 +581,19 @@ async function cargarTiposPago() {
   } catch { tipoPagoOptions.value = [] }
 }
 
+function siguiente() {
+  if (!pasoActualValido.value) return
+  const indice = ordenTabs.indexOf(tab.value)
+  if (indice < ordenTabs.length - 1) tab.value = ordenTabs[indice + 1]
+}
+
+function anterior() {
+  const indice = ordenTabs.indexOf(tab.value)
+  if (indice > 0) tab.value = ordenTabs[indice - 1]
+}
+
 async function guardar() {
+  if (!formularioValido.value) return
   saving.value = true
   try {
     const payload = {
@@ -518,10 +662,16 @@ watch(() => props.contratoId, async (id) => {
     form.cargo = c.cargoId || null
     form.tipoContrato = c.tipoContratoId || null
     form.tipoJornada = c.tipoJornadaId || null
-    if (c.contratoTurno) {
-      form.turnoId = c.contratoTurno.turnoId || null
-      if (c.contratoTurno.dias) Object.assign(form.dias, c.contratoTurno.dias)
-    }
+    form.turnoId = c.turnoId || null
+    Object.assign(form.dias, {
+      lunes: c.lunes ?? false,
+      martes: c.martes ?? false,
+      miercoles: c.miercoles ?? false,
+      jueves: c.jueves ?? false,
+      viernes: c.viernes ?? false,
+      sabado: c.sabado ?? false,
+      domingo: c.domingo ?? false
+    })
     estadoActual.value = c.estado || 'ACTIVO'
     if (c.empleado) {
       form.empleado = {

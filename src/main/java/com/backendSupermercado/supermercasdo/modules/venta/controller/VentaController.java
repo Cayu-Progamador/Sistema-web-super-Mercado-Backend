@@ -74,6 +74,11 @@ public class VentaController {
         return service.resumen();
     }
 
+    @GetMapping("/dashboard")
+    public com.backendSupermercado.supermercasdo.modules.venta.dto.DashboardVentasDto dashboard() {
+        return service.dashboard();
+    }
+
     @GetMapping("/{id}")
     public VentaResponseDto obtener(@PathVariable Long id) { return service.obtener(id); }
 

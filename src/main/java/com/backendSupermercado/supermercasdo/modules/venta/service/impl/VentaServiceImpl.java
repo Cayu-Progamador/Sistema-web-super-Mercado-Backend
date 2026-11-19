@@ -6,6 +6,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.text.Normalizer;
 import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,6 +41,7 @@ import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaCatalogoDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaResponseDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VerificacionVentaDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaResumenDto;
+import com.backendSupermercado.supermercasdo.modules.venta.dto.DashboardVentasDto;
 import com.backendSupermercado.supermercasdo.modules.venta.dto.VentaDetalleResponseDto;
 import com.backendSupermercado.supermercasdo.modules.venta.entity.CuentaPorCobrar;
 import com.backendSupermercado.supermercasdo.modules.venta.entity.DetalleVenta;
@@ -96,7 +100,7 @@ public class VentaServiceImpl implements com.backendSupermercado.supermercasdo.m
                 .codigo(generarCodigo())
                 .cliente(cliente)
                 .usuario(usuario)
-                .idCaja(request.idCaja())
+                .idCaja(sesionCaja.getCaja().getIdCaja())
                 .sesionCaja(sesionCaja)
                 .estado(EstadoVenta.CONFIRMADA)
                 .subtotal(CERO)
@@ -257,6 +261,59 @@ public class VentaServiceImpl implements com.backendSupermercado.supermercasdo.m
                 ventaRepository.sumarTotales(EstadoVenta.CONFIRMADA),
                 ventaRepository.contarPendientes(EstadoVenta.ANULADA),
                 gananciaDelDia());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardVentasDto dashboard() {
+        LocalDate hoy = LocalDate.now();
+        LocalDate inicioSemana = hoy.minusDays(6);
+        List<Venta> ventas = ventaRepository.findByEstadoAndFechaVentaGreaterThanEqualAndFechaVentaLessThan(
+                EstadoVenta.CONFIRMADA, inicioSemana.atStartOfDay(), hoy.plusDays(1).atStartOfDay());
+
+        Map<LocalDate, BigDecimal> totalesPorDia = new LinkedHashMap<>();
+        Map<LocalDate, Long> cantidadesPorDia = new LinkedHashMap<>();
+        for (int i = 0; i < 7; i++) {
+            LocalDate fecha = inicioSemana.plusDays(i);
+            totalesPorDia.put(fecha, CERO);
+            cantidadesPorDia.put(fecha, 0L);
+        }
+        Map<String, BigDecimal> totalesPorMetodo = new LinkedHashMap<>();
+        Map<String, BigDecimal> cantidadesPorProducto = new LinkedHashMap<>();
+
+        for (Venta venta : ventas) {
+            LocalDate fecha = venta.getFechaVenta().toLocalDate();
+            BigDecimal total = venta.getTotal() == null ? CERO : venta.getTotal();
+            totalesPorDia.put(fecha, totalesPorDia.getOrDefault(fecha, CERO).add(total));
+            cantidadesPorDia.put(fecha, cantidadesPorDia.getOrDefault(fecha, 0L) + 1);
+
+            for (PagoVenta pago : venta.getPagos()) {
+                String metodo = pago.getMetodoPago() == null ? "OTROS" : pago.getMetodoPago().name();
+                totalesPorMetodo.put(metodo, totalesPorMetodo.getOrDefault(metodo, CERO).add(total));
+            }
+            for (DetalleVenta detalle : venta.getDetalles()) {
+                String producto = detalle.getProducto() == null ? "Producto sin nombre" : detalle.getProducto().getNombre();
+                BigDecimal cantidad = detalle.getCantidadBase() == null ? detalle.getCantidad() : detalle.getCantidadBase();
+                cantidadesPorProducto.put(producto, cantidadesPorProducto.getOrDefault(producto, BigDecimal.ZERO)
+                        .add(cantidad == null ? BigDecimal.ZERO : cantidad));
+            }
+        }
+
+        List<DashboardVentasDto.VentaPorDiaDto> serie = new ArrayList<>();
+        for (Map.Entry<LocalDate, BigDecimal> item : totalesPorDia.entrySet()) {
+            serie.add(new DashboardVentasDto.VentaPorDiaDto(item.getKey().toString(),
+                    item.getKey().getDayOfWeek().getDisplayName(java.time.format.TextStyle.SHORT, Locale.forLanguageTag("es-BO")),
+                    item.getValue(), cantidadesPorDia.get(item.getKey())));
+        }
+        List<DashboardVentasDto.VentaPorMetodoPagoDto> metodos = totalesPorMetodo.entrySet().stream()
+                .map(item -> new DashboardVentasDto.VentaPorMetodoPagoDto(item.getKey(), item.getValue()))
+                .toList();
+        List<DashboardVentasDto.ProductoMasVendidoDto> productos = cantidadesPorProducto.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed()).limit(5)
+                .map(item -> new DashboardVentasDto.ProductoMasVendidoDto(item.getKey(), item.getValue())).toList();
+        BigDecimal ventasHoy = totalesPorDia.getOrDefault(hoy, CERO);
+        return new DashboardVentasDto(ventasHoy, cantidadesPorDia.getOrDefault(hoy, 0L),
+                totalesPorDia.values().stream().reduce(CERO, BigDecimal::add), serie, metodos, productos);
     }
 
     @Override

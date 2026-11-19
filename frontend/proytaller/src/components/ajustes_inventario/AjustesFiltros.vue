@@ -11,17 +11,25 @@
         <div class="col-12 col-sm-6 col-md-2"><q-select v-model="local.estado" outlined dense clearable emit-value
             map-options :options="estados" label="Estado" @update:model-value="emitir" /></div>
         <div class="col-12 col-sm-6 col-md-2"><q-input v-model="local.desde" outlined dense type="date" label="Desde"
-            @update:model-value="emitir" /></div>
+            :max="local.hasta || undefined" :error="rangoFechasInvalido"
+            error-message="Desde no puede ser mayor que Hasta." /></div>
         <div class="col-12 col-sm-6 col-md-2"><q-input v-model="local.hasta" outlined dense type="date" label="Hasta"
-            :min="local.desde || undefined" @update:model-value="emitir" /></div>
+            :min="local.desde || undefined" :error="rangoFechasInvalido"
+            error-message="Hasta debe ser igual o posterior a Desde." /></div>
         <div class="col-12"><q-btn outline no-caps color="green-8" icon="restart_alt" label="Limpiar filtros"
             @click="limpiar" /></div>
+        <div v-if="rangoFechasInvalido" class="col-12">
+          <q-banner dense rounded class="bg-red-1 text-negative">
+            La fecha “Desde” no puede ser posterior a la fecha “Hasta”.
+          </q-banner>
+        </div>
       </div>
     </q-card-section></q-card>
 </template>
 <script setup>
-import { reactive } from 'vue'
-const emit = defineEmits(['filtrar', 'limpiar']); const tipos = [{ label: 'Entrada', value: 'ENTRADA' }, { label: 'Salida', value: 'SALIDA' }]; const estados = [{ label: 'Borrador', value: 'BORRADOR' }, { label: 'Pendiente aprobación', value: 'PENDIENTE_APROBACION' }, { label: 'Aprobado', value: 'APROBADO' }, { label: 'Aplicado', value: 'APLICADO' }, { label: 'Rechazado', value: 'RECHAZADO' }, { label: 'Cancelado', value: 'CANCELADO' }]; const local = reactive({ buscar: '', tipo: null, estado: null, desde: '', hasta: '' }); function emitir() { emit('filtrar', { ...local }) } function limpiar() { Object.assign(local, { buscar: '', tipo: null, estado: null, desde: '', hasta: '' }); emit('limpiar') }
+import { computed, reactive, watch } from 'vue'
+const emit = defineEmits(['filtrar', 'limpiar']); const tipos = [{ label: 'Entrada', value: 'ENTRADA' }, { label: 'Salida', value: 'SALIDA' }]; const estados = [{ label: 'Borrador', value: 'BORRADOR' }, { label: 'Pendiente aprobación', value: 'PENDIENTE_APROBACION' }, { label: 'Aprobado', value: 'APROBADO' }, { label: 'Aplicado', value: 'APLICADO' }, { label: 'Rechazado', value: 'RECHAZADO' }, { label: 'Cancelado', value: 'CANCELADO' }]; const local = reactive({ buscar: '', tipo: null, estado: null, desde: '', hasta: '' }); const rangoFechasInvalido = computed(() => Boolean(local.desde && local.hasta && local.desde > local.hasta)); function emitir() { if (!rangoFechasInvalido.value) emit('filtrar', { ...local }) } function limpiar() { Object.assign(local, { buscar: '', tipo: null, estado: null, desde: '', hasta: '' }); emit('limpiar') }
+watch(() => [local.desde, local.hasta], () => emitir())
 </script>
 <style
   scoped>

@@ -121,7 +121,7 @@
       @confirmar="onConfirmarAccion" />
 
     <EditarUsuarioDialog v-model="mostrarEditar" :id="usuarioSeleccionado.id" :username="usuarioSeleccionado.username"
-      :roles="usuarioSeleccionado.roles" :roles-disponibles="listaRoles" @guardar="onConfirmarEditar" />
+      :roles="usuarioSeleccionado.roles" :roles-disponibles="listaRoles" @actualizado="onUsuarioActualizado" />
 
     <DetalleUsuario
       v-model="mostrarVer"
@@ -138,7 +138,7 @@
   import ConfirmarUsuarioDialog from '../../components/usuarios/ConfirmarUsuarioDialog.vue'
   import EditarUsuarioDialog from '../../components/usuarios/EditarUsuarioDialog.vue'
   import FiltroUsuario from '../../components/usuarios/FiltroUsuario.vue'
-  import { listarUsuarios, desactivarUsuario, activarUsuario, actualizarUsuario, filtrarUsuarios, exportarUsuarios, exportarUsuariosPDF as exportPDF, exportarUsuariosExcel as exportExcel } from '../../api/usuario/usuario'
+  import { listarUsuarios, desactivarUsuario, activarUsuario, filtrarUsuarios, exportarUsuarios, exportarUsuariosPDF as exportPDF, exportarUsuariosExcel as exportExcel } from '../../api/usuario/usuario'
   import { ref, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
   import { useAuthStore } from '../../store/store'
@@ -240,28 +240,9 @@
     cargarUsuarios()
   }
 
-  const onConfirmarEditar = async (data) => {
-    try {
-      await actualizarUsuario(data.id, {
-        username: data.username,
-        password: data.password,
-        roles: data.roles
-      })
-
-      $q.notify({
-        type: 'positive',
-        message: 'Usuario actualizado correctamente'
-      })
-
-      await cargarUsuarios()
-      dashboardKey.value++
-
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: error.response?.data?.message || 'Error al actualizar usuario'
-      })
-    }
+  const onUsuarioActualizado = async () => {
+    await cargarUsuarios()
+    dashboardKey.value++
   }
 
   const cargarUsuarios = async () => {

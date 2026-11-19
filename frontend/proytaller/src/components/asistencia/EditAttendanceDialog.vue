@@ -9,8 +9,8 @@
             <q-icon name="edit" size="22px" color="#4a8c25" />
           </div>
           <div>
-            <div class="modal-eyebrow">{{ esCreacion ? 'NUEVO REGISTRO' : 'EDITAR REGISTRO' }}</div>
-            <div class="modal-title">{{ esCreacion ? 'Registrar Asistencia' : 'Editar Asistencia' }}</div>
+            <div class="modal-eyebrow">{{ esCreacion ? 'REGISTRO MANUAL' : 'ACTUALIZAR ASISTENCIA' }}</div>
+            <div class="modal-title">{{ esCreacion ? 'Registrar Asistencia Manual' : 'Actualizar Asistencia' }}</div>
           </div>
         </div>
         <q-btn icon="close" flat round dense class="close-btn" @click="cerrar" />
@@ -96,7 +96,7 @@
           <div class="row justify-end q-gutter-sm q-mt-md">
             <q-btn flat label="Cancelar" class="btn-cancel" @click="cerrar" />
             <q-btn
-              :label="esCreacion ? 'Registrar' : 'Guardar'"
+              :label="esCreacion ? 'Registrar asistencia' : 'Actualizar asistencia'"
               type="submit"
               :loading="guardando"
               :disable="esPermiso"

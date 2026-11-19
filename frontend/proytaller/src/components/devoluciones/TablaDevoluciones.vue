@@ -17,6 +17,36 @@
         <q-inner-loading showing color="primary" />
       </template>
 
+      <template v-slot:bottom="scope">
+        <div class="row items-center justify-end full-width q-gutter-xs q-py-sm">
+          <q-btn
+            flat
+            round
+            dense
+            icon="chevron_left"
+            :disable="scope.isFirstPage"
+            @click="scope.prevPage"
+          >
+            <q-tooltip>Anterior</q-tooltip>
+          </q-btn>
+
+          <span class="text-caption text-grey-7 q-px-sm">
+            {{ scope.pagination.page }} / {{ scope.pagesNumber }}
+          </span>
+
+          <q-btn
+            flat
+            round
+            dense
+            icon="chevron_right"
+            :disable="scope.isLastPage"
+            @click="scope.nextPage"
+          >
+            <q-tooltip>Siguiente</q-tooltip>
+          </q-btn>
+        </div>
+      </template>
+
       <template v-slot:no-data>
         <div class="text-center q-pa-lg text-grey-6">
           <q-icon name="assignment_return" size="48px" color="grey-4" />

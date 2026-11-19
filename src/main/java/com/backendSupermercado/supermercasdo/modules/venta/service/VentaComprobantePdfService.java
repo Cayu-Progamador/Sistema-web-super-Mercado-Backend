@@ -3,6 +3,8 @@ package com.backendSupermercado.supermercasdo.modules.venta.service;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.springframework.stereotype.Service;
 
@@ -11,7 +13,10 @@ import com.backendSupermercado.supermercasdo.modules.venta.entity.DetalleVenta;
 import com.backendSupermercado.supermercasdo.modules.venta.entity.PagoVenta;
 import com.backendSupermercado.supermercasdo.modules.venta.entity.Venta;
 import com.backendSupermercado.supermercasdo.modules.venta.enums.MetodoPago;
+import com.backendSupermercado.supermercasdo.modules.configuracion.entity.ConfiguracionEmpresa;
+import com.backendSupermercado.supermercasdo.modules.configuracion.repository.ConfiguracionEmpresaRepository;
 import com.itextpdf.barcodes.BarcodeQRCode;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFont;
@@ -31,6 +36,12 @@ import com.itextpdf.layout.properties.UnitValue;
 
 @Service
 public class VentaComprobantePdfService {
+
+    private final ConfiguracionEmpresaRepository configuracionEmpresaRepository;
+
+    public VentaComprobantePdfService(ConfiguracionEmpresaRepository configuracionEmpresaRepository) {
+        this.configuracionEmpresaRepository = configuracionEmpresaRepository;
+    }
 
     private static final float ANCHO_TICKET = 226.77f; // 80 mm en puntos
     // El comprobante se imprime en ticket térmico monocromático.
@@ -64,11 +75,23 @@ public class VentaComprobantePdfService {
     }
 
     private void titulo(Document doc, Venta venta, PdfFont normal, PdfFont negrita) {
-        doc.add(new Paragraph("NOMBRE DEL\nSUPERMERCADO").setFont(negrita).setFontSize(9)
+        ConfiguracionEmpresa empresa = configuracionEmpresaRepository.findFirstByOrderByIdAsc().orElse(null);
+        String nombre = valor(empresa == null ? null : empresa.getNombreComercial(), "NOMBRE DEL SUPERMERCADO");
+        String razon = valor(empresa == null ? null : empresa.getRazonSocial(), "COMPROBANTE DE VENTA");
+        String direccion = valor(empresa == null ? null : empresa.getDireccion(), "AV. PRINCIPAL #100") + ", " + valor(empresa == null ? null : empresa.getDepartamento(), "LA PAZ - BOLIVIA");
+        String datos = direccion + "\nNIT: " + valor(empresa == null ? null : empresa.getNit(), "000000000") + "\nTelefono: " + valor(empresa == null ? null : empresa.getTelefono(), "70000000");
+        if (empresa != null && empresa.getLogoPath() != null && Files.exists(Path.of(empresa.getLogoPath()))) {
+            try {
+                doc.add(new Image(ImageDataFactory.create(empresa.getLogoPath())).setWidth(42).setHeight(42).setAutoScale(false).setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER));
+            } catch (Exception ignored) {
+                // El comprobante continúa generándose aunque el logo no esté disponible.
+            }
+        }
+        doc.add(new Paragraph(nombre).setFont(negrita).setFontSize(9)
                 .setFontColor(VERDE).setTextAlignment(TextAlignment.CENTER).setMargin(0));
-        doc.add(new Paragraph("COMPROBANTE DE VENTA").setFont(negrita).setFontSize(8)
+        doc.add(new Paragraph(razon).setFont(negrita).setFontSize(8)
                 .setFontColor(GRIS).setTextAlignment(TextAlignment.CENTER).setMargin(0));
-        doc.add(new Paragraph("AV. PRINCIPAL #100, LA PAZ - BOLIVIA\nNIT: 000000000\nTeléfono: 70000000")
+        doc.add(new Paragraph(datos)
                 .setFont(normal).setFontSize(6.5f).setFontColor(GRIS)
                 .setTextAlignment(TextAlignment.CENTER).setMarginBottom(3));
         doc.add(new Paragraph("✓  VENTA " + venta.getEstado() + "     " + texto(venta.getCodigo()))
@@ -157,8 +180,13 @@ public class VentaComprobantePdfService {
                 .setFont(negrita).setFontSize(7).setFontColor(GRIS))
                 .add(new Paragraph("Código: " + venta.getCodigo()).setFont(normal).setFontSize(7).setFontColor(VERDE)));
         doc.add(tabla);
-        doc.add(new Paragraph("Gracias por su compra. Conserve este comprobante.")
+        ConfiguracionEmpresa empresa = configuracionEmpresaRepository.findFirstByOrderByIdAsc().orElse(null);
+        doc.add(new Paragraph(valor(empresa == null ? null : empresa.getMensajeComprobante(), "Gracias por su compra. Conserve este comprobante."))
                 .setFont(normal).setFontSize(7).setFontColor(GRIS).setTextAlignment(TextAlignment.CENTER).setMarginTop(7));
+    }
+
+    private String valor(String valor, String defecto) {
+        return valor == null || valor.isBlank() ? defecto : valor;
     }
 
     private void agregarDato(Table tabla, String etiqueta, String valor, PdfFont normal, PdfFont negrita) {

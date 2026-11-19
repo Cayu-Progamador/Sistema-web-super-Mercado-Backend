@@ -41,7 +41,8 @@
                 Username
               </label>
               <q-input v-model="form.username" outlined dense placeholder="Ej: juan.perez" class="form-input"
-                :rules="[val => !!val || 'El username es obligatorio']" />
+                :error="tocado.username && !!errores.username" :error-message="errores.username"
+                @blur="tocado.username = true" />
             </div>
 
             <div class="form-group">
@@ -51,12 +52,33 @@
                 <span class="label-hint">(opcional)</span>
               </label>
               <q-input v-model="form.password" outlined dense :type="mostrarPassword ? 'text' : 'password'"
-                placeholder="••••••••" class="form-input">
+                placeholder="Mínimo 8 caracteres" class="form-input"
+                :error="tocado.password && !!errores.password" :error-message="errores.password"
+                @blur="tocado.password = true">
                 <template v-slot:append>
                   <q-icon :name="mostrarPassword ? 'visibility_off' : 'visibility'" class="cursor-pointer"
                     style="color:#82bd43" @click="mostrarPassword = !mostrarPassword" />
                 </template>
               </q-input>
+
+              <div v-if="form.password" class="q-mt-sm">
+                <div class="fortaleza-wrap">
+                  <div class="fortaleza-label">Fortaleza de la contraseña:</div>
+                  <div class="fortaleza-bars">
+                    <div v-for="i in 4" :key="i" class="fortaleza-bar" :class="getBarClass(i)"></div>
+                  </div>
+                  <div class="fortaleza-text" :class="fortalezaClase">{{ fuerzaLabel }}</div>
+                </div>
+
+                <div class="req-list q-mt-sm">
+                  <div v-for="req in requisitos" :key="req.label" class="req-item" :class="{ 'req-ok': req.cumple }">
+                    <div class="req-dot" :class="req.cumple ? 'req-dot-ok' : 'req-dot-pending'">
+                      <q-icon :name="req.cumple ? 'check' : 'remove'" size="12px" color="white" />
+                    </div>
+                    <span class="req-texto">{{ req.label }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -70,7 +92,8 @@
               </label>
               <q-select v-model="form.roles" outlined dense multiple :options="props.rolesDisponibles"
                 option-label="label" option-value="value" emit-value map-options placeholder="Selecciona roles"
-                class="form-input" :rules="[val => val?.length > 0 || 'Selecciona al menos un rol']">
+                class="form-input" :error="tocado.roles && !!errores.roles" :error-message="errores.roles"
+                @blur="tocado.roles = true">
                 <template v-slot:option="scope">
                   <q-item v-bind="scope.itemProps">
 
@@ -117,7 +140,7 @@
           Cancelar
         </q-btn>
 
-        <q-btn class="btn-guardar" unelevated no-caps :disable="!esValido || cargando" :loading="cargando"
+        <q-btn class="btn-guardar" unelevated no-caps :disable="!formularioValido || !hayCambios || cargando" :loading="cargando"
           @click="guardar">
           <template v-slot:loading>
             <q-spinner-dots color="white" size="1em" class="q-mr-sm" />
@@ -136,6 +159,8 @@
 
   <script setup>
   import { ref, computed, watch, nextTick } from 'vue'
+  import { useQuasar } from 'quasar'
+  import { actualizarUsuario } from '../../api/usuario/usuario'
 
   const props = defineProps({
     modelValue: { type: Boolean, default: false },
@@ -145,7 +170,8 @@
     rolesDisponibles: { type: Array, default: () => [] }
   })
 
-  const emit = defineEmits(['update:modelValue', 'guardar'])
+  const emit = defineEmits(['update:modelValue', 'actualizado'])
+  const $q = useQuasar()
 
   const abierto = computed({
     get: () => props.modelValue,
@@ -161,6 +187,24 @@
     roles: []
   })
 
+  const tocado = ref({
+    username: false,
+    password: false,
+    roles: false
+  })
+
+  const errores = computed(() => ({
+    username: validarUsername(form.value.username),
+    password: validarPassword(form.value.password),
+    roles: form.value.roles.length > 0 ? '' : 'Debe asignar al menos un rol.'
+  }))
+
+  const formularioValido = computed(() =>
+    !errores.value.username &&
+    !errores.value.password &&
+    !errores.value.roles
+  )
+
   const usuarioActual = computed(() => ({
     username: props.username || '—'
   }))
@@ -172,10 +216,67 @@
 
   const rolesActuales = computed(() => props.roles || [])
 
-  const esValido = computed(() => {
-    return form.value.username?.trim() &&
-      form.value.roles?.length > 0
+  const hayCambios = computed(() => {
+    const usernameCambio = form.value.username.trim() !== (props.username || '').trim()
+    const passwordCambio = Boolean(form.value.password.trim())
+    const rolesActualesOrdenados = [...(props.roles || [])].sort().join(',')
+    const rolesNuevosOrdenados = [...form.value.roles].sort().join(',')
+    return usernameCambio || passwordCambio || rolesActualesOrdenados !== rolesNuevosOrdenados
   })
+
+  function validarUsername(username) {
+    const valor = username?.trim() || ''
+    if (!valor) return 'El username es obligatorio.'
+    if (valor.length < 3 || valor.length > 50) return 'Debe tener entre 3 y 50 caracteres.'
+    if (!/^[A-Za-z0-9._-]+$/.test(valor)) {
+      return 'Use solo letras, números, punto, guion o guion bajo.'
+    }
+    return ''
+  }
+
+  function validarPassword(password) {
+    if (!password) return ''
+    if (password.length < 8) return 'Debe tener al menos 8 caracteres.'
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) ||
+        !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      return 'Incluya mayúscula, minúscula, número y carácter especial.'
+    }
+    return ''
+  }
+
+  const requisitos = computed(() => [
+    { label: 'Mínimo 8 caracteres', cumple: form.value.password.length >= 8 },
+    { label: 'Mayúscula', cumple: /[A-Z]/.test(form.value.password) },
+    { label: 'Minúscula', cumple: /[a-z]/.test(form.value.password) },
+    { label: 'Número', cumple: /[0-9]/.test(form.value.password) },
+    { label: 'Carácter especial (!@#$%)', cumple: /[^A-Za-z0-9]/.test(form.value.password) }
+  ])
+
+  const fuerzaValor = computed(() =>
+    requisitos.value.filter(req => req.cumple).length / requisitos.value.length
+  )
+
+  const fuerzaLabel = computed(() => {
+    if (fuerzaValor.value <= 0.2) return 'Muy débil'
+    if (fuerzaValor.value <= 0.4) return 'Débil'
+    if (fuerzaValor.value <= 0.6) return 'Regular'
+    return 'Fuerte'
+  })
+
+  const fortalezaClase = computed(() => {
+    if (fuerzaValor.value <= 0.2) return 'ft-rojo'
+    if (fuerzaValor.value <= 0.4) return 'ft-naranja'
+    if (fuerzaValor.value <= 0.6) return 'ft-amarillo'
+    return 'ft-verde'
+  })
+
+  const getBarClass = (i) => {
+    if (fuerzaValor.value === 0) return ''
+    if (fuerzaValor.value <= 0.2) return i <= 1 ? 'bar-rojo' : ''
+    if (fuerzaValor.value <= 0.4) return i <= 2 ? 'bar-naranja' : ''
+    if (fuerzaValor.value <= 0.6) return i <= 3 ? 'bar-amarillo' : ''
+    return 'bar-verde'
+  }
 
   const formatRol = (rol) => {
     return rol
@@ -211,6 +312,7 @@
       roles: [...(props.roles || [])]
     }
     mostrarPassword.value = false
+    tocado.value = { username: false, password: false, roles: false }
   }
 
   const cerrar = () => {
@@ -218,25 +320,32 @@
   }
 
   const guardar = async () => {
-    if (!esValido.value) return
+    tocado.value = { username: true, password: true, roles: true }
+    if (!formularioValido.value || !hayCambios.value) return
+
     cargando.value = true
-    await new Promise(r => setTimeout(r, 600))
-    cargando.value = false
 
-    const payload = {
-      username: form.value.username,
-      roles: form.value.roles
+    try {
+      const payload = {
+        username: form.value.username.trim(),
+        roles: form.value.roles
+      }
+
+      if (form.value.password.trim()) payload.password = form.value.password
+
+      await actualizarUsuario(props.id, payload)
+
+      $q.notify({ type: 'positive', message: 'Usuario actualizado correctamente' })
+      emit('actualizado')
+      cerrar()
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.response?.data?.message || 'Error al actualizar usuario'
+      })
+    } finally {
+      cargando.value = false
     }
-
-    if (form.value.password?.trim()) {
-      payload.password = form.value.password
-    }
-
-      
-
-
-    emit('guardar', { id: props.id, ...payload })
-    cerrar()
   }
 </script>
 
@@ -246,6 +355,7 @@
   .dialog-card {
     width: 100% !important;
     max-width: 700px !important;
+    max-height: 90vh !important;
     border-radius: 20px !important;
     overflow: hidden !important;
     background: #ffffff !important;
@@ -314,6 +424,8 @@
 
   .dialog-body {
     padding: 18px 20px 10px !important;
+    overflow-y: auto;
+    max-height: calc(90vh - 150px);
   }
 
   .user-card {
@@ -428,6 +540,15 @@
     box-shadow: 0 0 0 3px rgba(130, 189, 67, 0.15) !important;
   }
 
+  .form-input :deep(.q-field--error .q-field__control) {
+    border-color: #e53935 !important;
+  }
+
+  .form-input :deep(.q-field__bottom) {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
   .form-input :deep(.q-field__native) {
     font-family: 'Nunito', sans-serif;
     font-weight: 600;
@@ -463,6 +584,74 @@
     color: #2a5c1a;
     font-weight: 800;
   }
+
+  .fortaleza-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .fortaleza-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #5a8040;
+  }
+
+  .fortaleza-bars {
+    display: flex;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .fortaleza-bar {
+    flex: 1;
+    height: 5px;
+    border-radius: 4px;
+    background: #e4edd8;
+  }
+
+  .fortaleza-text {
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .bar-rojo { background: #ef4444; }
+  .bar-naranja { background: #d97b1a; }
+  .bar-amarillo { background: #eab308; }
+  .bar-verde { background: #4a8c25; }
+  .ft-rojo { color: #ef4444; }
+  .ft-naranja { color: #d97b1a; }
+  .ft-amarillo { color: #eab308; }
+  .ft-verde { color: #4a8c25; }
+
+  .req-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border-top: 1px solid #e4edd8;
+    padding-top: 10px;
+  }
+
+  .req-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .req-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .req-dot-pending { background: #ddecc5; }
+  .req-dot-ok { background: #4a8c25; }
+  .req-texto { font-size: 12px; font-weight: 600; color: #5a8040; }
+  .req-ok .req-texto { color: #2a5c1a; font-weight: 700; }
 
   .dialog-footer {
     display: flex;

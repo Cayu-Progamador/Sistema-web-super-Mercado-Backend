@@ -37,6 +37,7 @@ import Caja from '../pages/caja/CajaPage.vue'
 import PermisosSistema from '../pages/permisos/PermisosSistemaPage.vue'
 import VerificarVenta from '../pages/venta/VerificarVentaPage.vue'
 import Configuracion from '../pages/configuracion/ConfiguracionPage.vue'
+import Reportes from '../pages/reportes/ReportesPage.vue'
 const routes = [
   {
     path: '/verificar-venta/:codigo',
@@ -172,6 +173,11 @@ const routes = [
         name: 'configuracion',
         component: Configuracion,
         meta: { permiso: 'CONFIGURACION_VER' }
+      },
+      {
+        path: 'reportes',
+        name: 'reportes',
+        component: Reportes
       },
       {
         path: 'pedidos',

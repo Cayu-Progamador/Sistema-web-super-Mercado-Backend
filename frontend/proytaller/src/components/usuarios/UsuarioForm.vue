@@ -39,24 +39,25 @@
             <!-- Nombre de usuario -->
             <div class="q-mb-md">
               <label class="field-label">Nombre de Usuario <span class="required-star">*</span></label>
-              <q-input v-model="formulario.username" placeholder="ej. juan.perez" outlined dense class="custom-input">
+              <q-input v-model="formulario.username" placeholder="ej. juan.perez" outlined dense class="custom-input"
+                :error="tocado.username && !!errores.username" :error-message="errores.username"
+                @blur="tocado.username = true">
                 <template #prepend>
                   <q-icon name="person_outline" class="input-icon" />
                 </template>
-                <template #append>
-                  <q-icon v-if="formulario.username" name="check_circle" size="18px" class="icon-check" />
-                </template>
               </q-input>
-              <div v-if="formulario.username" class="disponible-msg q-mt-xs">
-                <q-icon name="check_circle" size="12px" class="q-mr-xs" />Usuario disponible
+              <div v-if="formulario.username && !errores.username" class="field-help q-mt-xs">
+                El sistema verificará que el usuario no esté registrado al guardar.
               </div>
             </div>
 
             <!-- Contraseña -->
             <div class="q-mb-sm">
               <label class="field-label">Contraseña <span class="required-star">*</span></label>
-              <q-input v-model="formulario.password" placeholder="Mínimo 6 caracteres"
-                :type="verContrasena ? 'text' : 'password'" outlined dense class="custom-input">
+              <q-input v-model="formulario.password" placeholder="Mínimo 8 caracteres"
+                :type="verContrasena ? 'text' : 'password'" outlined dense class="custom-input"
+                :error="tocado.password && !!errores.password" :error-message="errores.password"
+                @blur="tocado.password = true">
                 <template #prepend>
                   <q-icon name="lock_outline" class="input-icon" />
                 </template>
@@ -67,21 +68,27 @@
               </q-input>
             </div>
 
-            <!-- Fortaleza contraseña -->
+            <!-- Fortaleza: mismo estilo que Cambiar Contraseña -->
             <div v-if="formulario.password" class="q-mb-md">
-              <div class="row items-center justify-between q-mb-xs">
-                <span class="text-caption text-grey-6">Fortaleza de la contraseña:</span>
-                <span class="text-caption text-weight-bold" :style="{ color: fuerzaColor }">
-                  {{ fuerzaLabel }}
-                </span>
+              <div class="fortaleza-wrap q-mt-sm">
+                <div class="fortaleza-label">Fortaleza de la contraseña:</div>
+                <div class="fortaleza-bars">
+                  <div v-for="i in 4" :key="i" class="fortaleza-bar" :class="getBarClass(i)"></div>
+                </div>
+                <div class="fortaleza-text" :class="fortalezaClase">{{ fuerzaLabel }}</div>
               </div>
-              <q-linear-progress :value="fuerzaValor" :color="fuerzaColorQuasar" rounded size="7px"
-                class="strength-bar q-mb-sm" />
-              <div class="row q-gutter-xs">
-                <q-chip v-for="req in requisitos" :key="req.label" dense size="sm"
-                  :icon="req.cumple ? 'check_circle' : 'radio_button_unchecked'"
-                  :color="req.cumple ? 'positive' : 'grey-3'" :text-color="req.cumple ? 'white' : 'grey-6'"
-                  class="req-chip">{{ req.label }}</q-chip>
+
+              <div class="requisitos-password q-mt-md">
+                <div class="requisitos-titulo">Requisitos de Contraseña</div>
+                <div class="req-list">
+                  <div v-for="req in requisitos" :key="req.label" class="req-item"
+                    :class="{ 'req-ok': req.cumple }">
+                    <div class="req-dot" :class="req.cumple ? 'req-dot-ok' : 'req-dot-pending'">
+                      <q-icon :name="req.cumple ? 'check' : 'remove'" size="12px" color="white" />
+                    </div>
+                    <span class="req-texto">{{ req.label }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -98,9 +105,10 @@
             <div class="q-pa-md">
               <div class="q-gutter-md">
                 <label class="field-label">Empleados <span class="required-star">*</span></label>
-                <q-select filled v-model="formulario.empleadoId" :options="empleadosOptions"
+                <q-select outlined dense v-model="formulario.empleadoId" :options="empleadosOptions" class="custom-input"
                   option-label="nombreCompleto" option-value="id" emit-value map-options use-input hide-selected
-                  fill-input input-debounce="0" @filter="filterEmpleados">
+                  fill-input input-debounce="0" @filter="filterEmpleados" @blur="tocado.empleadoId = true"
+                  :error="tocado.empleadoId && !!errores.empleadoId" :error-message="errores.empleadoId">
                   <template v-slot:no-option>
                     <q-item>
                       <q-item-section class="text-grey">
@@ -124,7 +132,8 @@
                 <label class="field-label">Roles <span class="required-star">*</span></label>
                 <q-select v-model="formulario.roles" :options="rolesOptions" option-label="label" option-value="value"
                   emit-value map-options multiple use-chips use-input input-debounce="0" @filter="filterRoles" dense
-                  outlined label="Roles">
+                  outlined label="Roles" class="custom-input" @blur="tocado.roles = true"
+                  :error="tocado.roles && !!errores.roles" :error-message="errores.roles">
                   <template v-slot:option="scope">
                     <q-item v-bind="scope.itemProps">
                       <q-item-section>
@@ -152,7 +161,7 @@
         <!-- Footer -->
         <div class="row justify-end q-gutter-sm">
           <q-btn label="Cancelar" flat no-caps icon="close" class="btn-cancel" @click="$emit('cerrar')" />
-          <q-btn label="Guardar Usuario" type="submit" :loading="cargando" icon="save" unelevated no-caps
+          <q-btn label="Guardar Usuario" type="submit" :loading="cargando" :disable="!formularioValido || cargando" icon="save" unelevated no-caps
             class="btn-save">
             <template #loading>
               <q-spinner-dots color="white" size="1.2em" />
@@ -197,18 +206,59 @@ const formularioVacio = () => ({
 
 const formulario = ref(formularioVacio())
 
+const tocado = ref({
+  username: false,
+  password: false,
+  empleadoId: false,
+  roles: false
+})
+
+const errores = computed(() => ({
+  username: validarUsername(formulario.value.username),
+  password: validarPassword(formulario.value.password),
+  empleadoId: formulario.value.empleadoId ? '' : 'Debe seleccionar un empleado.',
+  roles: formulario.value.roles.length > 0 ? '' : 'Debe asignar al menos un rol.'
+}))
+
+const formularioValido = computed(() =>
+  !errores.value.username &&
+  !errores.value.password &&
+  !errores.value.empleadoId &&
+  !errores.value.roles
+)
+
+function validarUsername(username) {
+  const valor = username?.trim() || ''
+  if (!valor) return 'El nombre de usuario es obligatorio.'
+  if (valor.length < 3 || valor.length > 50) return 'Debe tener entre 3 y 50 caracteres.'
+  if (!/^[A-Za-z0-9._-]+$/.test(valor)) {
+    return 'Use solo letras, números, punto, guion o guion bajo.'
+  }
+  return ''
+}
+
+function validarPassword(password) {
+  if (!password) return 'La contraseña es obligatoria.'
+  if (password.length < 8) return 'Debe tener al menos 8 caracteres.'
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+    return 'Incluya mayúscula, minúscula, número y carácter especial.'
+  }
+  return ''
+}
+
 
 const requisitos = computed(() => [
+  { label: 'Mínimo 8 caracteres', cumple: formulario.value.password.length >= 8 },
   { label: 'Mayúscula', cumple: /[A-Z]/.test(formulario.value.password) },
   { label: 'Minúscula', cumple: /[a-z]/.test(formulario.value.password) },
   { label: 'Número', cumple: /[0-9]/.test(formulario.value.password) },
-  { label: 'Especial (!@#)', cumple: /[^A-Za-z0-9]/.test(formulario.value.password) },
+  { label: 'Carácter especial (!@#$%)', cumple: /[^A-Za-z0-9]/.test(formulario.value.password) },
 ])
 
 const fuerzaValor = computed(() => {
   const cumplidos = requisitos.value.filter(r => r.cumple).length
-  const longitud = formulario.value.password.length >= 6 ? 1 : 0
-  return (cumplidos + longitud) / 5
+  return cumplidos / requisitos.value.length
 })
 
 const fuerzaLabel = computed(() => {
@@ -233,6 +283,21 @@ const fuerzaColorQuasar = computed(() => {
   if (v <= 0.6) return 'warning'
   return 'positive'
 })
+
+const fortalezaClase = computed(() => {
+  if (fuerzaValor.value <= 0.2) return 'ft-rojo'
+  if (fuerzaValor.value <= 0.4) return 'ft-naranja'
+  if (fuerzaValor.value <= 0.6) return 'ft-amarillo'
+  return 'ft-verde'
+})
+
+const getBarClass = (i) => {
+  if (fuerzaValor.value === 0) return ''
+  if (fuerzaValor.value <= 0.2) return i <= 1 ? 'bar-rojo' : ''
+  if (fuerzaValor.value <= 0.4) return i <= 2 ? 'bar-naranja' : ''
+  if (fuerzaValor.value <= 0.6) return i <= 3 ? 'bar-amarillo' : ''
+  return 'bar-verde'
+}
 
 
 const toggleRol = (value) => {
@@ -309,30 +374,22 @@ onMounted(() => {
 
 //guardar un nuevo usuario
 const guardar = async () => {
-  if (!formulario.value.username.trim()) {
-    $q.notify({ type: 'warning', message: 'El nombre de usuario es requerido' })
-    return
+  tocado.value = {
+    username: true,
+    password: true,
+    empleadoId: true,
+    roles: true
   }
 
-  if (formulario.value.password.length < 6) {
-    $q.notify({ type: 'warning', message: 'La contraseña debe tener al menos 6 caracteres' })
-    return
-  }
-
-  if (!formulario.value.empleadoId) {
-    $q.notify({ type: 'warning', message: 'El empleado es requerido' })
-    return
-  }
-
-  if (formulario.value.roles.length === 0) {
-    $q.notify({ type: 'warning', message: 'Debes asignar al menos un rol' })
-    return
-  }
+  if (!formularioValido.value) return
 
   try {
     cargando.value = true
 
-    await registrarUsuario(formulario.value)
+    await registrarUsuario({
+      ...formulario.value,
+      username: formulario.value.username.trim()
+    })
 
     $q.notify({
       type: 'positive',
@@ -340,6 +397,12 @@ const guardar = async () => {
     })
 
     formulario.value = formularioVacio()
+    tocado.value = {
+      username: false,
+      password: false,
+      empleadoId: false,
+      roles: false
+    }
 
     emit('registrado')
     emit('cerrar')

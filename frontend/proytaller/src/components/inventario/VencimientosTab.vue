@@ -36,6 +36,9 @@
           dense
           type="date"
           label="Vence desde"
+          :max="filtro.fechaHasta || undefined"
+          :error="rangoFechasInvalido"
+          error-message="La fecha inicial no puede ser mayor que la fecha final."
         />
         <q-input
           v-model="filtro.fechaHasta"
@@ -43,6 +46,9 @@
           dense
           type="date"
           label="Vence hasta"
+          :min="filtro.fechaDesde || undefined"
+          :error="rangoFechasInvalido"
+          error-message="La fecha final debe ser igual o posterior a la fecha inicial."
         />
         <q-btn
           unelevated
@@ -50,6 +56,7 @@
           color="green-8"
           icon="filter_alt"
           label="Filtrar"
+          :disable="rangoFechasInvalido"
           @click="aplicarFiltros"
         />
         <q-btn
@@ -66,6 +73,7 @@
           color="green-8"
           icon="picture_as_pdf"
           label="Descargar PDF"
+          :disable="rangoFechasInvalido"
           :loading="descargandoPdf"
           @click="descargarPdf"
         />
@@ -125,17 +133,6 @@
             >
               <q-tooltip>Ver Kardex</q-tooltip>
             </q-btn>
-            <q-btn
-              v-if="esVencido(propsTabla.row)"
-              flat
-              round
-              dense
-              icon="delete_sweep"
-              color="negative"
-              @click="emit('baja', propsTabla.row)"
-            >
-              <q-tooltip>Dar de baja</q-tooltip>
-            </q-btn>
           </q-td>
         </template>
       </q-table>
@@ -174,6 +171,9 @@ const filtro = reactive({
   fechaHasta: ''
 })
 const aplicado = ref({ ...filtro })
+const rangoFechasInvalido = computed(() => Boolean(
+  filtro.fechaDesde && filtro.fechaHasta && filtro.fechaDesde > filtro.fechaHasta
+))
 
 const pagination = ref({
   page: 1,
@@ -281,6 +281,7 @@ async function cargarResumen() {
 }
 
 function aplicarFiltros() {
+  if (rangoFechasInvalido.value) return
   aplicado.value = { ...filtro }
   pagination.value.page = 1
   cargarListado({ pagination: pagination.value })
